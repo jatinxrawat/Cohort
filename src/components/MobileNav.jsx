@@ -7,7 +7,8 @@ import {
   MessageSquare,
   User,
   Users,
-  ShoppingBag
+  ShoppingBag,
+  Bookmark
 } from 'lucide-react';
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
@@ -23,12 +24,13 @@ const mobileNavItems = [
 
 export const MobileNav = () => {
   const location = useLocation();
-  const { hasUnreadMessages, unreadCount } = useAuth();
+  const { user, hasUnreadMessages, unreadCount } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
 
   const quickActions = [
+    { label: 'Saved Bookmarks', desc: 'View saved posts & discussions', link: '/saved-posts', icon: Bookmark, color: 'bg-amber-500' },
     { label: 'Post Anonymously', desc: 'Share confessions or thoughts safely', link: '/anonymous', icon: EyeOff, color: 'bg-purple-600' },
     { label: 'Create Feed Post', desc: 'Share updates on campus', link: '/home', icon: MessageSquare, color: 'bg-primary-500' },
     { label: 'Community Hub', desc: 'Connect with your college', link: '/community', icon: Users, color: 'bg-indigo-500' },
@@ -55,7 +57,15 @@ export const MobileNav = () => {
               aria-label={label}
             >
               <div className="relative">
-                <Icon className="w-5 h-5" />
+                {path === '/profile' && user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name || 'Profile'}
+                    className="w-5 h-5 rounded-full object-cover border border-primary-500/80"
+                  />
+                ) : (
+                  <Icon className="w-5 h-5" />
+                )}
                 {badge && unreadCount > 0 && (
                   <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-4.5 px-1 bg-primary-500 text-white font-extrabold text-[10px] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-900 shadow-md shadow-primary-500/30 animate-pulse">
                     {unreadCount > 99 ? '99+' : unreadCount}

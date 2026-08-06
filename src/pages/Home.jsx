@@ -76,7 +76,7 @@ export default function Home() {
         username: user?.username || null,
         name: user?.name || 'Student',
         avatar: user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || 'user')}`,
-        role: user?.college || 'Student',
+        role: user?.college || 'KIET',
       },
       content: postContent.trim(),
       timestamp: new Date(),

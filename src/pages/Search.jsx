@@ -290,7 +290,7 @@ export default function Search() {
               <span className="text-xs font-bold text-neutral-400 mr-sm flex items-center gap-xs">
                 <TrendingUp className="w-3.5 h-3.5 text-primary-500" /> Popular Searches:
               </span>
-              {['@jatin', 'Delhi University', 'Computer Science', 'Campus Community'].map(chip => (
+              {['@jatin', 'KIET', 'Computer Science', 'Campus Community'].map(chip => (
                 <button
                   key={chip}
                   onClick={() => setSearchTerm(chip)}
@@ -335,7 +335,7 @@ export default function Search() {
                             </p>
                           )}
                           <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-[1px]">
-                            {student.college || 'Delhi University'}
+                            {student.college || 'KIET'}
                           </p>
                         </div>
                       </div>

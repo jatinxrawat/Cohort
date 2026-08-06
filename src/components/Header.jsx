@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon, Sparkles, Users } from 'lucide-react';
+import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon, Sparkles, Users, Bookmark } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/Button';
@@ -36,13 +36,13 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-40 bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
       <div className="w-full px-md sm:px-lg py-sm flex items-center justify-between">
-        {/* Brand Logo - Cohort (Aligned Top Left) */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-primary-500 text-white flex items-center justify-center shadow-md shadow-primary-500/25 transition-transform duration-200 group-hover:scale-105">
-            <Users className="w-5 h-5 stroke-[2.5]" />
+        {/* Brand Logo - Cohort (First Photo Style) */}
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#d946ef] via-[#8b5cf6] to-[#0ea5e9] text-white flex items-center justify-center font-display font-black text-xl shadow-lg shadow-purple-500/25 transition-transform duration-200 group-hover:scale-105">
+            C
           </div>
-          <span className="font-heading font-extrabold text-2xl tracking-tight text-neutral-900 dark:text-white group-hover:text-primary-500 transition-colors">
-            Cohort
+          <span className="font-display font-black text-2xl tracking-tight text-neutral-900 dark:text-white flex items-baseline">
+            Cohort<span className="text-[#ff2a85] font-black text-2xl ml-0.5">.</span>
           </span>
         </Link>
 
@@ -84,17 +84,22 @@ export const Header = () => {
           {isAuthenticated ? (
             <div className="hidden md:flex items-center gap-md">
               <Link to="/profile" className="flex items-center gap-md px-md py-xs bg-neutral-100 dark:bg-neutral-800 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
-                <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                  {user?.name?.charAt(0) || 'U'}
-                </div>
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name || 'User'}
+                    className="w-8 h-8 rounded-full object-cover border border-primary-500/50"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                    {user?.name?.charAt(0) || 'U'}
+                  </div>
+                )}
                 <span className="text-sm font-medium hidden sm:inline">{user?.name?.split(' ')[0] || 'User'}</span>
               </Link>
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-md">
-              <Link to="/login">
-                <Button variant="ghost" size="md">Login</Button>
-              </Link>
               <Link to="/signup">
                 <Button variant="primary" size="md">Signup</Button>
               </Link>
@@ -147,6 +152,14 @@ export const Header = () => {
                     <span>Messages</span>
                   </Link>
                   <Link
+                    to="/saved-posts"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-md p-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg"
+                  >
+                    <Bookmark className="w-5 h-5 text-amber-500" />
+                    <span>Saved</span>
+                  </Link>
+                  <Link
                     to="/profile"
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center gap-md p-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg"
@@ -166,9 +179,6 @@ export const Header = () => {
                 </>
               ) : (
                 <div className="space-y-md">
-                  <Link to="/login" onClick={() => setIsMenuOpen(false)} className="block">
-                    <Button variant="secondary" className="w-full">Login</Button>
-                  </Link>
                   <Link to="/signup" onClick={() => setIsMenuOpen(false)} className="block">
                     <Button variant="primary" className="w-full">Signup</Button>
                   </Link>

@@ -7,7 +7,7 @@ import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { Input } from '@/components/Input';
 import { motion } from 'framer-motion';
-import { Send, ChevronLeft, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft } from 'lucide-react';
+import { Send, ChevronLeft, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { formatRelativeTime } from '@/utils/helpers';
@@ -107,6 +107,10 @@ export default function Messages() {
   // My Side Only (Local Auto-Delete) States
   const [isMySideOnlyModalOpen, setIsMySideOnlyModalOpen] = useState(false);
   const [mySideOnlyDurationInput, setMySideOnlyDurationInput] = useState(300); // Default 5 minutes (300s)
+
+  // ── Confirmation Popups
+  const [confirmClearChatConv, setConfirmClearChatConv] = useState(null);
+  const [confirmDeleteConv, setConfirmDeleteConv] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
@@ -814,7 +818,7 @@ export default function Messages() {
     if (!activeConversation || !activeConversation.docId || !myUid) return;
 
     if (enabled && activeConversation.isVanishMode) {
-      showSuccess('Cannot enable My Side Only while Vanish Mode is ON ❌');
+      showSuccess('Cannot enable Auto Clear Chat while Vanish Mode is ON ❌');
       return;
     }
 
@@ -827,9 +831,9 @@ export default function Messages() {
         }
       });
       setIsMySideOnlyModalOpen(false);
-      showSuccess(enabled ? `👤 My Side Only ON (${formatVanishDurationLabel(duration)})` : 'My Side Only turned OFF');
+      showSuccess(enabled ? `👁️ Auto Clear Chat ON (${formatVanishDurationLabel(duration)})` : 'Auto Clear Chat turned OFF');
     } catch (err) {
-      console.error('Failed to save My Side Only settings:', err);
+      console.error('Failed to save Auto Clear Chat settings:', err);
     }
   };
 
@@ -923,12 +927,17 @@ export default function Messages() {
   };
 
   // WhatsApp-style: Clear Chat History ONLY FOR ME
-  const handleClearChat = async (targetConv = activeConversation, e = null) => {
+  const handleClearChat = async (targetConv = activeConversation, e = null, forceConfirmed = false) => {
     if (e) e.stopPropagation();
     const convToClear = targetConv || activeConversation;
     if (!convToClear || !convToClear.docId) return;
     setOpenMenuId(null);
     setShowHeaderMenu(false);
+
+    if (!forceConfirmed) {
+      setConfirmClearChatConv(convToClear);
+      return;
+    }
 
     try {
       const docRef = doc(db, 'messages', convToClear.docId);
@@ -936,17 +945,23 @@ export default function Messages() {
         [`clearedFor.${myUid}`]: new Date()
       });
       showSuccess('Chat history cleared for you');
+      setConfirmClearChatConv(null);
     } catch (err) {
       console.error('Failed to clear chat:', err);
     }
   };
 
   // WhatsApp-style: Delete Entire Conversation Thread ONLY FOR ME
-  const handleDeleteConversation = async (targetConv = activeConversation, e = null) => {
+  const handleDeleteConversation = async (targetConv = activeConversation, e = null, forceConfirmed = false) => {
     if (e) e.stopPropagation();
     const convToDelete = targetConv || activeConversation;
     if (!convToDelete || !convToDelete.docId) return;
     setShowHeaderMenu(false);
+
+    if (!forceConfirmed) {
+      setConfirmDeleteConv(convToDelete);
+      return;
+    }
 
     try {
       const docRef = doc(db, 'messages', convToDelete.docId);
@@ -959,6 +974,7 @@ export default function Messages() {
         setMobileView('list');
       }
       showSuccess('Conversation deleted');
+      setConfirmDeleteConv(null);
     } catch (err) {
       console.error('Failed to delete conversation:', err);
     }
@@ -1124,141 +1140,6 @@ export default function Messages() {
                 </button>
               </div>
             </div>
-
-            {/* Vanish Mode Settings Bottom Sheet / Modal */}
-            {activeConversation && (
-              <Modal
-                isOpen={isVanishModalOpen}
-                onClose={() => setIsVanishModalOpen(false)}
-                title="Vanish Mode Settings"
-                size="lg"
-              >
-                <div className="space-y-xl py-xs">
-                  {/* Enable Toggle Switch */}
-                  <div className="p-lg rounded-2xl bg-neutral-50 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700/80 flex items-center justify-between gap-md">
-                    <div className="flex items-center gap-md">
-                      <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all ${
-                        activeConversation.isVanishMode ? 'bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25 ring-4 ring-amber-500/15' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400'
-                      }`}>
-                        <Flame className="w-6 h-6 fill-current" />
-                      </div>
-                      <div>
-                        <h4 className="font-heading font-bold text-base text-neutral-900 dark:text-white flex items-center gap-xs">
-                          Enable Vanish Mode
-                          {activeConversation.isVanishMode && (
-                            <span className="text-[10px] bg-amber-500/20 text-amber-500 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                              Active
-                            </span>
-                          )}
-                        </h4>
-                        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                          New messages disappear after being viewed by the recipient.
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        const newIsVanish = !activeConversation.isVanishMode;
-                        handleSaveVanishSettings(
-                          newIsVanish,
-                          activeConversation.vanishDuration || 3600,
-                          activeConversation.vanishKeepPermission || 'always',
-                          activeConversation.vanishScope || 'everyone'
-                        );
-                      }}
-                      className={`w-14 h-8 rounded-full p-1 transition-all duration-300 relative ${
-                        activeConversation.isVanishMode ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-amber-500/30' : 'bg-neutral-300 dark:bg-neutral-700'
-                      }`}
-                    >
-                      <div className={`w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center ${
-                        activeConversation.isVanishMode ? 'translate-x-6' : 'translate-x-0'
-                      }`}>
-                        {activeConversation.isVanishMode && <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
-                      </div>
-                    </button>
-                  </div>
-
-                  {/* Vanish Timer Duration Presets */}
-                  <div className="space-y-md pt-sm border-t border-neutral-100 dark:border-neutral-800">
-                    <label className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider flex items-center gap-xs">
-                      <Clock className="w-4 h-4 text-amber-500" /> Choose Disappearing Timer
-                    </label>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-sm">
-                      {[
-                        { label: '30 Sec', sec: 30 },
-                        { label: '1 Min', sec: 60 },
-                        { label: '5 Min', sec: 300 },
-                        { label: '10 Min', sec: 600 },
-                        { label: '30 Min', sec: 1800 },
-                        { label: '1 Hour', sec: 3600 },
-                        { label: '6 Hours', sec: 21600 },
-                        { label: '12 Hours', sec: 43200 },
-                        { label: '24 Hours', sec: 86400 },
-                        { label: '3 Days', sec: 259200 },
-                        { label: '7 Days', sec: 604800 },
-                      ].map(opt => {
-                        const isSelected = (activeConversation.vanishDuration || 3600) === opt.sec;
-                        return (
-                          <button
-                            key={opt.sec}
-                            onClick={() => handleSaveVanishSettings(
-                              true,
-                              opt.sec,
-                              activeConversation.vanishKeepPermission || 'always',
-                              activeConversation.vanishScope || 'everyone'
-                            )}
-                            className={`p-md rounded-xl text-xs font-bold transition-all border text-center relative ${
-                              isSelected
-                                ? 'bg-gradient-to-tr from-amber-500 to-orange-500 text-white border-amber-500 shadow-md shadow-amber-500/20 scale-[1.02]'
-                                : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700 hover:border-amber-500/50'
-                            }`}
-                          >
-                            {opt.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Recipient Keep Permissions */}
-                  <div className="space-y-md pt-sm border-t border-neutral-100 dark:border-neutral-800">
-                    <label className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider flex items-center gap-xs">
-                      <Shield className="w-4 h-4 text-indigo-500" /> Allow Recipient to Keep Messages
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
-                      {[
-                        { id: 'always', label: 'Always Allow', desc: 'Recipient can keep any message' },
-                        { id: 'never', label: 'Never Allow', desc: 'Prevent recipient from saving' },
-                      ].map(perm => {
-                        const isSelected = (activeConversation.vanishKeepPermission || 'always') === perm.id;
-                        return (
-                          <button
-                            key={perm.id}
-                            onClick={() => handleSaveVanishSettings(
-                              activeConversation.isVanishMode ?? true,
-                              activeConversation.vanishDuration || 3600,
-                              perm.id,
-                              activeConversation.vanishScope || 'everyone'
-                            )}
-                            className={`p-md rounded-xl text-left border transition-all ${
-                              isSelected
-                                ? 'bg-indigo-500/10 border-indigo-500 text-indigo-500 dark:text-indigo-400 font-bold shadow-sm ring-1 ring-indigo-500/40'
-                                : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-indigo-500/50'
-                            }`}
-                          >
-                            <span className="block text-xs font-bold flex items-center justify-between">
-                              {perm.label}
-                              {isSelected && <Check className="w-3.5 h-3.5 text-indigo-500" />}
-                            </span>
-                            <span className="block text-[10px] text-neutral-400 mt-0.5">{perm.desc}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </Modal>
-            )}
 
             {/* Conversations List */}
             <div className="flex-1 overflow-y-auto p-xs space-y-xs">
@@ -1553,89 +1434,83 @@ export default function Messages() {
                           className="w-10 h-10 rounded-full object-cover group-hover:ring-2 group-hover:ring-primary-500 transition-all"
                         />
                       </div>
-                      <div>
-                        <h2 className="font-bold text-base text-neutral-900 dark:text-white group-hover:text-primary-500 transition-colors flex items-center gap-xs">
-                          {activeConversation.name}
+                      <div className="min-w-0 flex-1">
+                        <h2 className="font-bold text-sm sm:text-base text-neutral-900 dark:text-white group-hover:text-primary-500 transition-colors flex items-center gap-xs truncate">
+                          <span className="truncate">{activeConversation.name}</span>
                           {activeConversation.mutedFor?.[myUid] && (
-                            <BellOff className="w-3.5 h-3.5 text-neutral-400" title="Muted" />
+                            <BellOff className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" title="Muted" />
                           )}
                         </h2>
                         {activeConversation.isVanishMode && (
                           <div
                             onClick={(e) => { e.stopPropagation(); setIsVanishModalOpen(true); }}
-                            className="flex items-center gap-xs text-[11px] font-semibold text-amber-500 hover:text-amber-400 mt-[1px]"
+                            className="flex items-center gap-xs text-[10px] sm:text-[11px] font-semibold text-amber-500 hover:text-amber-400 mt-[1px] truncate"
                             title="Click to change Vanish Mode Settings"
                           >
-                            <Flame className="w-3 h-3 fill-amber-400 animate-pulse" />
-                            <span>Vanish Mode ON</span>
-                            <span>•</span>
-                            <Clock className="w-3 h-3" />
-                            <span>{formatVanishDurationLabel(activeConversation.vanishDuration)}</span>
+                            <Flame className="w-3 h-3 fill-amber-400 animate-pulse flex-shrink-0" />
+                            <span className="truncate">Vanish Mode ON • {formatVanishDurationLabel(activeConversation.vanishDuration)}</span>
                           </div>
                         )}
-                        {activeConversation?.mySideOnlyMap?.[myUid]?.enabled && (
+                        {!activeConversation.isVanishMode && activeConversation?.mySideOnlyMap?.[myUid]?.enabled && (
                           <div
                             onClick={(e) => { e.stopPropagation(); setIsMySideOnlyModalOpen(true); }}
-                            className="flex items-center gap-xs text-[11px] font-semibold text-purple-400 hover:text-purple-300 mt-[1px]"
-                            title="Click to change My Side Only Settings"
+                            className="flex items-center gap-xs text-[10px] sm:text-[11px] font-semibold text-purple-400 hover:text-purple-300 mt-[1px] truncate"
+                            title="Click to change Auto Clear Chat Settings"
                           >
-                            <User className="w-3 h-3 text-purple-400" />
-                            <span>My Side Only</span>
-                            <span>•</span>
-                            <Clock className="w-3 h-3" />
-                            <span>{formatVanishDurationLabel(activeConversation.mySideOnlyMap?.[myUid]?.duration || 300)}</span>
+                            <EyeOff className="w-3 h-3 text-purple-400 flex-shrink-0" />
+                            <span className="truncate">Auto Clear • {formatVanishDurationLabel(activeConversation.mySideOnlyMap?.[myUid]?.duration || 300)}</span>
                           </div>
                         )}
                       </div>
                     </div>
 
                     {/* Chat Header Actions */}
-                    <div className="flex items-center gap-xs">
-                      {/* 👤 My Side Only Button */}
+                    <div className="flex items-center gap-1 sm:gap-xs flex-shrink-0">
+                      {/* 👁️ Auto Clear Chat Button */}
                       <button
                         onClick={() => setIsMySideOnlyModalOpen(true)}
-                        className={`p-2.5 rounded-full transition-all flex items-center gap-xs ${
+                        className={`p-2 sm:p-2.5 rounded-xl transition-all flex items-center justify-center ${
                           activeConversation?.mySideOnlyMap?.[myUid]?.enabled
-                            ? 'bg-purple-500/15 text-purple-400 hover:bg-purple-500/25 border border-purple-500/30'
+                            ? 'bg-purple-500/15 text-purple-400 hover:bg-purple-500/25 border border-purple-500/30 shadow-xs'
                             : 'text-neutral-500 hover:text-purple-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
                         }`}
-                        title="My Side Only Settings (Local Auto-Delete)"
+                        title="Auto Clear Chat Settings (Local Auto-Delete)"
                       >
-                        <User className={`w-5 h-5 ${activeConversation?.mySideOnlyMap?.[myUid]?.enabled ? 'text-purple-400' : ''}`} />
+                        <EyeOff className={`w-4 h-4 sm:w-5 sm:h-5 ${activeConversation?.mySideOnlyMap?.[myUid]?.enabled ? 'text-purple-400' : ''}`} />
                       </button>
 
                       {/* 🔥 Vanish Mode Button */}
                       <button
                         onClick={() => setIsVanishModalOpen(true)}
-                        className={`p-2.5 rounded-full transition-all flex items-center gap-xs ${
+                        className={`p-2 sm:p-2.5 rounded-xl transition-all flex items-center justify-center ${
                           activeConversation.isVanishMode
-                            ? 'bg-amber-500/15 text-amber-500 hover:bg-amber-500/25 border border-amber-500/30'
+                            ? 'bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.3)] animate-pulse'
                             : 'text-neutral-500 hover:text-amber-500 hover:bg-neutral-100 dark:hover:bg-neutral-800'
                         }`}
                         title="Vanish Mode Settings"
                       >
-                        <Flame className={`w-5 h-5 ${activeConversation.isVanishMode ? 'fill-amber-400 animate-pulse' : ''}`} />
+                        <Flame className={`w-4 h-4 sm:w-5 sm:h-5 ${activeConversation.isVanishMode ? 'fill-amber-400' : ''}`} />
                       </button>
 
                       {/* In-Chat Search Button */}
                       <button
                         onClick={() => setIsSearchOpen(!isSearchOpen)}
-                        className={`p-md text-neutral-500 hover:text-neutral-900 dark:hover:text-white rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors ${
+                        className={`p-2 sm:p-2.5 text-neutral-500 hover:text-neutral-900 dark:hover:text-white rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors ${
                           isSearchOpen ? 'bg-neutral-100 dark:bg-neutral-800 text-primary-500' : ''
                         }`}
                         title="Search messages"
                       >
-                        <Search className="w-5 h-5" />
+                        <Search className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
 
                       {/* Header Options Dropdown Menu */}
                       <div className="relative">
                         <button
                           onClick={() => setShowHeaderMenu(!showHeaderMenu)}
-                          className="p-md text-neutral-500 hover:text-neutral-900 dark:hover:text-white rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                          className="p-2 sm:p-2.5 text-neutral-500 hover:text-neutral-900 dark:hover:text-white rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                           title="Chat Options"
                         >
-                          <MoreVertical className="w-5 h-5" />
+                          <MoreVertical className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>
 
                         {/* Dropdown Menu Items */}
@@ -1650,8 +1525,8 @@ export default function Messages() {
                               onClick={() => { setShowHeaderMenu(false); setIsMySideOnlyModalOpen(true); }}
                               className="w-full px-lg py-md text-left text-purple-400 hover:bg-purple-500/10 flex items-center gap-md font-semibold"
                             >
-                              <User className="w-4 h-4 text-purple-400" />
-                              <span>My Side Only Settings</span>
+                              <EyeOff className="w-4 h-4 text-purple-400" />
+                              <span>Auto Clear Chat Settings</span>
                               {activeConversation?.mySideOnlyMap?.[myUid]?.enabled && (
                                 <span className="ml-auto text-[10px] bg-purple-500/20 px-1.5 py-0.5 rounded-full font-bold">ON</span>
                               )}
@@ -1763,8 +1638,12 @@ export default function Messages() {
                 )}
               </div>
 
-              {/* Chat Messages Log with WhatsApp-Style Per-User Delete, Star, Select Mode & Side Alignment */}
-              <div className="flex-1 overflow-y-auto p-lg space-y-md bg-neutral-50/50 dark:bg-neutral-950/40">
+              {/* Chat Messages Log with Immersive Secret Theme in Vanish Mode */}
+              <div className={`flex-1 overflow-y-auto p-md sm:p-lg space-y-md transition-colors duration-500 ${
+                activeConversation.isVanishMode
+                  ? 'bg-neutral-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-950/20 via-neutral-950 to-black'
+                  : 'bg-neutral-50/50 dark:bg-neutral-950/40'
+              }`}>
                 {filteredVisibleMessages.length > 0 ? (
                   filteredVisibleMessages.map((msg, idx) => {
                     const myName = user?.name || user?.email?.split('@')[0];
@@ -2011,20 +1890,27 @@ export default function Messages() {
               )}
 
               {/* Input Area */}
-              <form onSubmit={handleSendMessage} className="p-md bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 flex gap-md items-center">
+              <form
+                onSubmit={handleSendMessage}
+                className={`p-xs sm:p-md border-t flex gap-xs sm:gap-md items-center transition-all ${
+                  activeConversation.isVanishMode
+                    ? 'bg-neutral-900/95 border-amber-500/30 dark:border-amber-500/20 shadow-[0_-4px_20px_rgba(245,158,11,0.15)]'
+                    : 'bg-white dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800'
+                }`}
+              >
                 {activeConversation.isVanishMode && (
                   <button
                     type="button"
                     onClick={() => setIsKeepForeverActive(!isKeepForeverActive)}
-                    className={`px-md py-xs rounded-xl border text-xs font-semibold flex items-center gap-xs transition-all flex-shrink-0 ${
+                    className={`p-2 sm:px-md sm:py-xs rounded-xl border text-xs font-semibold flex items-center gap-xs transition-all flex-shrink-0 ${
                       isKeepForeverActive
-                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-sm'
+                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-sm ring-1 ring-emerald-500/30'
                         : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 border-neutral-200 dark:border-neutral-700 hover:text-neutral-900 dark:hover:text-white'
                     }`}
                     title="Toggle Keep Forever for this message"
                   >
                     <InfinityIcon className="w-4 h-4" />
-                    <span className="hidden sm:inline">Keep Forever</span>
+                    <span className="hidden xs:inline text-[11px] font-bold">Keep</span>
                   </button>
                 )}
                 <input
@@ -2116,7 +2002,7 @@ export default function Messages() {
                         </p>
                       )}
                       <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-[1px]">
-                        {st.college || 'Delhi University'}
+                        {st.college || 'KIET'}
                       </p>
                     </div>
                   </div>
@@ -2143,7 +2029,7 @@ export default function Messages() {
 
       {/* Recipient User Profile Modal */}
       {activeConversation && (() => {
-        const userCollege = recipientProfile?.college || activeConversation?.college || 'Delhi University';
+        const userCollege = recipientProfile?.college || activeConversation?.college || 'KIET';
 
         return (
           <Modal
@@ -2404,6 +2290,141 @@ export default function Messages() {
         </div>
       </Modal>
 
+      {/* Vanish Mode Settings Modal */}
+      {activeConversation && (
+        <Modal
+          isOpen={isVanishModalOpen}
+          onClose={() => setIsVanishModalOpen(false)}
+          title="Vanish Mode Settings"
+          size="lg"
+        >
+          <div className="space-y-xl py-xs">
+            {/* Enable Toggle Switch */}
+            <div className="p-lg rounded-2xl bg-neutral-50 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700/80 flex items-center justify-between gap-md">
+              <div className="flex items-center gap-md">
+                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all ${
+                  activeConversation.isVanishMode ? 'bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25 ring-4 ring-amber-500/15' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400'
+                }`}>
+                  <Flame className="w-6 h-6 fill-current" />
+                </div>
+                <div>
+                  <h4 className="font-heading font-bold text-base text-neutral-900 dark:text-white flex items-center gap-xs">
+                    Enable Vanish Mode
+                    {activeConversation.isVanishMode && (
+                      <span className="text-[10px] bg-amber-500/20 text-amber-500 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        Active
+                      </span>
+                    )}
+                  </h4>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                    New messages disappear after being viewed by the recipient.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  const newIsVanish = !activeConversation.isVanishMode;
+                  handleSaveVanishSettings(
+                    newIsVanish,
+                    activeConversation.vanishDuration || 3600,
+                    activeConversation.vanishKeepPermission || 'always',
+                    activeConversation.vanishScope || 'everyone'
+                  );
+                }}
+                className={`w-14 h-8 rounded-full p-1 transition-all duration-300 relative ${
+                  activeConversation.isVanishMode ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-amber-500/30' : 'bg-neutral-300 dark:bg-neutral-700'
+                }`}
+              >
+                <div className={`w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center ${
+                  activeConversation.isVanishMode ? 'translate-x-6' : 'translate-x-0'
+                }`}>
+                  {activeConversation.isVanishMode && <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
+                </div>
+              </button>
+            </div>
+
+            {/* Vanish Timer Duration Presets */}
+            <div className="space-y-md pt-sm border-t border-neutral-100 dark:border-neutral-800">
+              <label className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider flex items-center gap-xs">
+                <Clock className="w-4 h-4 text-amber-500" /> Choose Disappearing Timer
+              </label>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-xs sm:gap-sm">
+                {[
+                  { label: '30 Sec', sec: 30 },
+                  { label: '1 Min', sec: 60 },
+                  { label: '5 Min', sec: 300 },
+                  { label: '10 Min', sec: 600 },
+                  { label: '30 Min', sec: 1800 },
+                  { label: '1 Hour', sec: 3600 },
+                  { label: '6 Hours', sec: 21600 },
+                  { label: '12 Hours', sec: 43200 },
+                  { label: '24 Hours', sec: 86400 },
+                  { label: '3 Days', sec: 259200 },
+                  { label: '7 Days', sec: 604800 },
+                ].map(opt => {
+                  const isSelected = (activeConversation.vanishDuration || 3600) === opt.sec;
+                  return (
+                    <button
+                      key={opt.sec}
+                      onClick={() => handleSaveVanishSettings(
+                        true,
+                        opt.sec,
+                        activeConversation.vanishKeepPermission || 'always',
+                        activeConversation.vanishScope || 'everyone'
+                      )}
+                      className={`py-2.5 px-1 sm:p-md rounded-xl text-[11px] sm:text-xs font-bold transition-all border text-center relative ${
+                        isSelected
+                          ? 'bg-gradient-to-tr from-amber-500 to-orange-500 text-white border-amber-500 shadow-md shadow-amber-500/20 scale-[1.02]'
+                          : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700 hover:border-amber-500/50'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Recipient Keep Permissions */}
+            <div className="space-y-md pt-sm border-t border-neutral-100 dark:border-neutral-800">
+              <label className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider flex items-center gap-xs">
+                <Shield className="w-4 h-4 text-indigo-500" /> Allow Recipient to Keep Messages
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
+                {[
+                  { id: 'always', label: 'Always Allow', desc: 'Recipient can keep any message' },
+                  { id: 'never', label: 'Never Allow', desc: 'Prevent recipient from saving' },
+                ].map(perm => {
+                  const isSelected = (activeConversation.vanishKeepPermission || 'always') === perm.id;
+                  return (
+                    <button
+                      key={perm.id}
+                      onClick={() => handleSaveVanishSettings(
+                        activeConversation.isVanishMode ?? true,
+                        activeConversation.vanishDuration || 3600,
+                        perm.id,
+                        activeConversation.vanishScope || 'everyone'
+                      )}
+                      className={`p-md rounded-xl text-left border transition-all ${
+                        isSelected
+                          ? 'bg-indigo-500/10 border-indigo-500 text-indigo-500 dark:text-indigo-400 font-bold shadow-sm ring-1 ring-indigo-500/40'
+                          : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-indigo-500/50'
+                      }`}
+                    >
+                      <span className="block text-xs font-bold flex items-center justify-between">
+                        {perm.label}
+                        {isSelected && <Check className="w-3.5 h-3.5 text-indigo-500" />}
+                      </span>
+                      <span className="block text-[10px] text-neutral-400 mt-0.5">{perm.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {/* My Side Only Settings Modal */}
       {activeConversation && (() => {
         const myConfig = activeConversation.mySideOnlyMap?.[myUid];
@@ -2414,7 +2435,7 @@ export default function Messages() {
           <Modal
             isOpen={isMySideOnlyModalOpen}
             onClose={() => setIsMySideOnlyModalOpen(false)}
-            title="My Side Only Settings"
+            title="Auto Clear Chat Settings"
             size="lg"
           >
             <div className="space-y-xl py-xs">
@@ -2423,7 +2444,7 @@ export default function Messages() {
                 <div className="p-lg rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex items-center gap-md shadow-sm">
                   <Flame className="w-5 h-5 flex-shrink-0 fill-amber-400 animate-pulse" />
                   <span className="font-semibold leading-relaxed">
-                    Vanish Mode is currently active for both participants. Turn off Vanish Mode to enable My Side Only mode.
+                    Vanish Mode is currently active for both participants. Turn off Vanish Mode to enable Auto Clear Chat mode.
                   </span>
                 </div>
               )}
@@ -2441,11 +2462,11 @@ export default function Messages() {
                         ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30 scale-105'
                         : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400'
                     }`}>
-                      <User className="w-6 h-6 fill-current" />
+                      <EyeOff className="w-6 h-6 fill-current" />
                     </div>
                     <div>
                       <h4 className="font-heading font-bold text-base text-neutral-900 dark:text-white flex items-center gap-sm">
-                        My Side Only Mode
+                        Auto Clear Chat Mode
                         {isEnabled && (
                           <span className="text-[10px] bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                             Active For You
@@ -2470,7 +2491,7 @@ export default function Messages() {
                     <div className={`w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center ${
                       isEnabled ? 'translate-x-6' : 'translate-x-0'
                     }`}>
-                      {isEnabled && <User className="w-3.5 h-3.5 text-indigo-600" />}
+                      {isEnabled && <EyeOff className="w-3.5 h-3.5 text-indigo-600" />}
                     </div>
                   </button>
                 </div>
@@ -2532,6 +2553,32 @@ export default function Messages() {
           </Modal>
         );
       })()}
+
+      {/* ── CONFIRM CLEAR CHAT MODAL ── */}
+      <Modal isOpen={!!confirmClearChatConv} onClose={() => setConfirmClearChatConv(null)} title="Clear Chat History?" size="sm">
+        <div className="space-y-lg">
+          <p className="text-sm text-neutral-600 dark:text-neutral-300">
+            Are you sure you want to clear chat history for <span className="font-bold text-neutral-900 dark:text-white">"{confirmClearChatConv?.name}"</span>? Messages will be cleared for you.
+          </p>
+          <div className="flex gap-md pt-md">
+            <Button variant="secondary" className="flex-1" onClick={() => setConfirmClearChatConv(null)}>Cancel</Button>
+            <Button variant="primary" className="flex-1 bg-amber-500 hover:bg-amber-600 border-amber-500" onClick={() => handleClearChat(confirmClearChatConv, null, true)}>Clear Chat</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ── CONFIRM DELETE CONVERSATION MODAL ── */}
+      <Modal isOpen={!!confirmDeleteConv} onClose={() => setConfirmDeleteConv(null)} title="Delete Conversation?" size="sm">
+        <div className="space-y-lg">
+          <p className="text-sm text-neutral-600 dark:text-neutral-300">
+            Are you sure you want to delete your conversation with <span className="font-bold text-neutral-900 dark:text-white">"{confirmDeleteConv?.name}"</span>? This chat will be hidden for you.
+          </p>
+          <div className="flex gap-md pt-md">
+            <Button variant="secondary" className="flex-1" onClick={() => setConfirmDeleteConv(null)}>Cancel</Button>
+            <Button variant="primary" className="flex-1 bg-rose-600 hover:bg-rose-700 border-rose-600 text-white" onClick={() => handleDeleteConversation(confirmDeleteConv, null, true)}>Delete Chat</Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

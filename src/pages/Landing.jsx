@@ -283,20 +283,12 @@ export default function Landing() {
                 Enter App
               </Link>
             ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="text-xs font-bold text-neutral-400 hover:text-white transition-colors px-2 py-1"
-                >
-                  Log In
-                </Link>
-                <Link
-                  to="/signup"
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-vandal-pink via-topic-violet to-acid-cyan text-white text-xs font-black shadow-lg hover:scale-105 active:scale-95 transition-all"
-                >
-                  Sign Up
-                </Link>
-              </>
+              <Link
+                to="/signup"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-vandal-pink via-topic-violet to-acid-cyan text-white text-xs font-black shadow-lg hover:scale-105 active:scale-95 transition-all"
+              >
+                Sign Up
+              </Link>
             )}
 
             {/* Mobile menu toggle */}
@@ -340,13 +332,6 @@ export default function Landing() {
               </nav>
 
               <div className="pt-6 border-t border-white/10 space-y-3">
-                <Link
-                  to="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block w-full text-center py-3 rounded-xl text-sm font-semibold border border-white/10 hover:bg-white/5 text-white"
-                >
-                  Log In
-                </Link>
                 <Link
                   to="/signup"
                   onClick={() => setMobileMenuOpen(false)}
