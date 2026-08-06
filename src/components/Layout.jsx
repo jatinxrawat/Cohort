@@ -29,10 +29,10 @@ export const Layout = ({ children }) => {
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-neutral-950">
       <Header />
-      
+
       <div className="flex flex-1 overflow-hidden">
         {isAuthenticated && <Sidebar />}
-        
+
         <main className={`flex-1 overflow-y-auto ${isAuthenticated ? 'lg:ml-64' : ''} pb-16 lg:pb-0`}>
           {children}
         </main>

@@ -1,108 +1,107 @@
+const defaultTheme = require('tailwindcss/defaultTheme');
+
 /** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,jsx}",
-  ],
+module.exports = {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['Outfit', 'Plus Jakarta Sans', 'sans-serif'],
-        heading: ['Unbounded', 'Syne', 'sans-serif'],
-        mono: ['Space Mono', 'monospace'],
-      },
       colors: {
-        // Primary brand colors
-        primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c3d66',
-        },
-        // Neutral colors
-        neutral: {
-          50: '#fafafa',
-          100: '#f5f5f5',
-          200: '#e5e5e5',
-          300: '#d4d4d4',
-          400: '#a3a3a3',
-          500: '#737373',
-          600: '#525252',
-          700: '#404040',
-          800: '#262626',
-          900: '#171717',
-        },
-        // Accent colors
-        success: '#10b981',
-        warning: '#f59e0b',
-        danger: '#ef4444',
-        info: '#3b82f6',
+        // Dark mode surfaces
+        'surface-dark': '#0A0A0F',
+        'surface-dark-secondary': '#12131A',
+        'surface-dark-card': '#181922',
+        'surface-dark-elevated': '#1E1F2B',
+
+        // Light mode surfaces
+        'surface-light': '#FFFFFF',
+        'surface-light-secondary': '#F8F9FA',
+        'surface-light-card': '#FFFFFF',
+
+        // Accent palette
+        'accent-blue': '#5B7FFF',
+        'accent-purple': '#8B5CF6',
+        'accent-cyan': '#06D6A0',
+        'accent-pink': '#FF6B9D',
+        'accent-amber': '#F59E0B',
+        'accent-indigo': '#6366F1',
+
+        // Brand Palette (Redesign)
+        'midnight-slate': '#08080C',
+        'neon-indigo': '#4D26FF',
+        'acid-cyan': '#00F0FF',
+        'vandal-pink': '#FF2A85',
+        'topic-violet': '#963BFF',
+
+        // Neutral extensions
+        'neutral-850': '#1A1A2E',
       },
-      backgroundColor: {
-        light: '#ffffff',
-        dark: '#0f172a',
-      },
-      textColor: {
-        light: '#171717',
-        dark: '#f5f5f5',
+      fontFamily: {
+        sans: ['Space Grotesque', 'Inter', ...defaultTheme.fontFamily.sans],
+        display: ['Outfit', 'Inter', ...defaultTheme.fontFamily.sans],
       },
       borderRadius: {
-        xs: '4px',
-        sm: '8px',
-        base: '12px',
-        lg: '16px',
-        xl: '20px',
-        '2xl': '24px',
+        '4xl': '2rem',
+        '5xl': '2.5rem',
       },
       boxShadow: {
-        sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-        base: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-        md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-        glass: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-      },
-      backdropBlur: {
-        xs: '2px',
-        sm: '4px',
-        base: '8px',
-        md: '12px',
-        lg: '16px',
-      },
-      spacing: {
-        xs: '4px',
-        sm: '8px',
-        md: '12px',
-        lg: '16px',
-        xl: '20px',
-        '2xl': '24px',
-        '3xl': '32px',
-        '4xl': '40px',
+        'glass': '0 8px 32px rgba(0, 0, 0, 0.12)',
+        'glass-lg': '0 16px 48px rgba(0, 0, 0, 0.16)',
+        'glow-blue': '0 0 30px rgba(91, 127, 255, 0.3)',
+        'glow-purple': '0 0 30px rgba(139, 92, 246, 0.3)',
+        'glow-pink': '0 0 30px rgba(255, 107, 157, 0.3)',
+        'glow-cyan': '0 0 30px rgba(6, 214, 160, 0.3)',
+        'card-hover': '0 20px 60px -12px rgba(0, 0, 0, 0.25)',
+        'card-hover-light': '0 20px 60px -12px rgba(0, 0, 0, 0.08)',
       },
       animation: {
-        'fade-in': 'fadeIn 0.3s ease-in',
-        'slide-up': 'slideUp 0.3s ease-out',
-        'pulse-soft': 'pulseSoft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'marquee': 'marquee 30s linear infinite',
+        'marquee-reverse': 'marquee-reverse 30s linear infinite',
+        'float-1': 'float1 6s ease-in-out infinite',
+        'float-2': 'float2 8s ease-in-out infinite',
+        'float-3': 'float3 7s ease-in-out infinite',
+        'float-4': 'float4 9s ease-in-out infinite',
+        'float-5': 'float5 5s ease-in-out infinite',
+        'blob-1': 'blobDrift 20s ease-in-out infinite',
+        'blob-2': 'blobDrift 25s ease-in-out infinite 2s',
+        'blob-3': 'blobDrift 22s ease-in-out infinite 4s',
+        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'spin-slow': 'spin 20s linear infinite',
+        'count-up': 'countUp 0.5s ease-out forwards',
       },
       keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
         },
-        slideUp: {
-          '0%': { transform: 'translateY(10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
+        'marquee-reverse': {
+          '0%': { transform: 'translateX(-50%)' },
+          '100%': { transform: 'translateX(0%)' },
         },
-        pulseSoft: {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '.5' },
+        float1: {
+          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+          '50%': { transform: 'translateY(-20px) rotate(2deg)' },
+        },
+        float2: {
+          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+          '50%': { transform: 'translateY(-15px) rotate(-1.5deg)' },
+        },
+        float3: {
+          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+          '50%': { transform: 'translateY(-25px) rotate(1deg)' },
+        },
+        float4: {
+          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+          '50%': { transform: 'translateY(-12px) rotate(-2deg)' },
+        },
+        float5: {
+          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+          '50%': { transform: 'translateY(-18px) rotate(1.5deg)' },
+        },
+        blobDrift: {
+          '0%, 100%': { transform: 'translate(0px, 0px) scale(1)' },
+          '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+          '66%': { transform: 'translate(-20px, 20px) scale(0.95)' },
         },
       },
     },

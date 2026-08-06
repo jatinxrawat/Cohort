@@ -11,6 +11,7 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     const root = document.documentElement;
+    console.log('[ThemeContext] isDark changed to:', isDark, 'initial class:', root.className);
     if (isDark) {
       root.classList.add('dark');
       localStorage.setItem('theme-mode', 'dark');
@@ -18,6 +19,7 @@ export const ThemeProvider = ({ children }) => {
       root.classList.remove('dark');
       localStorage.setItem('theme-mode', 'light');
     }
+    console.log('[ThemeContext] class after update:', root.className);
   }, [isDark]);
 
   const toggleTheme = () => setIsDark(!isDark);
