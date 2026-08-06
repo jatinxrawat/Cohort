@@ -5,9 +5,10 @@ import { Button } from '@/components/Button';
 import { useNotification } from '@/contexts/NotificationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MessageSquare, UserPlus, Bell, Eye, Trash2, Inbox, Repeat, ExternalLink } from 'lucide-react';
+import { Heart, MessageSquare, UserPlus, Bell, Eye, Trash2, Inbox, Repeat, ExternalLink, Users, Check, X } from 'lucide-react';
 import { formatRelativeTime } from '@/utils/helpers';
-import { collection, onSnapshot, doc, updateDoc, writeBatch, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, writeBatch, deleteDoc, addDoc } from 'firebase/firestore';
+import { arrayUnion } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 
 const iconMap = {
@@ -15,7 +16,8 @@ const iconMap = {
   reply: MessageSquare,
   follow: UserPlus,
   reshare: Repeat,
-  system: Bell
+  system: Bell,
+  community_invite: Users
 };
 
 const iconStyleMap = {
@@ -23,7 +25,8 @@ const iconStyleMap = {
   reply: { bg: 'bg-sky-500/10 dark:bg-sky-500/20', color: 'text-sky-500' },
   follow: { bg: 'bg-emerald-500/10 dark:bg-emerald-500/20', color: 'text-emerald-500' },
   reshare: { bg: 'bg-indigo-500/10 dark:bg-indigo-500/20', color: 'text-indigo-500' },
-  system: { bg: 'bg-amber-500/10 dark:bg-amber-500/20', color: 'text-amber-500' }
+  system: { bg: 'bg-amber-500/10 dark:bg-amber-500/20', color: 'text-amber-500' },
+  community_invite: { bg: 'bg-violet-500/10 dark:bg-violet-500/20', color: 'text-violet-500' }
 };
 
 export default function Notifications() {
@@ -44,6 +47,8 @@ export default function Notifications() {
     setLoading(true);
     const unsub = onSnapshot(collection(db, 'notifications'), (snapshot) => {
       const loaded = [];
+      const unreadDocsToMark = [];
+
       snapshot.forEach(d => {
         const data = d.data();
         // Show notifications for current user (or general notifications)
@@ -54,12 +59,24 @@ export default function Notifications() {
             ...data,
             time: data.time?.toDate ? data.time.toDate() : new Date(data.time || Date.now())
           });
+          if (!data.read && data.recipientUid === user.uid) {
+            unreadDocsToMark.push(d.id);
+          }
         }
       });
 
       loaded.sort((a, b) => b.time - a.time);
       setList(loaded);
       setLoading(false);
+
+      // Automatically mark unread notifications as read upon opening the Notifications page
+      if (unreadDocsToMark.length > 0) {
+        const batch = writeBatch(db);
+        unreadDocsToMark.forEach(docId => {
+          batch.update(doc(db, 'notifications', docId), { read: true });
+        });
+        batch.commit().catch(e => console.error('Failed auto-marking notifications as read:', e));
+      }
     }, (err) => {
       console.error('Error listening to notifications:', err);
       setLoading(false);
@@ -119,6 +136,41 @@ export default function Notifications() {
     }
   };
 
+  const handleAcceptInvite = async (e, notif) => {
+    e.stopPropagation();
+    if (!user?.uid || !notif.communityId) return;
+    try {
+      // Add user to community members
+      await updateDoc(doc(db, 'userCommunities', notif.communityId), {
+        members: arrayUnion(user.uid)
+      });
+      // Mark notification as accepted and read
+      await updateDoc(doc(db, 'notifications', notif.docId), {
+        status: 'accepted',
+        read: true
+      });
+      setList(prev => prev.map(n => n.id === notif.id ? { ...n, status: 'accepted', read: true } : n));
+      showSuccess(`Joined "${notif.communityName}"!`);
+    } catch (err) {
+      console.error('Failed to accept invite:', err);
+    }
+  };
+
+  const handleRejectInvite = async (e, notif) => {
+    e.stopPropagation();
+    if (!notif.docId) return;
+    try {
+      await updateDoc(doc(db, 'notifications', notif.docId), {
+        status: 'rejected',
+        read: true
+      });
+      setList(prev => prev.map(n => n.id === notif.id ? { ...n, status: 'rejected', read: true } : n));
+      showSuccess('Invite declined.');
+    } catch (err) {
+      console.error('Failed to reject invite:', err);
+    }
+  };
+
   const handleClearAll = async () => {
     setList([]);
     showSuccess('All notifications cleared.');
@@ -137,7 +189,7 @@ export default function Notifications() {
     }
   };
 
-  const categories = ['All', 'likes', 'replies', 'follows', 'reshares', 'system'];
+  const categories = ['All', 'likes', 'replies', 'follows', 'reshares', 'invites', 'system'];
 
   const filteredList = list.filter(notif => {
     if (filter === 'All') return true;
@@ -145,6 +197,7 @@ export default function Notifications() {
     if (filter === 'replies') return notif.type === 'reply';
     if (filter === 'follows') return notif.type === 'follow';
     if (filter === 'reshares') return notif.type === 'reshare';
+    if (filter === 'invites') return notif.type === 'community_invite';
     if (filter === 'system') return notif.type === 'system';
     return true;
   });
@@ -268,6 +321,30 @@ export default function Notifications() {
                       </div>
 
                       {/* Action buttons */}
+                      {notif.type === 'community_invite' && notif.communityId && notif.status === 'pending' && (
+                        <div className="flex gap-xs flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={(e) => handleAcceptInvite(e, notif)}
+                            className="flex items-center gap-xs px-md py-xs bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold rounded-xl transition-all hover:scale-105 active:scale-95"
+                          >
+                            <Check className="w-3.5 h-3.5" /> Accept
+                          </button>
+                          <button
+                            onClick={(e) => handleRejectInvite(e, notif)}
+                            className="flex items-center gap-xs px-md py-xs bg-neutral-100 dark:bg-neutral-800 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-neutral-600 dark:text-neutral-400 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-semibold rounded-xl transition-all"
+                          >
+                            <X className="w-3.5 h-3.5" /> Decline
+                          </button>
+                        </div>
+                      )}
+                      {notif.type === 'community_invite' && notif.status === 'accepted' && (
+                        <span className="text-xs font-semibold text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 px-md py-xs rounded-xl flex-shrink-0 flex items-center gap-xs">
+                          <Check className="w-3.5 h-3.5" /> Joined
+                        </span>
+                      )}
+                      {notif.type === 'community_invite' && notif.status === 'rejected' && (
+                        <span className="text-xs font-semibold text-neutral-400 px-md py-xs flex-shrink-0">Declined</span>
+                      )}
                       {notif.type === 'follow' && notif.senderUid && (
                         <Button
                           size="xs"

@@ -8,7 +8,6 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 // Lazy load pages
 const Landing = lazy(() => import('@/pages/Landing'));
-const Login = lazy(() => import('@/pages/Login'));
 const Signup = lazy(() => import('@/pages/Signup'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 const Home = lazy(() => import('@/pages/Home'));
@@ -47,7 +46,7 @@ function App() {
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<Landing />} />
-                  <Route path="/login" element={<Login />} />
+                  <Route path="/login" element={<Navigate to="/signup" replace />} />
                   <Route path="/signup" element={<Signup />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
 

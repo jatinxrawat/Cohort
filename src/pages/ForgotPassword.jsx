@@ -194,10 +194,10 @@ export default function ForgotPassword() {
           )}
         </Card>
 
-        {/* Back to Login */}
+        {/* Back to Sign Up */}
         <div className="text-center">
-          <Link to="/login" className="text-primary-500 hover:text-primary-600 font-semibold transition-colors">
-            Back to login
+          <Link to="/signup" className="text-primary-500 hover:text-primary-600 font-semibold transition-colors">
+            Back to sign up
           </Link>
         </div>
       </div>

@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }) => {
             const newProfile = {
               name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
               email: firebaseUser.email,
-              college: 'Delhi University',
+              college: 'KIET',
               avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(firebaseUser.email)}`,
               joinedDate: new Date().toISOString()
             };
@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }) => {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-            college: 'Delhi University',
+            college: 'KIET',
             avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(firebaseUser.email)}`
           });
           setIsAuthenticated(true);
@@ -140,7 +140,7 @@ export const AuthProvider = ({ children }) => {
     const profile = {
       name: name || 'Student',
       email: email,
-      college: college || 'Delhi University',
+      college: college || 'KIET',
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || email)}`,
       joinedDate: new Date().toISOString()
     };

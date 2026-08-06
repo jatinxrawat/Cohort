@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon, Sparkles, Users } from 'lucide-react';
+import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon, Sparkles, Users, Bookmark } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/Button';
@@ -78,17 +78,22 @@ export const Header = () => {
           {isAuthenticated ? (
             <div className="hidden md:flex items-center gap-md">
               <Link to="/profile" className="flex items-center gap-md px-md py-xs bg-neutral-100 dark:bg-neutral-800 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
-                <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                  {user?.name?.charAt(0) || 'U'}
-                </div>
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name || 'User'}
+                    className="w-8 h-8 rounded-full object-cover border border-primary-500/50"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                    {user?.name?.charAt(0) || 'U'}
+                  </div>
+                )}
                 <span className="text-sm font-medium hidden sm:inline">{user?.name?.split(' ')[0] || 'User'}</span>
               </Link>
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-md">
-              <Link to="/login">
-                <Button variant="ghost" size="md">Login</Button>
-              </Link>
               <Link to="/signup">
                 <Button variant="primary" size="md">Signup</Button>
               </Link>
@@ -141,6 +146,14 @@ export const Header = () => {
                     <span>Messages</span>
                   </Link>
                   <Link
+                    to="/saved-posts"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-md p-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg"
+                  >
+                    <Bookmark className="w-5 h-5 text-amber-500" />
+                    <span>Saved</span>
+                  </Link>
+                  <Link
                     to="/profile"
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center gap-md p-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg"
@@ -160,9 +173,6 @@ export const Header = () => {
                 </>
               ) : (
                 <div className="space-y-md">
-                  <Link to="/login" onClick={() => setIsMenuOpen(false)} className="block">
-                    <Button variant="secondary" className="w-full">Login</Button>
-                  </Link>
                   <Link to="/signup" onClick={() => setIsMenuOpen(false)} className="block">
                     <Button variant="primary" className="w-full">Signup</Button>
                   </Link>

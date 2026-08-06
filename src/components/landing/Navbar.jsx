@@ -73,21 +73,13 @@ export default function Navbar() {
                 Open App
               </Link>
             ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="hidden sm:inline-flex text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors px-3 py-2"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/signup"
-                  className="magnetic-btn hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-accent-blue to-accent-purple text-white text-sm font-semibold shadow-lg shadow-accent-blue/20 hover:shadow-accent-blue/40 transition-all duration-300"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Sign Up
-                </Link>
-              </>
+              <Link
+                to="/signup"
+                className="magnetic-btn hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-accent-blue to-accent-purple text-white text-sm font-semibold shadow-lg shadow-accent-blue/20 hover:shadow-accent-blue/40 transition-all duration-300"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                Sign Up
+              </Link>
             )}
 
             {/* Mobile toggle */}
@@ -136,22 +128,13 @@ export default function Navbar() {
 
               <div className="mt-8 pt-6 border-t border-black/5 dark:border-white/5 space-y-3">
                 {!isAuthenticated ? (
-                  <>
-                    <Link
-                      to="/login"
-                      onClick={() => setMobileOpen(false)}
-                      className="block w-full text-center py-3 rounded-xl text-sm font-medium text-neutral-600 dark:text-neutral-300 border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
-                    >
-                      Login
-                    </Link>
-                    <Link
-                      to="/signup"
-                      onClick={() => setMobileOpen(false)}
-                      className="block w-full text-center py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-accent-blue to-accent-purple"
-                    >
-                      Sign Up
-                    </Link>
-                  </>
+                  <Link
+                    to="/signup"
+                    onClick={() => setMobileOpen(false)}
+                    className="block w-full text-center py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-accent-blue to-accent-purple"
+                  >
+                    Sign Up
+                  </Link>
                 ) : (
                   <Link
                     to="/home"
