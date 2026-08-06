@@ -79,7 +79,7 @@ export default function Landing() {
             How is Jatin?
           </a>
           <a href="#traction" className="hover:text-[#00a6f5] transition-colors">
-            Traction
+            Traction now
           </a>
         </nav>
 
