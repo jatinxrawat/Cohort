@@ -59,12 +59,12 @@ export default function Landing() {
 
       {/* Floating Split Oval Header / Navbar */}
       <header className="fixed top-4 left-4 right-4 z-50 max-w-6xl mx-auto flex items-center justify-between gap-3 pointer-events-none">
-        
+
         {/* Left Oval Box: Collex Brand Logo */}
         <div className="pointer-events-auto bg-white/95 dark:bg-[#151c28]/95 backdrop-blur-xl rounded-full border border-slate-200/90 dark:border-slate-800 shadow-md px-6 py-3 flex items-center transition-all hover:shadow-lg">
           <Link to="/" className="flex items-center gap-2 group">
             <span className="font-heading font-extrabold text-2xl tracking-tight text-[#00a6f5] flex items-center gap-1.5">
-              Collex
+              Colledddj jdcfn
               <span className="w-2.5 h-2.5 rounded-full bg-[#00a6f5] animate-ping"></span>
             </span>
           </Link>
@@ -85,7 +85,7 @@ export default function Landing() {
 
         {/* Right Oval Box: Theme Toggle & Account Actions */}
         <div className="pointer-events-auto bg-white/95 dark:bg-[#151c28]/95 backdrop-blur-xl rounded-full border border-slate-200/90 dark:border-slate-800 shadow-md px-4 py-2.5 flex items-center gap-3 transition-all hover:shadow-lg">
-          
+
           {/* Beautiful Sliding Pill Theme Toggle */}
           <button
             onClick={toggleTheme}
@@ -97,9 +97,8 @@ export default function Landing() {
             <motion.div
               layout
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              className={`absolute w-5 h-5 rounded-full bg-white dark:bg-[#00a6f5] shadow-md border border-slate-200 dark:border-sky-400 ${
-                isDark ? 'right-1' : 'left-1'
-              }`}
+              className={`absolute w-5 h-5 rounded-full bg-white dark:bg-[#00a6f5] shadow-md border border-slate-200 dark:border-sky-400 ${isDark ? 'right-1' : 'left-1'
+                }`}
             />
           </button>
 
@@ -197,12 +196,12 @@ export default function Landing() {
 
       {/* Hero Section with Grid Pattern Background */}
       <section className="relative pt-36 md:pt-44 pb-20 px-4 md:px-8 max-w-5xl mx-auto text-center overflow-hidden bg-grid-pattern">
-        
+
         {/* Soft Radial Ambient Glow */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-[#00a6f5]/15 dark:bg-[#00a6f5]/10 rounded-full blur-[140px] pointer-events-none" />
 
         <div className="relative z-10 space-y-8 max-w-4xl mx-auto flex flex-col items-center">
-          
+
           {/* Top Monospace Indicator Badge */}
           <motion.div
             initial={{ opacity: 0, y: -15 }}
@@ -314,7 +313,7 @@ export default function Landing() {
           viewport={{ once: true, margin: '-50px' }}
           className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          
+
           {/* Card 1: Anonymous Confessions */}
           <motion.div
             variants={fadeInUp}
@@ -423,7 +422,7 @@ export default function Landing() {
       {/* Section 2: How It Works ("Three Steps") */}
       <section id="how-it-works" className="py-24 px-4 md:px-8 bg-slate-100/70 dark:bg-[#0e1420] border-t border-b border-slate-200/80 dark:border-slate-800">
         <div className="max-w-7xl mx-auto">
-          
+
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
             <div className="inline-flex items-center gap-2 text-[#00a6f5] text-xs font-mono font-bold uppercase tracking-wider">
               HOW IT WORKS
@@ -434,7 +433,7 @@ export default function Landing() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            
+
             <div className="bg-white dark:bg-[#151c28] rounded-3xl p-8 border border-slate-200/90 dark:border-slate-800 shadow-lg relative">
               <div className="flex items-center justify-between mb-6">
                 <span className="text-4xl font-mono font-black text-[#00a6f5]">01</span>
@@ -482,7 +481,7 @@ export default function Landing() {
       {/* Section 3: Campus Traction (Dark High-Contrast Metric Banner) */}
       <section id="traction" className="py-24 px-4 md:px-8 bg-[#0c121d] text-white">
         <div className="max-w-7xl mx-auto">
-          
+
           <div className="grid lg:grid-cols-12 gap-10 items-end mb-16">
             <div className="lg:col-span-7 space-y-3">
               <div className="text-xs font-mono font-bold text-[#00a6f5] uppercase tracking-wider">
@@ -498,7 +497,7 @@ export default function Landing() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            
+
             <div className="bg-[#151c28] p-8 rounded-3xl border border-slate-800 space-y-2">
               <div className="text-4xl md:text-5xl font-black font-heading text-white">
                 48,000+
@@ -546,7 +545,7 @@ export default function Landing() {
       <section className="py-20 px-4 md:px-8 max-w-6xl mx-auto">
         <div className="bg-gradient-to-br from-[#0c1b2c] via-[#10243b] to-[#004e80] text-white rounded-[36px] p-10 md:p-16 relative overflow-hidden shadow-2xl">
           <div className="grid lg:grid-cols-12 gap-8 items-center relative z-10">
-            
+
             <div className="lg:col-span-8 space-y-4">
               <span className="bg-sky-500/20 text-sky-300 text-[10px] font-mono font-bold px-3 py-1 rounded-full border border-sky-400/30">
                 YOUR CAMPUS AWAITS
