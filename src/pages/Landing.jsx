@@ -76,7 +76,7 @@ export default function Landing() {
             Why I am the goat?
           </a>
           <a href="#how-it-works" className="hover:text-[#00a6f5] transition-colors">
-            How It Works
+            How are you?
           </a>
           <a href="#traction" className="hover:text-[#00a6f5] transition-colors">
             Traction
