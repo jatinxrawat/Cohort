@@ -247,7 +247,7 @@ export default function Search() {
                           <img
                             src={post.author?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'}
                             alt={post.author?.name}
-                            className="w-8 h-8 rounded-full"
+                            className="w-8 h-8 rounded-full object-cover"
                           />
                           <div>
                             <span className="font-bold text-xs text-neutral-900 dark:text-white group-hover:text-primary-500 transition-colors">
@@ -256,9 +256,18 @@ export default function Search() {
                             <span className="text-[10px] text-neutral-400 block font-medium">Campus Post</span>
                           </div>
                         </div>
-                        <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed">
+                        <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed mb-md">
                           {post.content}
                         </p>
+                        {post.imageUrl && (
+                          <div className="mb-md rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40 max-w-md">
+                            <img
+                              src={post.imageUrl}
+                              alt="Post attachment"
+                              className="w-full h-auto object-cover max-h-60"
+                            />
+                          </div>
+                        )}
                       </Card>
                     ))}
                   </div>

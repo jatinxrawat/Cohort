@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { Mail, MapPin, Calendar, Award, Edit, MessageSquare, Share2, Heart, UserPlus, UserCheck, MessageCircleCode, AtSign, AlertCircle } from 'lucide-react';
+import { Mail, MapPin, Calendar, Award, Edit, MessageSquare, Share2, Heart, UserPlus, UserCheck, MessageCircleCode, AtSign, AlertCircle, User, GraduationCap, Gift } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -275,6 +275,24 @@ export default function Profile() {
               <MapPin className="w-4 h-4 text-primary-500" />
               <span>{profileUser?.college || 'Campus Community'}</span>
             </div>
+            {profileUser?.gender && (
+              <div className="flex items-center gap-md">
+                <User className="w-4 h-4 text-primary-500" />
+                <span>Gender: {profileUser.gender}</span>
+              </div>
+            )}
+            {profileUser?.year && (
+              <div className="flex items-center gap-md">
+                <GraduationCap className="w-4 h-4 text-primary-500" />
+                <span>Year of study: {profileUser.year}</span>
+              </div>
+            )}
+            {profileUser?.dob && (
+              <div className="flex items-center gap-md">
+                <Gift className="w-4 h-4 text-primary-500" />
+                <span>Born: {new Date(profileUser.dob).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              </div>
+            )}
             <div className="flex items-center gap-md">
               <Calendar className="w-4 h-4 text-primary-500" />
               <span>Member since {profileUser?.joinedDate ? new Date(profileUser.joinedDate).getFullYear() : '2026'}</span>
@@ -332,6 +350,15 @@ export default function Profile() {
                   <p className="text-sm text-neutral-800 dark:text-neutral-200 mb-md leading-relaxed">
                     {post.content}
                   </p>
+                  {post.imageUrl && (
+                    <div className="mb-md rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40 max-w-md">
+                      <img
+                        src={post.imageUrl}
+                        alt="Post attachment"
+                        className="w-full h-auto object-cover max-h-60"
+                      />
+                    </div>
+                  )}
                   <div className="flex items-center gap-lg text-[10px] text-neutral-400 font-semibold uppercase tracking-wider">
                     <span>{formatRelativeTime(post.timestamp)}</span>
                     <span className="flex items-center gap-xs"><Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" /> {post.likes || 0} likes</span>

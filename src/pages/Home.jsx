@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { collection, addDoc, doc, deleteDoc, updateDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 import { PostCard } from '@/components/PostCard';
-import { Image, Smile, AlertCircle } from 'lucide-react';
+import { Image, Smile, AlertCircle, X } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
+import { uploadImageToCloudinary } from '@/utils/cloudinary';
 
 const FAKE_NAMES = [
   'priya sharma',
@@ -28,10 +29,35 @@ const FAKE_NAMES = [
 
 export default function Home() {
   const { user } = useAuth();
-  const { showSuccess } = useNotification();
+  const { showSuccess, showError } = useNotification();
   const [posts, setPosts] = useState([]);
   const [postContent, setPostContent] = useState('');
   const [loading, setLoading] = useState(true);
+
+  // Image Upload States
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const imageInputRef = useRef(null);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+      setImagePreviewUrl(null);
+    }
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
+  };
 
   // Subscribe to real-time posts from Firestore on mount
   useEffect(() => {
@@ -68,33 +94,45 @@ export default function Home() {
   }, []);
 
   const handleCreatePost = async () => {
-    if (!postContent.trim()) return;
+    if (!postContent.trim() && !imageFile) return;
 
-    const postData = {
-      author: {
-        uid: user?.uid || null,
-        username: user?.username || null,
-        name: user?.name || 'Student',
-        avatar: user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || 'user')}`,
-        role: user?.college || 'Student',
-      },
-      content: postContent.trim(),
-      timestamp: new Date(),
-      upvotes: 0,
-      downvotes: 0,
-      upvotedUsers: [],
-      downvotedUsers: [],
-      comments: 0,
-      reposts: 0,
-      saved: false,
-    };
+    setIsUploading(true);
+    let uploadedImageUrl = null;
 
     try {
-      const docRef = await addDoc(collection(db, 'posts'), postData);
+      if (imageFile) {
+        uploadedImageUrl = await uploadImageToCloudinary(imageFile);
+      }
+
+      const postData = {
+        author: {
+          uid: user?.uid || null,
+          username: user?.username || null,
+          name: user?.name || 'Student',
+          avatar: user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || 'user')}`,
+          role: user?.college || 'Student',
+        },
+        content: postContent.trim(),
+        imageUrl: uploadedImageUrl,
+        timestamp: new Date(),
+        upvotes: 0,
+        downvotes: 0,
+        upvotedUsers: [],
+        downvotedUsers: [],
+        comments: 0,
+        reposts: 0,
+        saved: false,
+      };
+
+      await addDoc(collection(db, 'posts'), postData);
       setPostContent('');
+      handleRemoveImage();
       showSuccess('Post created successfully!');
     } catch (error) {
       console.error('Failed to create post in Firestore:', error);
+      showError('Failed to upload image or create post. Please try again.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -185,7 +223,7 @@ export default function Home() {
             <img
               src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || 'user')}`}
               alt={user?.name || 'User'}
-              className="w-12 h-12 rounded-full"
+              className="w-12 h-12 rounded-full object-cover"
             />
             <div className="flex-1">
               <textarea
@@ -195,12 +233,36 @@ export default function Home() {
                 className="w-full bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-lg py-md resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder:text-neutral-400 text-sm"
                 rows={3}
               />
+              {imagePreviewUrl && (
+                <div className="relative mt-md rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 max-h-60 flex items-center justify-center">
+                  <img src={imagePreviewUrl} alt="Preview" className="object-contain max-h-60 w-full" />
+                  <button
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 bg-neutral-900/80 hover:bg-neutral-900 text-white rounded-full p-1.5 transition-colors shadow-md"
+                    title="Remove image"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
           <div className="flex items-center justify-between pt-lg border-t border-neutral-100 dark:border-neutral-800">
             <div className="flex gap-md">
-              <button className="text-neutral-500 hover:text-primary-500 p-md rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800">
+              <input
+                type="file"
+                ref={imageInputRef}
+                onChange={handleImageChange}
+                accept="image/*"
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => imageInputRef.current?.click()}
+                className="text-neutral-500 hover:text-primary-500 p-md rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                title="Add Image"
+              >
                 <Image className="w-5 h-5" />
               </button>
               <button className="text-neutral-500 hover:text-primary-500 p-md rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800">
@@ -211,9 +273,9 @@ export default function Home() {
               variant="primary"
               size="md"
               onClick={handleCreatePost}
-              disabled={!postContent.trim()}
+              disabled={(!postContent.trim() && !imageFile) || isUploading}
             >
-              Post
+              {isUploading ? 'Posting...' : 'Post'}
             </Button>
           </div>
         </Card>
