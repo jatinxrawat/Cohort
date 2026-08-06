@@ -64,7 +64,7 @@ export default function Landing() {
         <div className="pointer-events-auto bg-white/95 dark:bg-[#151c28]/95 backdrop-blur-xl rounded-full border border-slate-200/90 dark:border-slate-800 shadow-md px-6 py-3 flex items-center transition-all hover:shadow-lg">
           <Link to="/" className="flex items-center gap-2 group">
             <span className="font-heading font-extrabold text-2xl tracking-tight text-[#00a6f5] flex items-center gap-1.5">
-              Colledddj jdcfn
+              Colleddddk
               <span className="w-2.5 h-2.5 rounded-full bg-[#00a6f5] animate-ping"></span>
             </span>
           </Link>
