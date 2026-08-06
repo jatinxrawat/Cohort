@@ -4,6 +4,7 @@ import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon, Sparkles, User
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/Button';
+import { Logo } from '@/components/Logo';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 
@@ -37,14 +38,7 @@ export const Header = () => {
     <header className="sticky top-0 z-40 bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
       <div className="w-full px-md sm:px-lg py-sm flex items-center justify-between">
         {/* Brand Logo - Cohort (Aligned Top Left) */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-primary-500 text-white flex items-center justify-center shadow-md shadow-primary-500/25 transition-transform duration-200 group-hover:scale-105">
-            <Users className="w-5 h-5 stroke-[2.5]" />
-          </div>
-          <span className="font-heading font-extrabold text-2xl tracking-tight text-neutral-900 dark:text-white group-hover:text-primary-500 transition-colors">
-            Cohort
-          </span>
-        </Link>
+        <Logo isLanding={false} iconSize="w-9 h-9" textSize="text-2xl" />
 
         {/* Desktop Navigation - Hidden on mobile */}
         {isAuthenticated && (

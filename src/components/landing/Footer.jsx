@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Github, Twitter, Instagram, Linkedin, Heart } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 const footerLinks = {
   Platform: [
@@ -41,12 +42,7 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-10">
           {/* Brand column */}
           <div className="col-span-2 space-y-5">
-            <Link to="/" className="inline-flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center">
-                <span className="text-white font-display font-extrabold text-sm">C</span>
-              </div>
-              <span className="font-display font-extrabold text-lg text-neutral-900 dark:text-white">Cohort</span>
-            </Link>
+            <Logo isLanding={false} iconSize="w-8 h-8" textSize="text-lg" className="inline-flex items-center gap-2.5 group" />
             <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-xs">
               The social platform built exclusively for college students. Redesigning university life, one campus at a time.
             </p>

@@ -6,6 +6,7 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { useNotification } from '@/contexts/NotificationContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { Logo } from '@/components/Logo';
 import { validateEmail } from '@/utils/helpers';
 
 export default function ForgotPassword() {
@@ -83,9 +84,9 @@ export default function ForgotPassword() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-3xl">
-          <Link to="/" className="inline-block brand-logo-text text-3xl mb-lg hover:scale-105 transition-transform">
-            Cohort
-          </Link>
+          <div className="flex justify-center mb-lg">
+            <Logo isLanding={false} iconSize="w-10 h-10" textSize="text-3xl" className="flex items-center gap-3 hover:scale-105 transition-transform" />
+          </div>
           <h1 className="text-3xl font-heading font-bold mb-md">Reset Password</h1>
           <p className="text-neutral-600 dark:text-neutral-400">
             {step === 1 ? 'Enter your email to receive a reset code'
