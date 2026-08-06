@@ -60,7 +60,7 @@ export default function SavedPosts() {
                       <img
                         src={post.author.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'}
                         alt={post.author.name}
-                        className="w-10 h-10 rounded-full"
+                        className="w-10 h-10 rounded-full object-cover"
                       />
                       <div>
                         <h4 className="font-semibold text-neutral-900 dark:text-white text-sm">
@@ -85,6 +85,16 @@ export default function SavedPosts() {
                   <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed mb-lg">
                     {post.content}
                   </p>
+
+                  {post.imageUrl && (
+                    <div className="mb-lg rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40">
+                      <img
+                        src={post.imageUrl}
+                        alt="Post attachment"
+                        className="w-full h-auto object-cover max-h-96"
+                      />
+                    </div>
+                  )}
 
                   {/* Actions Footer */}
                   <div className="flex items-center gap-xl text-xs text-neutral-500 dark:text-neutral-400 border-t border-neutral-100 dark:border-neutral-800 pt-md">

@@ -16,7 +16,8 @@ import {
   Download,
   CheckCircle2,
   AlertCircle,
-  BarChart2
+  BarChart2,
+  X
 } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
@@ -25,6 +26,7 @@ import { Modal } from '@/components/Modal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { PostCard } from '@/components/PostCard';
+import { uploadImageToCloudinary } from '@/utils/cloudinary';
 import { collection, addDoc, doc, deleteDoc, updateDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { db } from '@/utils/firebase';
@@ -53,6 +55,31 @@ export default function Community() {
   // Feed States
   const [feedPosts, setFeedPosts] = useState([]);
   const [newPostText, setNewPostText] = useState('');
+
+  // Feed Image Upload States
+  const [feedImageFile, setFeedImageFile] = useState(null);
+  const [feedImagePreviewUrl, setFeedImagePreviewUrl] = useState(null);
+  const [isUploadingFeedImage, setIsUploadingFeedImage] = useState(false);
+  const feedImageInputRef = useRef(null);
+
+  const handleFeedImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFeedImageFile(file);
+      setFeedImagePreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const handleRemoveFeedImage = () => {
+    setFeedImageFile(null);
+    if (feedImagePreviewUrl) {
+      URL.revokeObjectURL(feedImagePreviewUrl);
+      setFeedImagePreviewUrl(null);
+    }
+    if (feedImageInputRef.current) {
+      feedImageInputRef.current.value = '';
+    }
+  };
 
   // Polls States
   const [polls, setPolls] = useState([]);
@@ -271,32 +298,44 @@ export default function Community() {
 
   // Add Feed Post
   const handleCreateFeedPost = async () => {
-    if (!newPostText.trim()) return;
+    if (!newPostText.trim() && !feedImageFile) return;
 
-    const senderName = user?.name || user?.email?.split('@')[0] || 'Student';
-    const postData = {
-      author: {
-        name: senderName,
-        avatar: user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || senderName)}`,
-        role: user?.college || 'Student'
-      },
-      content: newPostText.trim(),
-      timestamp: new Date(),
-      likes: 0,
-      comments: 0,
-      shares: 0,
-      liked: false,
-      saved: false
-    };
+    setIsUploadingFeedImage(true);
+    let uploadedImageUrl = null;
 
     try {
+      if (feedImageFile) {
+        uploadedImageUrl = await uploadImageToCloudinary(feedImageFile);
+      }
+
+      const senderName = user?.name || user?.email?.split('@')[0] || 'Student';
+      const postData = {
+        author: {
+          name: senderName,
+          avatar: user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || senderName)}`,
+          role: user?.college || 'Student'
+        },
+        content: newPostText.trim(),
+        imageUrl: uploadedImageUrl,
+        timestamp: new Date(),
+        likes: 0,
+        comments: 0,
+        shares: 0,
+        liked: false,
+        saved: false
+      };
+
       const docRef = await addDoc(collection(db, 'community-feed'), postData);
       const newPost = { id: docRef.id, docId: docRef.id, ...postData };
       setFeedPosts([newPost, ...feedPosts]);
       setNewPostText('');
+      handleRemoveFeedImage();
       showSuccess('Announcement shared in community feed!');
     } catch (e) {
       console.error('Failed to post announcement to Firestore:', e);
+      showWarning('Failed to upload image or share announcement.');
+    } finally {
+      setIsUploadingFeedImage(false);
     }
   };
 
@@ -726,7 +765,7 @@ export default function Community() {
                   <img
                     src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || 'user')}`}
                     alt="You"
-                    className="w-12 h-12 rounded-full"
+                    className="w-12 h-12 rounded-full object-cover"
                   />
                   <div className="flex-1">
                     <textarea
@@ -736,11 +775,35 @@ export default function Community() {
                       rows={3}
                       className="w-full bg-neutral-50/50 dark:bg-neutral-900/60 border border-neutral-200 dark:border-neutral-800 rounded-xl px-lg py-md text-sm outline-none resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
+                    {feedImagePreviewUrl && (
+                      <div className="relative mt-md rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 max-h-60 flex items-center justify-center">
+                        <img src={feedImagePreviewUrl} alt="Preview" className="object-contain max-h-60 w-full" />
+                        <button
+                          onClick={handleRemoveFeedImage}
+                          className="absolute top-2 right-2 bg-neutral-900/80 hover:bg-neutral-900 text-white rounded-full p-1.5 transition-colors shadow-md"
+                          title="Remove image"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex justify-between items-center pt-lg border-t border-neutral-100 dark:border-neutral-800">
                   <div className="flex gap-md">
-                    <button className="p-md text-neutral-400 hover:text-primary-500 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800">
+                    <input
+                      type="file"
+                      ref={feedImageInputRef}
+                      onChange={handleFeedImageChange}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => feedImageInputRef.current?.click()}
+                      className="p-md text-neutral-400 hover:text-primary-500 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                      title="Add Image"
+                    >
                       <Image className="w-5 h-5" />
                     </button>
                     <button className="p-md text-neutral-400 hover:text-primary-500 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800">
@@ -750,10 +813,10 @@ export default function Community() {
                   <Button
                     variant="primary"
                     size="sm"
-                    disabled={!newPostText.trim()}
+                    disabled={(!newPostText.trim() && !feedImageFile) || isUploadingFeedImage}
                     onClick={handleCreateFeedPost}
                   >
-                    Share Announcement
+                    {isUploadingFeedImage ? 'Sharing...' : 'Share Announcement'}
                   </Button>
                 </div>
               </Card>
