@@ -147,6 +147,16 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
         {post.content}
       </p>
 
+      {post.imageUrl && (
+        <div className="mb-xl rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40">
+          <img
+            src={post.imageUrl}
+            alt="Post attachment"
+            className="w-full h-auto object-cover max-h-96 hover:scale-[1.01] transition-transform duration-300"
+          />
+        </div>
+      )}
+
       {/* Modern Pill Action Bar */}
       <div className="flex items-center gap-sm flex-wrap pt-xs">
         {/* Upvote / Downvote Pill */}
@@ -298,7 +308,7 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
             <img
               src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || 'user')}`}
               alt="You"
-              className="w-8 h-8 rounded-full flex-shrink-0"
+              className="w-8 h-8 rounded-full flex-shrink-0 object-cover"
             />
             <div className="flex-1 bg-neutral-50 dark:bg-neutral-800/80 rounded-full px-md py-sm flex items-center gap-md border border-neutral-200 dark:border-neutral-700">
               <input
