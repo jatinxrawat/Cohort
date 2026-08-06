@@ -60,12 +60,12 @@ export default function Landing() {
       {/* Floating Split Oval Header / Navbar */}
       <header className="fixed top-4 left-4 right-4 z-50 max-w-6xl mx-auto flex items-center justify-between gap-3 pointer-events-none">
 
-        {/* Left Oval Box: Collex Brand Logo */}
+        {/* Left Oval Box: Cohort Brand Logo */}
         <div className="pointer-events-auto bg-white/95 dark:bg-[#151c28]/95 backdrop-blur-xl rounded-full border border-slate-200/90 dark:border-slate-800 shadow-md px-6 py-3 flex items-center transition-all hover:shadow-lg">
           <Link to="/" className="flex items-center gap-2 group">
-            <span className="font-heading font-extrabold text-2xl tracking-tight text-[#00a6f5] flex items-center gap-1.5">
+            <span className="text-2xl brand-logo-text flex items-center gap-1.5 transition-transform duration-300 group-hover:scale-105">
               Cohort
-              <span className="w-2.5 h-2.5 rounded-full bg-[#00a6f5] animate-ping"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-ping"></span>
             </span>
           </Link>
         </div>
@@ -581,8 +581,8 @@ export default function Landing() {
       <footer className="bg-[#0b1019] text-slate-400 py-16 px-4 md:px-8 border-t border-slate-800">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 mb-12">
           <div className="col-span-2 md:col-span-1 space-y-4">
-            <div className="flex items-center gap-2 text-[#00a6f5] font-extrabold text-2xl font-heading">
-              Collex
+            <div className="text-2xl brand-logo-text flex items-center gap-2">
+              Cohort
             </div>
             <p className="text-xs leading-relaxed font-medium text-slate-400">
               The private social network built exclusively for university students. Connect, confess, create communities, and experience campus life together.
@@ -620,7 +620,7 @@ export default function Landing() {
         </div>
 
         <div className="max-w-7xl mx-auto pt-8 border-t border-slate-800 text-center text-xs text-slate-500 font-semibold">
-          © 2026 Collex. All rights reserved. Empowering university students everywhere.
+          © 2026 Cohort. All rights reserved. Empowering university students everywhere.
         </div>
       </footer>
 

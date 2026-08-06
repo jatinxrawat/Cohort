@@ -1,14 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon } from 'lucide-react';
+import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon, Sparkles, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/Button';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '@/utils/firebase';
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isAuthenticated, logout, user, hasUnreadMessages } = useAuth();
+  const { isAuthenticated, logout, user, hasUnreadMessages, unreadCount } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    const unsub = onSnapshot(collection(db, 'notifications'), (snapshot) => {
+      let count = 0;
+      snapshot.forEach(d => {
+        const data = d.data();
+        if ((!data.recipientUid || data.recipientUid === user.uid) && !data.read) {
+          count++;
+        }
+      });
+      setUnreadNotifs(count);
+    });
+    return () => unsub();
+  }, [user?.uid]);
 
   const handleLogout = () => {
     logout();
@@ -17,10 +35,15 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-40 bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
-      <div className="max-w-7xl mx-auto px-lg py-md flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="font-heading font-bold text-2xl bg-gradient-to-r from-primary-500 to-blue-600 bg-clip-text text-transparent">
-          Collex
+      <div className="w-full px-md sm:px-lg py-sm flex items-center justify-between">
+        {/* Brand Logo - Cohort (Aligned Top Left) */}
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="w-9 h-9 rounded-xl bg-primary-500 text-white flex items-center justify-center shadow-md shadow-primary-500/25 transition-transform duration-200 group-hover:scale-105">
+            <Users className="w-5 h-5 stroke-[2.5]" />
+          </div>
+          <span className="font-heading font-extrabold text-2xl tracking-tight text-neutral-900 dark:text-white group-hover:text-primary-500 transition-colors">
+            Cohort
+          </span>
         </Link>
 
         {/* Desktop Navigation - Hidden on mobile */}
@@ -31,12 +54,18 @@ export const Header = () => {
             </Link>
             <Link to="/notifications" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 p-md rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 relative" aria-label="Notifications">
               <Bell className="w-5 h-5" />
-              <span className="absolute top-md right-md w-2 h-2 bg-danger rounded-full" />
+              {unreadNotifs > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-4.5 px-1 bg-red-500 text-white font-extrabold text-[10px] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-900 animate-pulse">
+                  {unreadNotifs > 99 ? '99+' : unreadNotifs}
+                </span>
+              )}
             </Link>
             <Link to="/messages" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 p-md rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 relative" aria-label="Messages">
               <MessageSquare className="w-5 h-5" />
-              {hasUnreadMessages && (
-                <span className="absolute top-md right-md w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-neutral-900 animate-pulse" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-4.5 px-1 bg-primary-500 text-white font-extrabold text-[10px] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-900 animate-pulse">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
               )}
             </Link>
           </div>

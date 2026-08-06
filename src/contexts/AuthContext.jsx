@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -80,42 +81,45 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  // Real-time Firestore Listener for Unread Direct Messages
+  // Real-time Firestore Listener for Unread Direct Messages & Count
   useEffect(() => {
     if (!user?.uid) {
       setHasUnreadMessages(false);
+      setUnreadCount(0);
       return;
     }
 
     const unsub = onSnapshot(collection(db, 'messages'), (snapshot) => {
-      let foundUnread = false;
+      let totalUnread = 0;
 
       snapshot.forEach(d => {
         const data = d.data();
         const isParticipant = (data.participants && data.participants.includes(user.uid)) ||
-                              data.recipientUid === user.uid;
+                              data.recipientUid === user.uid ||
+                              data.createdBy === user.uid;
 
-        if (isParticipant) {
+        if (isParticipant && data.hiddenFor?.[user.uid] !== true) {
           const msgs = data.messages || [];
-          const lastMsg = msgs[msgs.length - 1];
+          const unreadMsgsInThread = msgs.filter(m => {
+            if (!m) return false;
+            const isFromOther = m.senderUid ? m.senderUid !== user.uid : m.senderName !== (user?.name || user?.email?.split('@')[0]);
+            const isRead = Array.isArray(m.readBy) && m.readBy.includes(user.uid);
+            const isDeleted = Array.isArray(m.deletedFor) && m.deletedFor.includes(user.uid);
+            return isFromOther && !isRead && !isDeleted;
+          }).length;
 
-          // If last message exists, was sent by someone else, and hasn't been read by current user
-          if (lastMsg && lastMsg.senderUid && lastMsg.senderUid !== user.uid) {
-            const readBy = data.readBy || [];
-            if (!readBy.includes(user.uid)) {
-              foundUnread = true;
-            }
-          }
+          totalUnread += unreadMsgsInThread;
         }
       });
 
-      setHasUnreadMessages(foundUnread);
+      setUnreadCount(totalUnread);
+      setHasUnreadMessages(totalUnread > 0);
     }, (err) => {
       console.error('Unread messages listener error:', err);
     });
 
     return () => unsub();
-  }, [user?.uid]);
+  }, [user?.uid, user?.name, user?.email]);
 
   const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
@@ -175,6 +179,8 @@ export const AuthProvider = ({ children }) => {
         isLoading,
         hasUnreadMessages,
         setHasUnreadMessages,
+        unreadCount,
+        setUnreadCount,
         loginWithGoogle,
         login,
         signup,

@@ -110,6 +110,16 @@ export default function Profile() {
       nextFollowing.push(tUid);
       nextFollowers.push(currentUser.uid);
       showSuccess(`Now following @${profileUser.username || profileUser.name}!`);
+
+      // Dispatch Follow Notification
+      createNotification({
+        recipientUid: tUid,
+        senderUid: currentUser.uid,
+        senderName: currentUser.name || 'Student',
+        senderAvatar: currentUser.avatar,
+        type: 'follow',
+        text: 'started following you.'
+      });
     }
 
     // Update Firestore

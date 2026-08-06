@@ -15,6 +15,7 @@ import { formatRelativeTime } from '@/utils/helpers';
 import { useAuth } from '@/contexts/AuthContext';
 import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
+import { createNotification } from '@/utils/notifications';
 
 export const PostCard = ({ post, onVote, onRepost, onSave }) => {
   const navigate = useNavigate();
@@ -84,6 +85,20 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
         await updateDoc(postRef, {
           comments: (comments.length || 0) + 1
         });
+
+        // Dispatch Comment Notification to post author
+        const postAuthorUid = post.author?.uid || post.authorUid || post.uid;
+        if (postAuthorUid && postAuthorUid !== user?.uid) {
+          createNotification({
+            recipientUid: postAuthorUid,
+            senderUid: user?.uid,
+            senderName: user?.name || 'Student',
+            senderAvatar: user?.avatar,
+            type: 'reply',
+            text: `commented: "${textToSend.slice(0, 35)}${textToSend.length > 35 ? '...' : ''}"`,
+            postId: postId
+          });
+        }
       } catch (err) {
         console.error('Failed to add reply comment in Firestore:', err);
       }
@@ -143,7 +158,21 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
             : 'bg-neutral-100 dark:bg-neutral-800/80 border-transparent text-neutral-700 dark:text-neutral-300'
         }`}>
           <button
-            onClick={() => onVote(post.id, 'up')}
+            onClick={() => {
+              onVote(post.id, 'up');
+              const postAuthorUid = post.author?.uid || post.authorUid || post.uid;
+              if (postAuthorUid && postAuthorUid !== user?.uid && userVote !== 'up') {
+                createNotification({
+                  recipientUid: postAuthorUid,
+                  senderUid: user?.uid,
+                  senderName: user?.name || 'Student',
+                  senderAvatar: user?.avatar,
+                  type: 'like',
+                  text: 'liked your post.',
+                  postId: post.docId || post.id
+                });
+              }
+            }}
             className={`p-xs rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors ${
               userVote === 'up' ? 'text-orange-500 font-bold' : ''
             }`}
@@ -182,7 +211,21 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
 
         {/* Repost Pill */}
         <button
-          onClick={() => onRepost(post.id)}
+          onClick={() => {
+            onRepost(post.id);
+            const postAuthorUid = post.author?.uid || post.authorUid || post.uid;
+            if (postAuthorUid && postAuthorUid !== user?.uid) {
+              createNotification({
+                recipientUid: postAuthorUid,
+                senderUid: user?.uid,
+                senderName: user?.name || 'Student',
+                senderAvatar: user?.avatar,
+                type: 'reshare',
+                text: 'reshared your post.',
+                postId: post.docId || post.id
+              });
+            }
+          }}
           className="flex items-center gap-xs px-md py-sm rounded-full text-xs font-semibold bg-neutral-100 dark:bg-neutral-800/80 border border-transparent text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all"
           title="Repost"
         >
