@@ -5,6 +5,7 @@ import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { useAuth } from '@/contexts/AuthContext';
+import { Logo } from '@/components/Logo';
 import { useNotification } from '@/contexts/NotificationContext';
 import { validateEmail } from '@/utils/helpers';
 
@@ -74,9 +75,9 @@ export default function Login() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-3xl">
-          <Link to="/" className="inline-block brand-logo-text text-3xl mb-lg hover:scale-105 transition-transform">
-            Cohort
-          </Link>
+          <div className="flex justify-center mb-lg">
+            <Logo isLanding={false} iconSize="w-10 h-10" textSize="text-3xl" className="flex items-center gap-3 hover:scale-105 transition-transform" />
+          </div>
           <h1 className="text-3xl font-heading font-bold mb-md">Welcome Back</h1>
           <p className="text-neutral-600 dark:text-neutral-400">Sign in to your account to continue</p>
         </div>

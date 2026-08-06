@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Sun, Moon, Sparkles } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { Logo } from '@/components/Logo';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -38,14 +39,7 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center">
-              <span className="text-white font-display font-extrabold text-sm">C</span>
-            </div>
-            <span className="font-display font-extrabold text-lg tracking-tight text-neutral-900 dark:text-white">
-              Cohort
-            </span>
-          </Link>
+          <Logo isLanding={false} iconSize="w-8 h-8" textSize="text-lg" />
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">

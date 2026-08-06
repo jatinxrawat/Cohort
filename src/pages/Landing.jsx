@@ -25,6 +25,7 @@ import {
   UserCheck 
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Logo } from '@/components/Logo';
 
 // --- MOCK UNIVERSITY DATA ---
 const COLLEGES = [
@@ -251,14 +252,7 @@ export default function Landing() {
       {/* --- SCROLLABLE HEADER (NOT FIXED) --- */}
       <header className="relative z-50 border-b border-white/10 bg-midnight-slate/90 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-vandal-pink via-topic-violet to-acid-cyan flex items-center justify-center shadow-lg shadow-vandal-pink/25">
-              <span className="text-white font-display font-extrabold text-lg transform group-hover:rotate-12 transition-transform">C</span>
-            </div>
-            <span className="font-display font-black text-xl tracking-tight text-white">
-              Cohort<span className="text-vandal-pink">.</span>
-            </span>
-          </Link>
+          <Logo isLanding={true} iconSize="w-9 h-9" />
 
           {/* Desktop Navigation links */}
           <nav className="hidden md:flex items-center gap-1 bg-white/5 rounded-xl p-1 border border-white/5">
