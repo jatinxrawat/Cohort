@@ -646,18 +646,20 @@ export default function Profile() {
                             </p>
                           </div>
                         ) : (
-                          <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed">
-                            {post.content}
-                          </p>
-                          {post.imageUrl && (
-                            <div className="mt-md rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40 max-w-md">
-                              <img
-                                src={post.imageUrl}
-                                alt="Post attachment"
-                                className="w-full h-auto object-cover max-h-60"
-                              />
-                            </div>
-                          )}
+                          <>
+                            <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed">
+                              {post.content}
+                            </p>
+                            {post.imageUrl && (
+                              <div className="mt-md rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40 max-w-md">
+                                <img
+                                  src={post.imageUrl}
+                                  alt="Post attachment"
+                                  className="w-full h-auto object-cover max-h-60"
+                                />
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
 

@@ -2050,7 +2050,6 @@ export default function Community() {
                   </button>
                 </div>
               ) : (
-              ) : (
                 <button
                   type="button"
                   onClick={() => createAvatarFileRef.current?.click()}
