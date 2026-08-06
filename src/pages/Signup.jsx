@@ -126,10 +126,10 @@ export default function Signup() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-3xl">
-          <Link to="/" className="inline-block font-heading font-bold text-3xl bg-gradient-to-r from-primary-500 to-blue-600 bg-clip-text text-transparent mb-lg">
-            Collex
+          <Link to="/" className="inline-block brand-logo-text text-3xl mb-lg hover:scale-105 transition-transform">
+            Cohort
           </Link>
-          <h1 className="text-3xl font-heading font-bold mb-md">Join Collex</h1>
+          <h1 className="text-3xl font-heading font-bold mb-md">Join Cohort</h1>
           <p className="text-neutral-600 dark:text-neutral-400">Create your account in {step === 1 ? 'two' : 'one'} step</p>
         </div>
 

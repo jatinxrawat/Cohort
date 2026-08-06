@@ -23,7 +23,7 @@ const mobileNavItems = [
 
 export const MobileNav = () => {
   const location = useLocation();
-  const { hasUnreadMessages } = useAuth();
+  const { hasUnreadMessages, unreadCount } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
@@ -56,8 +56,10 @@ export const MobileNav = () => {
             >
               <div className="relative">
                 <Icon className="w-5 h-5" />
-                {badge && hasUnreadMessages && (
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-neutral-900 animate-pulse" />
+                {badge && unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-4.5 px-1 bg-primary-500 text-white font-extrabold text-[10px] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-900 shadow-md shadow-primary-500/30 animate-pulse">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
                 )}
               </div>
               <span className="text-[10px] tracking-tight">{label}</span>

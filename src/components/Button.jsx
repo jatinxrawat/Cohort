@@ -20,6 +20,7 @@ export const Button = React.forwardRef(({
   };
 
   const sizes = {
+    xs: 'px-md py-xs text-xs',
     sm: 'px-md py-xs text-sm',
     md: 'px-lg py-md text-base',
     lg: 'px-2xl py-lg text-lg',

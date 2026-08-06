@@ -72,8 +72,8 @@ export const UsernameModal = () => {
           <h2 className="text-2xl font-heading font-bold text-neutral-900 dark:text-white">
             Choose Your Unique Username
           </h2>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            Welcome to Collex! Every student has a unique handle so classmates can search and message you directly.
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-xl leading-relaxed">
+            Welcome to Cohort! Every student has a unique handle so classmates can search and message you directly.
           </p>
         </div>
 

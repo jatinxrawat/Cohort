@@ -25,6 +25,7 @@ export default {
           700: '#0369a1',
           800: '#075985',
           900: '#0c3d66',
+          950: '#082f49',
         },
         // Neutral colors
         neutral: {

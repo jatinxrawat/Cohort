@@ -3,51 +3,70 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { useNotification } from '@/contexts/NotificationContext';
-import { Heart, MessageSquare, UserPlus, Bell, Eye, Trash2, Inbox } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { Heart, MessageSquare, UserPlus, Bell, Eye, Trash2, Inbox, Repeat, ExternalLink } from 'lucide-react';
 import { formatRelativeTime } from '@/utils/helpers';
-import { collection, getDocs, doc, updateDoc, writeBatch, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, writeBatch, deleteDoc } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 
 const iconMap = {
   like: Heart,
   reply: MessageSquare,
   follow: UserPlus,
+  reshare: Repeat,
   system: Bell
+};
+
+const iconStyleMap = {
+  like: { bg: 'bg-rose-500/10 dark:bg-rose-500/20', color: 'text-rose-500' },
+  reply: { bg: 'bg-sky-500/10 dark:bg-sky-500/20', color: 'text-sky-500' },
+  follow: { bg: 'bg-emerald-500/10 dark:bg-emerald-500/20', color: 'text-emerald-500' },
+  reshare: { bg: 'bg-indigo-500/10 dark:bg-indigo-500/20', color: 'text-indigo-500' },
+  system: { bg: 'bg-amber-500/10 dark:bg-amber-500/20', color: 'text-amber-500' }
 };
 
 export default function Notifications() {
   const { showSuccess } = useNotification();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [list, setList] = useState([]);
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(true);
 
-  // Load notifications from Firestore
+  // Real-time Firestore Listener for User Notifications
   useEffect(() => {
-    const loadNotifications = async () => {
-      try {
-        setLoading(true);
-        const querySnapshot = await getDocs(collection(db, 'notifications'));
-        const loaded = [];
-        querySnapshot.forEach(d => {
-          const data = d.data();
+    if (!user?.uid) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const unsub = onSnapshot(collection(db, 'notifications'), (snapshot) => {
+      const loaded = [];
+      snapshot.forEach(d => {
+        const data = d.data();
+        // Show notifications for current user (or general notifications)
+        if (!data.recipientUid || data.recipientUid === user.uid) {
           loaded.push({
             id: d.id,
             docId: d.id,
             ...data,
             time: data.time?.toDate ? data.time.toDate() : new Date(data.time || Date.now())
           });
-        });
+        }
+      });
 
-        loaded.sort((a, b) => b.time - a.time);
-        setList(loaded);
-      } catch (e) {
-        console.error('Failed to load notifications from Firestore:', e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadNotifications();
-  }, []);
+      loaded.sort((a, b) => b.time - a.time);
+      setList(loaded);
+      setLoading(false);
+    }, (err) => {
+      console.error('Error listening to notifications:', err);
+      setLoading(false);
+    });
+
+    return () => unsub();
+  }, [user?.uid]);
 
   const handleMarkAsRead = async (id) => {
     setList(prev => prev.map(notif => {
@@ -72,7 +91,7 @@ export default function Notifications() {
 
     const batch = writeBatch(db);
     list.forEach(n => {
-      if (n.docId) {
+      if (n.docId && !n.read) {
         const docRef = doc(db, 'notifications', n.docId);
         batch.update(docRef, { read: true });
       }
@@ -118,13 +137,14 @@ export default function Notifications() {
     }
   };
 
-  const categories = ['All', 'likes', 'replies', 'follows', 'system'];
+  const categories = ['All', 'likes', 'replies', 'follows', 'reshares', 'system'];
 
   const filteredList = list.filter(notif => {
     if (filter === 'All') return true;
     if (filter === 'likes') return notif.type === 'like';
     if (filter === 'replies') return notif.type === 'reply';
     if (filter === 'follows') return notif.type === 'follow';
+    if (filter === 'reshares') return notif.type === 'reshare';
     if (filter === 'system') return notif.type === 'system';
     return true;
   });
@@ -137,10 +157,10 @@ export default function Notifications() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-3xl">
         <div>
           <h1 className="text-3xl font-heading font-bold flex items-center gap-md">
-            Notifications {unreadCount > 0 && <span className="bg-danger text-white text-xs px-md py-xs rounded-full">{unreadCount} new</span>}
+            Notifications {unreadCount > 0 && <span className="bg-danger text-white text-xs px-md py-xs rounded-full font-bold">{unreadCount} new</span>}
           </h1>
-          <p className="text-neutral-600 dark:text-neutral-400 mt-xs">
-            Manage likes, comments, system alerts, and connection updates
+          <p className="text-neutral-600 dark:text-neutral-400 mt-xs text-sm">
+            Manage likes, comments, reshares, followers, and system alerts
           </p>
         </div>
         
@@ -148,13 +168,13 @@ export default function Notifications() {
           <div className="flex gap-md self-start sm:self-center">
             <button
               onClick={handleMarkAllRead}
-              className="text-xs font-semibold text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 flex items-center gap-md p-md hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+              className="text-xs font-semibold text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 flex items-center gap-xs p-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
             >
               <Eye className="w-4 h-4" /> Mark all read
             </button>
             <button
               onClick={handleClearAll}
-              className="text-xs font-semibold text-danger hover:text-red-600 dark:hover:text-red-400 flex items-center gap-md p-md hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+              className="text-xs font-semibold text-danger hover:text-red-600 dark:hover:text-red-400 flex items-center gap-xs p-xs hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
             >
               <Trash2 className="w-4 h-4" /> Clear all
             </button>
@@ -199,6 +219,8 @@ export default function Notifications() {
             >
               {filteredList.map((notif) => {
                 const Icon = iconMap[notif.type] || Bell;
+                const style = iconStyleMap[notif.type] || iconStyleMap.system;
+
                 return (
                   <motion.div
                     key={notif.id}
@@ -210,25 +232,55 @@ export default function Notifications() {
                   >
                     <Card
                       className={`flex items-start gap-lg hover:shadow-md cursor-pointer transition-all border-neutral-100 dark:border-neutral-800 relative group ${
-                        !notif.read ? 'border-l-4 border-l-primary-500 bg-primary-50/10 dark:bg-primary-950/5' : ''
+                        !notif.read ? 'border-l-4 border-l-primary-500 bg-primary-50/20 dark:bg-primary-950/20' : ''
                       }`}
                       onClick={() => handleMarkAsRead(notif.id)}
                     >
-                      {/* Icon Bubble */}
-                      <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 ${notif.bgIcon || 'bg-neutral-50 dark:bg-neutral-900'}`}>
-                        <Icon className={`w-5 h-5 ${notif.iconColor || 'text-primary-500'}`} />
+                      {/* Avatar with type badge overlay */}
+                      <div className="relative flex-shrink-0">
+                        <img
+                          src={notif.senderAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(notif.senderName || 'user')}`}
+                          alt={notif.senderName || 'Student'}
+                          className="w-11 h-11 rounded-full object-cover"
+                        />
+                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ${style.bg} ${style.color} ring-2 ring-white dark:ring-neutral-900`}>
+                          <Icon className="w-3 h-3" />
+                        </div>
                       </div>
 
                       {/* Content text */}
                       <div className="flex-1 min-w-0 pr-xl">
                         <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-normal">
-                          <strong className="text-neutral-900 dark:text-white font-semibold mr-xs">{notif.user}</strong>
+                          <strong
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (notif.senderUid) navigate(`/profile?uid=${notif.senderUid}`);
+                            }}
+                            className="text-neutral-900 dark:text-white font-bold hover:text-primary-500 transition-colors mr-xs"
+                          >
+                            {notif.senderName || notif.user || 'A Student'}
+                          </strong>
                           {notif.text}
                         </p>
                         <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-semibold block mt-xs">
                           {formatRelativeTime(notif.time)}
                         </span>
                       </div>
+
+                      {/* Action buttons */}
+                      {notif.type === 'follow' && notif.senderUid && (
+                        <Button
+                          size="xs"
+                          variant="secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/profile?uid=${notif.senderUid}`);
+                          }}
+                          className="text-xs flex-shrink-0"
+                        >
+                          View Profile
+                        </Button>
+                      )}
 
                       {/* Trash Delete button */}
                       <button
