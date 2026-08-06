@@ -1,5 +1,0 @@
-<<<<<<<< HEAD:dist/assets/Card-BmJPJzog.js
-import{j as l}from"./ui-644dEsdK.js";import"./vendor-k-88g7mg.js";const i=({children:a,className:r="",variant:s="default",clickable:t=!1,...o})=>{const e={default:"card",glass:"glass",flat:"bg-neutral-50 dark:bg-neutral-900 rounded-xl p-lg"};return l.jsx("div",{className:`${e[s]} ${t?"cursor-pointer hover:shadow-lg transition-shadow":""} ${r}`,...o,children:a})};export{i as C};
-========
-import{j as l}from"./ui-V_86b99-.js";import"./vendor-k-88g7mg.js";const i=({children:a,className:r="",variant:s="default",clickable:t=!1,...o})=>{const e={default:"card",glass:"glass",flat:"bg-neutral-50 dark:bg-neutral-900 rounded-xl p-lg"};return l.jsx("div",{className:`${e[s]} ${t?"cursor-pointer hover:shadow-lg transition-shadow":""} ${r}`,...o,children:a})};export{i as C};
->>>>>>>> e0fff545:dist/assets/Card-CvdSMSDd.js
