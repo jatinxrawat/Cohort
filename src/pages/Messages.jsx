@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { collection, addDoc, doc, getDoc, deleteDoc, updateDoc, getDocs, onSnapshot, arrayUnion } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc, deleteDoc, updateDoc, getDocs, onSnapshot, arrayUnion, query, where } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { Input } from '@/components/Input';
 import { motion } from 'framer-motion';
-import { Send, ChevronLeft, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff } from 'lucide-react';
+import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Paperclip, Image, Video } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { formatRelativeTime } from '@/utils/helpers';
@@ -72,10 +72,17 @@ export default function Messages() {
   const { showSuccess } = useNotification();
 
   const [conversations, setConversations] = useState([]);
+  const [myCommunities, setMyCommunities] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
+  const initialTab = searchParams.get('tab') === 'community' ? 'community' : 'direct';
+  const [messagesTab, setMessagesTab] = useState(initialTab); // 'direct' | 'community'
   const [search, setSearch] = useState('');
   const [messageText, setMessageText] = useState('');
   const [mobileView, setMobileView] = useState('list'); // list, chat
+  const [allStarredCommunityMsgs, setAllStarredCommunityMsgs] = useState([]);
+  const [isCommunityStarredModalOpen, setIsCommunityStarredModalOpen] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState(null);
+  const mediaInputRef = useRef(null);
   
   // New Chat Modal & Context Menu States
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
@@ -304,6 +311,95 @@ export default function Messages() {
 
     return () => unsubscribe();
   }, [targetRecipientUid, targetRecipientName, user]);
+
+  // Load user's real Firestore group communities
+  useEffect(() => {
+    if (!user?.uid) return;
+    const qComms = query(collection(db, 'userCommunities'), where('members', 'array-contains', user.uid));
+    const unsub = onSnapshot(qComms, (snap) => {
+      const comms = [];
+      snap.forEach(d => comms.push({ id: d.id, ...d.data(), createdAt: d.data().createdAt?.toDate ? d.data().createdAt.toDate() : new Date() }));
+      comms.sort((a, b) => (b.lastActivity || 0) - (a.lastActivity || 0));
+      setMyCommunities(comms);
+    }, (err) => {
+      console.error('Error loading real user communities:', err);
+    });
+    return () => unsub();
+  }, [user?.uid]);
+
+  // Sync tab with URL search params
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'community') {
+      setMessagesTab('community');
+    } else if (tabParam === 'direct') {
+      setMessagesTab('direct');
+    }
+  }, [searchParams]);
+
+  // Real-time Fetch All Starred Community Messages Across Rooms
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    let unsubs = [];
+    let starredByRoom = {};
+
+    const updateAllStarred = () => {
+      let combined = [];
+      Object.values(starredByRoom).forEach(list => {
+        combined.push(...list);
+      });
+      setAllStarredCommunityMsgs(combined);
+    };
+
+    const qCollege = query(collection(db, 'community-messages'), where('starredBy', 'array-contains', user.uid));
+    const unsubCollege = onSnapshot(qCollege, (snap) => {
+      const list = [];
+      snap.forEach(d => {
+        const data = d.data();
+        list.push({
+          id: d.id,
+          ...data,
+          roomId: 'college',
+          roomType: 'college',
+          roomName: `${user?.college || 'KiET'} Community`,
+          timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp || Date.now())
+        });
+      });
+      starredByRoom['college'] = list;
+      updateAllStarred();
+    }, (err) => console.error(err));
+    unsubs.push(unsubCollege);
+
+    myCommunities.forEach(comm => {
+      try {
+        const qGroup = query(collection(db, 'userCommunities', comm.id, 'messages'), where('starredBy', 'array-contains', user.uid));
+        const unsubGroup = onSnapshot(qGroup, (snap) => {
+          const list = [];
+          snap.forEach(d => {
+            const gData = d.data();
+            list.push({
+              id: d.id,
+              ...gData,
+              roomId: comm.id,
+              roomType: 'group',
+              roomName: comm.name,
+              timestamp: gData.timestamp?.toDate ? gData.timestamp.toDate() : new Date(gData.timestamp || Date.now())
+            });
+          });
+          starredByRoom[comm.id] = list;
+          updateAllStarred();
+        }, (err) => console.error(err));
+        unsubs.push(unsubGroup);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+
+    return () => {
+      unsubs.forEach(fn => fn());
+    };
+  }, [user?.uid, myCommunities]);
 
   // Find currently active conversation
   const activeConversation = conversations.find(c => c.id === selectedId);
@@ -639,9 +735,41 @@ export default function Messages() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [visibleMessages.length]);
 
+  // Media selection handler for photo/video attachments
+  const handleMediaSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/');
+
+    if (!isImage && !isVideo) {
+      showError('Please select a photo or video file ❌');
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      showError('Media file size must be less than 50MB ⚠️');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setSelectedMedia({
+        file,
+        url: event.target.result,
+        type: isVideo ? 'video' : 'image',
+        name: file.name
+      });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  // Send Direct Message
   const handleSendMessage = async (e) => {
-    e?.preventDefault();
-    if (!messageText.trim() || !selectedId) return;
+    if (e) e.preventDefault();
+    if ((!messageText.trim() && !selectedMedia) || !selectedId) return;
 
     const targetConv = conversations.find(c => c.id === selectedId);
     if (!targetConv) return;
@@ -660,12 +788,15 @@ export default function Messages() {
       senderUid: user?.uid || null,
       senderName: myName,
       text: messageText.trim(),
+      mediaUrl: selectedMedia?.url || null,
+      mediaType: selectedMedia?.type || null,
+      mediaName: selectedMedia?.name || null,
       time: new Date(),
       deletedFor: [],
       replyTo: replyToMsg ? {
         msgKey: replyToMsg.msgKey,
         senderName: replyToMsg.senderName || (replyToMsg.senderUid === user?.uid ? 'You' : targetConv.name),
-        text: replyToMsg.text || 'Message'
+        text: replyToMsg.text || (replyToMsg.mediaType === 'video' ? '🎬 Video' : replyToMsg.mediaUrl ? '🖼️ Photo' : 'Message')
       } : null,
       ...(isVanish ? {
         isVanish: true,
@@ -691,8 +822,11 @@ export default function Messages() {
     setIsKeepForeverActive(false);
     setReplyToMsg(null);
 
+    const sentMedia = selectedMedia;
+    setSelectedMedia(null);
+
     const updatedMsgs = [...(targetConv.messages || []), newMsg];
-    const sentText = messageText.trim();
+    const sentText = messageText.trim() || (sentMedia?.type === 'video' ? '🎬 Sent a video' : '🖼️ Sent a photo');
     setMessageText('');
 
     if (targetConv.docId) {
@@ -705,7 +839,6 @@ export default function Messages() {
           });
         }
 
-        const myName = user?.name || user?.email?.split('@')[0] || 'User';
         const myAvatar = user?.photoURL || user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(myName)}`;
 
         await updateDoc(docRef, {
@@ -1076,12 +1209,25 @@ export default function Messages() {
     (conv.lastMessage && conv.lastMessage.toLowerCase().includes(search.toLowerCase()))
   );
 
+  const handleMessagesBack = () => {
+    if (mobileView === 'chat') {
+      setMobileView('list');
+      setSelectedId(null);
+      return;
+    }
+    if (messagesTab === 'community') {
+      setMessagesTab('direct');
+      return;
+    }
+    navigate('/home');
+  };
+
   return (
-    <div className="max-w-7xl mx-auto p-0 md:px-lg md:py-3xl h-[100dvh] md:h-[calc(100vh-5rem)]">
-      <div className="flex flex-col md:flex-row gap-0 md:gap-lg h-full">
+    <div className="max-w-7xl mx-auto p-0 md:p-md h-[calc(100vh-4rem)] flex flex-col font-sans antialiased text-neutral-900 dark:text-white overflow-hidden">
+      <div className="flex flex-col md:flex-row gap-0 md:gap-lg h-full min-h-0 flex-1 overflow-hidden">
         {/* Left Sidebar - Conversations List */}
-        <div className={`w-full md:w-80 lg:w-96 flex flex-col h-full ${
-          mobileView === 'chat' ? 'hidden md:flex' : 'flex'
+        <div className={`w-full md:w-80 lg:w-96 flex-shrink-0 flex flex-col h-full overflow-hidden ${
+          mobileView === 'chat' && activeConversation ? 'hidden md:flex' : 'flex'
         }`}>
           <Card className="flex-1 flex flex-col p-md overflow-hidden rounded-none md:rounded-xl border-none md:border">
             {/* Header & Search Bar */}
@@ -1089,8 +1235,8 @@ export default function Messages() {
               <div className="flex items-center justify-between gap-sm">
                 <div className="flex items-center gap-xs">
                   <button
-                    onClick={() => navigate(-1)}
-                    className="md:hidden p-xs text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                    onClick={handleMessagesBack}
+                    className="p-xs text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer active:scale-95"
                     title="Go Back"
                   >
                     <ChevronLeft className="w-6 h-6" />
@@ -1128,28 +1274,155 @@ export default function Messages() {
                 </div>
 
                 <button
-                  onClick={() => setIsGlobalStarredModalOpen(true)}
+                  onClick={() => {
+                    if (messagesTab === 'community') {
+                      setIsCommunityStarredModalOpen(true);
+                    } else {
+                      setIsGlobalStarredModalOpen(true);
+                    }
+                  }}
                   className="px-md py-xs bg-amber-500/10 hover:bg-amber-500/20 active:scale-95 border border-amber-500/30 text-amber-500 font-semibold text-xs rounded-xl transition-all flex items-center gap-xs flex-shrink-0 whitespace-nowrap"
-                  title="View all starred messages"
+                  title={messagesTab === 'community' ? 'View all starred community messages' : 'View all starred direct messages'}
                 >
                   <Star className="w-3.5 h-3.5 fill-amber-400" />
                   <span>Starred</span>
                   <span className="px-1.5 py-[1px] text-[10px] bg-amber-500/20 rounded-full font-bold">
-                    {allStarredMessages.length}
+                    {messagesTab === 'community' ? allStarredCommunityMsgs.length : allStarredMessages.length}
                   </span>
+                </button>
+              </div>
+
+              {/* Segmented Switcher for Messages vs Community */}
+              <div className="p-xs bg-neutral-100 dark:bg-neutral-800/90 rounded-xl flex items-center gap-xs border border-neutral-200 dark:border-neutral-700/60 shadow-inner">
+                <button
+                  type="button"
+                  onClick={() => setMessagesTab('direct')}
+                  className={`flex-1 py-xs px-md rounded-lg text-xs font-bold flex items-center justify-center gap-xs transition-all cursor-pointer ${
+                    messagesTab === 'direct'
+                      ? 'bg-white dark:bg-neutral-900 text-primary-600 dark:text-primary-400 shadow-xs border border-neutral-200/50 dark:border-neutral-700/50'
+                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                  }`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Direct Chats</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setMessagesTab('community')}
+                  className={`flex-1 py-xs px-md rounded-lg text-xs font-bold flex items-center justify-center gap-xs transition-all cursor-pointer ${
+                    messagesTab === 'community'
+                      ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                      : 'text-neutral-500 dark:text-neutral-400 hover:text-indigo-500 hover:bg-indigo-500/10'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Community</span>
                 </button>
               </div>
             </div>
 
-            {/* Conversations List */}
+            {/* Conversations / Community List */}
             <div className="flex-1 overflow-y-auto p-xs space-y-xs">
-              {loading ? (
-                <div className="space-y-sm py-md">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-14 skeleton rounded-xl" />
-                  ))}
+              {messagesTab === 'community' ? (
+                <div className="space-y-md py-xs">
+                  {/* PINNED SECTION */}
+                  <div>
+                    <p className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider px-sm mb-xs">
+                      PINNED
+                    </p>
+
+                    {/* Main College Community */}
+                    <div
+                      onClick={() => navigate('/community?join=college')}
+                      className="p-md rounded-2xl hover:bg-neutral-100 dark:hover:bg-neutral-900/90 flex items-center justify-between gap-md cursor-pointer transition-all group"
+                    >
+                      <div className="flex items-center gap-md min-w-0">
+                        <div className="relative flex-shrink-0">
+                          <div className="w-12 h-12 rounded-2xl bg-sky-500 flex items-center justify-center text-white font-extrabold text-lg shadow-sm">
+                            {(user?.college || 'KiET')[0].toUpperCase()}
+                          </div>
+                          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-white dark:bg-neutral-900 flex items-center justify-center">
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-neutral-900" />
+                          </div>
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-xs">
+                            <h4 className="font-bold text-sm text-neutral-900 dark:text-white group-hover:text-sky-500 transition-colors truncate">
+                              {user?.college || 'KiET'} Community
+                            </h4>
+                            <ShieldCheck className="w-4 h-4 text-sky-500 flex-shrink-0" />
+                          </div>
+                          <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-0.5 flex items-center gap-1">
+                            <span>📎 Attached: logooooooooo.png</span>
+                          </p>
+                        </div>
+                      </div>
+                      <MoreVertical className="w-4 h-4 text-neutral-400 group-hover:text-white flex-shrink-0" />
+                    </div>
+                  </div>
+
+                  {/* MY GROUPS SECTION */}
+                  <div>
+                    <p className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider px-sm mb-xs">
+                      MY GROUPS
+                    </p>
+
+                    {myCommunities.length > 0 ? (
+                      myCommunities.map(comm => (
+                        <div
+                          key={comm.id}
+                          onClick={() => navigate(`/community?join=${comm.id}`)}
+                          className="p-md rounded-2xl hover:bg-neutral-100 dark:hover:bg-neutral-900/90 flex items-center justify-between gap-md cursor-pointer transition-all group"
+                        >
+                          <div className="flex items-center gap-md min-w-0">
+                            {comm.avatar ? (
+                              <img
+                                src={comm.avatar}
+                                alt={comm.name}
+                                className="w-12 h-12 rounded-2xl object-cover flex-shrink-0 shadow-sm"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-extrabold text-base shadow-sm">
+                                {(comm.name || 'G')[0].toUpperCase()}
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-xs">
+                                <h4 className="font-bold text-sm text-neutral-900 dark:text-white group-hover:text-indigo-400 transition-colors truncate">
+                                  {comm.name}
+                                </h4>
+                                <ShieldCheck className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                                {comm.type === 'private' && (
+                                  <Lock className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
+                                )}
+                              </div>
+                              <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
+                                {comm.createdByName ? `Created By ${comm.createdByName}` : (comm.desc || `${(comm.members || []).length} members`)}
+                              </p>
+                            </div>
+                          </div>
+                          <MoreVertical className="w-4 h-4 text-neutral-400 group-hover:text-white flex-shrink-0" />
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-lg px-md bg-neutral-50/50 dark:bg-neutral-900/40 rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800">
+                        <Users className="w-8 h-8 text-neutral-400 mx-auto mb-xs" />
+                        <p className="text-xs font-bold text-neutral-700 dark:text-neutral-300">No Joined Groups Yet</p>
+                        <p className="text-[10px] text-neutral-500 mt-[2px]">Create or join custom student groups in the Hub</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ) : filteredConversations.length > 0 ? (
+              ) : (
+                <>
+                  {loading ? (
+                    <div className="space-y-sm py-md">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="h-14 skeleton rounded-xl" />
+                      ))}
+                    </div>
+                  ) : filteredConversations.length > 0 ? (
                 filteredConversations.map(conv => {
                   const isSelected = selectedId === conv.id;
                   const isPinned = conv.pinnedFor?.[myUid] === true;
@@ -1355,13 +1628,15 @@ export default function Messages() {
                   </Button>
                 </div>
               )}
+                </>
+              )}
             </div>
           </Card>
         </div>
 
         {/* Right Main Chat Panel */}
-        <div className={`flex-1 h-full ${
-          mobileView === 'list' ? 'hidden md:flex' : 'flex'
+        <div className={`flex-1 h-full min-h-0 flex flex-col overflow-hidden ${
+          mobileView === 'list' || !activeConversation ? 'hidden md:flex' : 'flex'
         }`}>
           {activeConversation ? (
             <Card className="flex-1 flex flex-col p-0 overflow-hidden border-none md:border rounded-none md:rounded-xl border-neutral-100 dark:border-neutral-800">
@@ -1724,7 +1999,26 @@ export default function Messages() {
                                   </div>
                                 )}
 
-                                <span>{msg.text}</span>
+                                {msg.mediaUrl && (
+                                  <div className="my-xs">
+                                    {msg.mediaType === 'video' ? (
+                                      <video
+                                        src={msg.mediaUrl}
+                                        controls
+                                        className="max-w-xs max-h-60 rounded-2xl shadow-md border border-black/10 dark:border-white/10"
+                                      />
+                                    ) : (
+                                      <img
+                                        src={msg.mediaUrl}
+                                        alt="Photo attachment"
+                                        onClick={() => window.open(msg.mediaUrl, '_blank')}
+                                        className="max-w-xs max-h-60 rounded-2xl object-cover shadow-md cursor-pointer hover:opacity-95 transition-opacity border border-black/10 dark:border-white/10"
+                                      />
+                                    )}
+                                  </div>
+                                )}
+
+                                {msg.text && <span>{msg.text}</span>}
                                 {isStarred && (
                                   <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 inline-block ml-xs" title="Starred message" />
                                 )}
@@ -1889,15 +2183,63 @@ export default function Messages() {
                 </div>
               )}
 
+              {/* Media Preview Banner */}
+              {selectedMedia && (
+                <div className="px-lg py-sm bg-neutral-100 dark:bg-neutral-800 border-t border-b border-primary-500/30 flex items-center justify-between text-xs transition-all shadow-inner">
+                  <div className="flex items-center gap-md min-w-0">
+                    {selectedMedia.type === 'image' ? (
+                      <img src={selectedMedia.url} alt="Preview" className="w-12 h-12 rounded-xl object-cover border shadow-sm flex-shrink-0" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-500 flex items-center justify-center font-bold flex-shrink-0">
+                        <Video className="w-6 h-6" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="font-bold text-neutral-900 dark:text-white truncate text-xs">
+                        {selectedMedia.name}
+                      </p>
+                      <span className="text-[10px] font-bold text-primary-500 uppercase tracking-wider">
+                        {selectedMedia.type === 'video' ? '🎬 Video Attached' : '🖼️ Photo Attached'}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMedia(null)}
+                    className="p-xs hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white transition-colors ml-md"
+                    title="Remove attachment"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
               {/* Input Area */}
               <form
                 onSubmit={handleSendMessage}
-                className={`p-xs sm:p-md border-t flex gap-xs sm:gap-md items-center transition-all ${
+                className={`sticky bottom-0 z-30 p-xs sm:p-md border-t flex gap-xs sm:gap-md items-center transition-all pb-safe ${
                   activeConversation.isVanishMode
                     ? 'bg-neutral-900/95 border-amber-500/30 dark:border-amber-500/20 shadow-[0_-4px_20px_rgba(245,158,11,0.15)]'
-                    : 'bg-white dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800'
+                    : 'bg-white dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800 shadow-lg'
                 }`}
               >
+                <input
+                  type="file"
+                  ref={mediaInputRef}
+                  accept="image/*,video/*"
+                  onChange={handleMediaSelect}
+                  className="hidden"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => mediaInputRef.current?.click()}
+                  className="p-md text-neutral-400 hover:text-primary-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors flex-shrink-0"
+                  title="Attach Photo or Video"
+                >
+                  <Paperclip className="w-5 h-5" />
+                </button>
+
                 {activeConversation.isVanishMode && (
                   <button
                     type="button"
@@ -1913,6 +2255,7 @@ export default function Messages() {
                     <span className="hidden xs:inline text-[11px] font-bold">Keep</span>
                   </button>
                 )}
+
                 <input
                   type="text"
                   placeholder={`Message ${activeConversation.name}...`}
@@ -1920,7 +2263,7 @@ export default function Messages() {
                   onChange={(e) => setMessageText(e.target.value)}
                   className="input-base text-sm flex-1"
                 />
-                <Button type="submit" variant="primary" size="md" disabled={!messageText.trim()}>
+                <Button type="submit" variant="primary" size="md" disabled={!messageText.trim() && !selectedMedia}>
                   <Send className="w-4 h-4" />
                 </Button>
               </form>
@@ -2577,6 +2920,56 @@ export default function Messages() {
             <Button variant="secondary" className="flex-1" onClick={() => setConfirmDeleteConv(null)}>Cancel</Button>
             <Button variant="primary" className="flex-1 bg-rose-600 hover:bg-rose-700 border-rose-600 text-white" onClick={() => handleDeleteConversation(confirmDeleteConv, null, true)}>Delete Chat</Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* ── ALL STARRED COMMUNITY MESSAGES MODAL ── */}
+      <Modal
+        isOpen={isCommunityStarredModalOpen}
+        onClose={() => setIsCommunityStarredModalOpen(false)}
+        title="All Starred Community Messages"
+      >
+        <div className="space-y-md max-h-[60vh] overflow-y-auto pr-xs">
+          {allStarredCommunityMsgs.length === 0 ? (
+            <div className="text-center py-3xl">
+              <Star className="w-12 h-12 text-neutral-300 dark:text-neutral-700 mx-auto mb-md" />
+              <p className="text-sm text-neutral-500 font-semibold">No starred messages in any community yet</p>
+              <p className="text-xs text-neutral-400 mt-xs">Star important messages in any community chat to save them here.</p>
+            </div>
+          ) : (
+            allStarredCommunityMsgs.map((sMsg) => (
+              <div
+                key={sMsg.id}
+                onClick={() => {
+                  setIsCommunityStarredModalOpen(false);
+                  const targetJoin = sMsg.roomType === 'college' ? 'college' : sMsg.roomId;
+                  navigate(`/community?join=${targetJoin}&msg=${sMsg.id}`);
+                }}
+                className="p-md rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 hover:border-amber-500/50 hover:bg-amber-500/5 transition-all cursor-pointer space-y-xs group"
+              >
+                <div className="flex items-center justify-between gap-md">
+                  <div className="flex items-center gap-xs min-w-0">
+                    <span className="px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 font-bold text-[10px] truncate">
+                      {sMsg.roomName || 'Community'}
+                    </span>
+                    <span className="text-xs font-bold text-neutral-900 dark:text-white truncate">
+                      {sMsg.sender?.name || 'User'}
+                    </span>
+                  </div>
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 flex-shrink-0" />
+                </div>
+                <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap line-clamp-3">
+                  {sMsg.content}
+                </p>
+                <div className="flex items-center justify-between text-[10px] text-neutral-400 pt-xs">
+                  <span className="text-amber-500 group-hover:underline font-semibold flex items-center gap-xs">
+                    Tap to open in chat →
+                  </span>
+                  <span>{sMsg.timestamp?.toLocaleTimeString ? sMsg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </Modal>
     </div>

@@ -8,7 +8,8 @@ import {
   User,
   Users,
   ShoppingBag,
-  Bookmark
+  Bookmark,
+  Flame
 } from 'lucide-react';
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
@@ -16,9 +17,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const mobileNavItems = [
   { path: '/home', icon: Home, label: 'Home' },
-  { path: '/search', icon: Search, label: 'Search' },
   { path: '/anonymous', icon: EyeOff, label: 'Anonymous', special: true },
+  { path: '/confessions', icon: Flame, label: 'Confessions', specialConfession: true },
   { path: '/messages', icon: MessageSquare, label: 'Messages', badge: true },
+  { path: '/search', icon: Search, label: 'Search' },
   { path: '/profile', icon: User, label: 'Profile' },
 ];
 
@@ -39,40 +41,44 @@ export const MobileNav = () => {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 lg:hidden bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 z-40 shadow-2xl px-xs">
-        <div className="flex items-center justify-around h-16">
-          {mobileNavItems.map(({ path, icon: Icon, label, special, badge }) => (
+      <nav className="fixed bottom-0 left-0 right-0 lg:hidden bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-t border-neutral-200/80 dark:border-neutral-800 z-40 shadow-2xl px-0.5">
+        <div className="flex items-center justify-around h-16 w-full max-w-md mx-auto">
+          {mobileNavItems.map(({ path, icon: Icon, label, special, specialConfession, badge }) => (
             <Link
               key={path}
               to={path}
-              className={`flex flex-col items-center justify-center gap-[2px] py-xs px-2 rounded-xl transition-all relative ${
+              className={`flex-1 flex flex-col items-center justify-center gap-[2px] py-xs px-0.5 rounded-xl transition-all relative min-w-0 ${
                 isActive(path)
                   ? special
                     ? 'text-purple-500 font-bold scale-105'
+                    : specialConfession
+                    ? 'text-rose-500 font-bold scale-105'
                     : 'text-primary-500 dark:text-primary-400 font-bold'
                   : special
                   ? 'text-purple-400/80 hover:text-purple-400'
+                  : specialConfession
+                  ? 'text-rose-400/80 hover:text-rose-400'
                   : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
               }`}
               aria-label={label}
             >
-              <div className="relative">
+              <div className="relative flex items-center justify-center flex-shrink-0 min-w-[26px] min-h-[26px]">
                 {path === '/profile' && user?.avatar ? (
                   <img
                     src={user.avatar}
                     alt={user.name || 'Profile'}
-                    className="w-5 h-5 rounded-full object-cover border border-primary-500/80"
+                    className="w-[26px] h-[26px] rounded-full object-cover border-2 border-primary-500/80 shadow-xs flex-shrink-0"
                   />
                 ) : (
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-5 h-5 flex-shrink-0" />
                 )}
                 {badge && unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-4.5 px-1 bg-primary-500 text-white font-extrabold text-[10px] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-900 shadow-md shadow-primary-500/30 animate-pulse">
+                  <span className="absolute -top-1.5 -right-2 min-w-[15px] h-3.5 px-0.5 bg-primary-500 text-white font-extrabold text-[8px] rounded-full flex items-center justify-center ring-1 ring-white dark:ring-neutral-900 shadow-md shadow-primary-500/30 animate-pulse">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] tracking-tight">{label}</span>
+              <span className="text-[9px] tracking-tight truncate w-full text-center font-medium leading-none mt-[1px]">{label}</span>
             </Link>
           ))}
         </div>

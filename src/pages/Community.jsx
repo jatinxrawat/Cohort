@@ -69,7 +69,7 @@ export default function Community() {
   const collegeName = user?.college || 'KIET';
 
   // ── Layout state
-  const [selectedRoom, setSelectedRoom] = useState(null); // null | { type: 'college' } | { type: 'group', id, ...data }
+  const [selectedRoom, setSelectedRoom] = useState({ roomType: 'college' }); // default to college room
   const [searchQuery, setSearchQuery] = useState('');
 
   // ── College community data
@@ -188,6 +188,10 @@ export default function Community() {
   const [pinnedCommunityIds, setPinnedCommunityIds] = useState([]);
   const [sidebarMenuOpenId, setSidebarMenuOpenId] = useState(null);
   const [leaveCommunityModal, setLeaveCommunityModal] = useState(null);
+  // ── Global Starred Messages Across Communities State
+  const [allStarredCommunityMsgs, setAllStarredCommunityMsgs] = useState([]);
+  const [isGlobalStarredModalOpen, setIsGlobalStarredModalOpen] = useState(false);
+  const [highlightedMsgId, setHighlightedMsgId] = useState(null);
 
   // ── Voice Recording State
   const [isRecording, setIsRecording] = useState(false);
@@ -276,10 +280,107 @@ export default function Community() {
     return () => unsub();
   }, [user?.uid]);
 
-  // ── Check invite link
+  // ── Real-time Fetch All Starred Community Messages Across Rooms ──
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    let unsubs = [];
+    let starredByRoom = {};
+
+    const updateAllStarred = () => {
+      let combined = [];
+      Object.values(starredByRoom).forEach(list => {
+        combined.push(...list);
+      });
+      combined.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      setAllStarredCommunityMsgs(combined);
+    };
+
+    // 1. College Community Starred Listener
+    const qCollegeStarred = query(collection(db, 'community-messages'), where('starredBy', 'array-contains', user.uid));
+    const unsubCollege = onSnapshot(qCollegeStarred, (snap) => {
+      const collegeStarredList = [];
+      snap.forEach(d => {
+        const data = d.data();
+        collegeStarredList.push({
+          id: d.id,
+          ...data,
+          roomId: 'college',
+          roomType: 'college',
+          roomName: `${user?.college || 'KiET'} Community`,
+          timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp || Date.now())
+        });
+      });
+      starredByRoom['college'] = collegeStarredList;
+      updateAllStarred();
+    }, (err) => console.error('Error college starred:', err));
+    unsubs.push(unsubCollege);
+
+    // 2. Custom Group Communities Starred Listeners
+    myCommunities.forEach(comm => {
+      try {
+        const qGroupStarred = query(collection(db, 'userCommunities', comm.id, 'messages'), where('starredBy', 'array-contains', user.uid));
+        const unsubGroup = onSnapshot(qGroupStarred, (snap) => {
+          const groupStarredList = [];
+          snap.forEach(gd => {
+            const gData = gd.data();
+            groupStarredList.push({
+              id: gd.id,
+              ...gData,
+              roomId: comm.id,
+              roomType: 'group',
+              roomName: comm.name,
+              roomAvatar: comm.avatar,
+              roomData: comm,
+              timestamp: gData.timestamp?.toDate ? gData.timestamp.toDate() : new Date(gData.timestamp || Date.now())
+            });
+          });
+          starredByRoom[comm.id] = groupStarredList;
+          updateAllStarred();
+        }, (err) => console.error(`Error group ${comm.id} starred:`, err));
+        unsubs.push(unsubGroup);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+
+    return () => {
+      unsubs.forEach(fn => fn());
+    };
+  }, [user?.uid, myCommunities]);
+
+  const handleJumpToStarredMessage = (sMsg) => {
+    setIsGlobalStarredModalOpen(false);
+
+    if (sMsg.roomType === 'college') {
+      setSelectedRoom({ roomType: 'college' });
+    } else if (sMsg.roomData) {
+      setSelectedRoom({ roomType: 'group', id: sMsg.roomId, ...sMsg.roomData });
+    }
+
+    setHighlightedMsgId(sMsg.id);
+
+    setTimeout(() => {
+      const el = document.getElementById(`msg-${sMsg.id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 400);
+
+    setTimeout(() => {
+      setHighlightedMsgId(null);
+    }, 3500);
+  };
+
+  // ── Check invite link / query params
   useEffect(() => {
     const joinId = searchParams.get('join');
-    if (!joinId || !user?.uid) return;
+    if (!joinId) return;
+    if (joinId === 'college') {
+      setSelectedRoom({ roomType: 'college' });
+      return;
+    }
+    if (!user?.uid) return;
     const check = async () => {
       const snap = await getDoc(doc(db, 'userCommunities', joinId));
       if (!snap.exists()) return;
@@ -292,6 +393,13 @@ export default function Community() {
     };
     check();
   }, [searchParams, user?.uid]);
+
+  // ── Open Starred Modal if requested via URL query param
+  useEffect(() => {
+    if (searchParams.get('openStarred') === 'true') {
+      setIsGlobalStarredModalOpen(true);
+    }
+  }, [searchParams]);
 
   // ── Real-time group messages
   useEffect(() => {
@@ -701,11 +809,17 @@ export default function Community() {
   };
 
   const handleStarGroupMessage = async (msgId) => {
-    if (!selectedRoom?.id || !user?.uid) return;
-    const msg = communityMessages.find(m => m.id === msgId);
+    if (!user?.uid) return;
+    const isCollege = isCollegeRoom || selectedRoom?.roomType === 'college';
+    const targetColl = isCollege ? 'community-messages' : (selectedRoom?.id ? `userCommunities/${selectedRoom.id}/messages` : null);
+    if (!targetColl) return;
+
+    const msgsList = isCollege ? messages : communityMessages;
+    const msg = msgsList.find(m => m.id === msgId);
     if (!msg) return;
-    const isStarred = (msg.starredBy || []).includes(user.uid);
-    const docRef = doc(db, 'userCommunities', selectedRoom.id, 'messages', msgId);
+
+    const isStarred = Array.isArray(msg.starredBy) && msg.starredBy.includes(user.uid);
+    const docRef = doc(db, targetColl, msgId);
 
     try {
       if (isStarred) {
@@ -952,14 +1066,36 @@ export default function Community() {
         {/* Sidebar Header */}
         <div className="px-lg pt-lg pb-md flex-shrink-0">
           <div className="flex items-center justify-between mb-md">
-            <h1 className="text-xl font-heading font-bold text-neutral-900 dark:text-white">Communities</h1>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="w-9 h-9 rounded-xl bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center shadow-md transition-all hover:scale-105 active:scale-95"
-              title="Create Community"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-xs">
+              <button
+                onClick={() => navigate('/messages?tab=direct')}
+                className="p-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer active:scale-95"
+                title="Back to Direct Messages"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <h1 className="text-xl font-heading font-bold text-neutral-900 dark:text-white">Communities</h1>
+            </div>
+            <div className="flex items-center gap-xs">
+              <button
+                onClick={() => setIsGlobalStarredModalOpen(true)}
+                className="px-md py-xs bg-amber-500/10 hover:bg-amber-500/20 active:scale-95 border border-amber-500/30 text-amber-500 font-semibold text-xs rounded-xl transition-all flex items-center gap-xs flex-shrink-0"
+                title="View all starred community messages"
+              >
+                <Star className="w-3.5 h-3.5 fill-amber-400" />
+                <span>Starred</span>
+                <span className="px-1.5 py-[1px] text-[10px] bg-amber-500/20 rounded-full font-bold">
+                  {allStarredCommunityMsgs.length}
+                </span>
+              </button>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="w-9 h-9 rounded-xl bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center shadow-md transition-all hover:scale-105 active:scale-95"
+                title="Create Community"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
           </div>
           {/* Search */}
           <div className="relative">
@@ -1355,7 +1491,7 @@ export default function Community() {
           <div className="flex-1 flex flex-col min-h-0">
             {/* Header */}
             <div className="flex items-center gap-md px-lg py-md bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 flex-shrink-0 shadow-sm">
-              <button onClick={() => setSelectedRoom(null)} className="md:hidden p-md rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 transition-colors flex-shrink-0">
+              <button onClick={() => { setSelectedRoom(null); navigate('/messages?tab=community'); }} className="p-md rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors flex-shrink-0 cursor-pointer active:scale-95 z-10" title="Go Back to Messages">
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-md">
@@ -1509,7 +1645,8 @@ export default function Community() {
                           const isSelected = selectedMsgIds.includes(msg.id);
 
                           return (
-                            <SwipeableMessageRow key={msg.id} isMe={isMe} onReply={() => setReplyingTo(msg)}>
+                            <div key={msg.id} id={`msg-${msg.id}`} className={`transition-all duration-300 ${highlightedMsgId === msg.id ? 'ring-4 ring-amber-400 rounded-2xl p-1 bg-amber-500/20 shadow-2xl animate-pulse z-20' : ''}`}>
+                              <SwipeableMessageRow isMe={isMe} onReply={() => setReplyingTo(msg)}>
                               <div className={`flex gap-md max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : ''} ${isSelected ? 'opacity-80 scale-[0.98]' : ''}`}>
                                 {isSelectMode && (
                                   <button onClick={() => handleToggleSelectMsg(msg.id)} className="self-center p-xs text-indigo-500">
@@ -1548,7 +1685,8 @@ export default function Community() {
                                   )}
                                 </div>
                               </div>
-                            </SwipeableMessageRow>
+                              </SwipeableMessageRow>
+                            </div>
                           );
                         }) : (
                       <div className="text-center py-5xl"><AlertCircle className="w-12 h-12 text-neutral-300 dark:text-neutral-700 mx-auto mb-lg" /><h3 className="font-bold text-lg mb-xs">No Messages Yet</h3><p className="text-sm text-neutral-500">Start the college conversation!</p></div>
@@ -1556,7 +1694,7 @@ export default function Community() {
                   </div>
                   {showScrollBtn && <button onClick={() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }} className="absolute bottom-20 right-lg w-10 h-10 rounded-full bg-primary-500 text-white shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 z-20"><ArrowDown className="w-5 h-5" /></button>}
                   {/* Chat Input */}
-                  <div className="bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 px-lg pt-md pb-md flex-shrink-0">
+                  <div className="sticky bottom-0 z-30 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 px-sm sm:px-lg py-xs sm:py-md flex-shrink-0 pb-safe shadow-lg">
                     {editingMsg && (
                       <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded-lg p-sm flex justify-between items-center text-xs mb-xs">
                         <div className="flex-1 min-w-0 mr-md">
@@ -1737,22 +1875,22 @@ export default function Community() {
           <div className="flex-1 flex flex-col min-h-0">
             {/* Header */}
             <div className="flex items-center gap-md px-lg py-md bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 flex-shrink-0 shadow-sm">
-              <button onClick={() => setSelectedRoom(null)} className="md:hidden p-md rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 transition-colors flex-shrink-0">
+              <button onClick={() => { setSelectedRoom(null); navigate('/messages?tab=community'); }} className="p-md rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors flex-shrink-0 cursor-pointer active:scale-95 z-10" title="Go Back to Messages">
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              {selectedRoom.avatar ? (
-                <img src={selectedRoom.avatar} alt={selectedRoom.name} className="w-10 h-10 rounded-xl object-cover flex-shrink-0 shadow-md" />
+              {selectedRoom?.avatar ? (
+                <img src={selectedRoom.avatar} alt={selectedRoom?.name || 'Community'} className="w-10 h-10 rounded-xl object-cover flex-shrink-0 shadow-md" />
               ) : (
                 <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-md">
-                  {selectedRoom.name.charAt(0).toUpperCase()}
+                  {(selectedRoom?.name || 'Community')[0].toUpperCase()}
                 </div>
               )}
               <div className="flex-1 min-w-0">
                 <h2 className="font-bold text-neutral-900 dark:text-white flex items-center gap-xs">
-                  {selectedRoom.name}
+                  {selectedRoom?.name || 'Community'}
                   {isAdmin && <Shield className="w-4 h-4 text-indigo-500" />}
                 </h2>
-                <p className="text-xs text-neutral-500 font-semibold">{(selectedRoom.members || []).length} members{selectedRoom.description && ` · ${selectedRoom.description}`}</p>
+                <p className="text-xs text-neutral-500 font-semibold">{(selectedRoom?.members || []).length} members{selectedRoom?.description && ` · ${selectedRoom.description}`}</p>
               </div>
 
               {/* Action Buttons */}
@@ -1907,52 +2045,54 @@ export default function Community() {
                       const isSelected = selectedMsgIds.includes(msg.id);
 
                       return (
-                        <SwipeableMessageRow key={msg.id} isMe={isMe} onReply={() => setCommunityReplyingTo(msg)}>
-                          <div className={`flex gap-md max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : ''} ${isSelected ? 'opacity-80 scale-[0.98]' : ''}`}>
-                            {isSelectMode && (
-                              <button onClick={() => handleToggleSelectMsg(msg.id)} className="self-center p-xs text-indigo-500">
-                                {isSelected ? <CheckSquare className="w-5 h-5 text-indigo-600 fill-indigo-100" /> : <Square className="w-5 h-5 text-neutral-400" />}
-                              </button>
-                            )}
-                            <img src={msg.sender?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(msg.sender?.name || 'u')}`} alt={msg.sender?.name} className="w-8 h-8 rounded-full flex-shrink-0 mt-xs object-cover" />
-                            <div className="space-y-xs relative group">
-                              {!isMe && <span className="text-[10px] font-bold text-neutral-500 ml-sm">{msg.sender?.name}</span>}
-                              <div className={`p-lg rounded-2xl border text-sm shadow-sm ${isMe ? 'bg-primary-500 text-white border-primary-600 rounded-tr-none' : 'bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 border-neutral-100 dark:border-neutral-800 rounded-tl-none'}`}>
-                                {msg.replyTo && <div className={`p-md rounded-lg border text-xs mb-md ${isMe ? 'bg-primary-600/50 border-primary-400/40 text-primary-100' : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
-                                {msg.fileUrl && (
-                                  <div className="mb-md p-md rounded-xl bg-black/10 flex items-center justify-between gap-md">
-                                    <div className="flex items-center gap-sm text-xs font-semibold truncate"><FileText className="w-4 h-4 flex-shrink-0" /> {msg.fileName || 'Attachment'}</div>
-                                    <a href={msg.fileUrl} download={msg.fileName || 'file'} target="_blank" rel="noreferrer" className="p-xs hover:bg-black/10 rounded"><Download className="w-3.5 h-3.5" /></a>
+                        <div key={msg.id} id={`msg-${msg.id}`} className={`transition-all duration-300 ${highlightedMsgId === msg.id ? 'ring-4 ring-amber-400 rounded-2xl p-1 bg-amber-500/20 shadow-2xl animate-pulse z-20' : ''}`}>
+                          <SwipeableMessageRow isMe={isMe} onReply={() => setCommunityReplyingTo(msg)}>
+                            <div className={`flex gap-md max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : ''} ${isSelected ? 'opacity-80 scale-[0.98]' : ''}`}>
+                              {isSelectMode && (
+                                <button onClick={() => handleToggleSelectMsg(msg.id)} className="self-center p-xs text-indigo-500">
+                                  {isSelected ? <CheckSquare className="w-5 h-5 text-indigo-600 fill-indigo-100" /> : <Square className="w-5 h-5 text-neutral-400" />}
+                                </button>
+                              )}
+                              <img src={msg.sender?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(msg.sender?.name || 'u')}`} alt={msg.sender?.name} className="w-8 h-8 rounded-full flex-shrink-0 mt-xs object-cover" />
+                              <div className="space-y-xs relative group">
+                                {!isMe && <span className="text-[10px] font-bold text-neutral-500 ml-sm">{msg.sender?.name}</span>}
+                                <div className={`p-lg rounded-2xl border text-sm shadow-sm ${isMe ? 'bg-primary-500 text-white border-primary-600 rounded-tr-none' : 'bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 border-neutral-100 dark:border-neutral-800 rounded-tl-none'}`}>
+                                  {msg.replyTo && <div className={`p-md rounded-lg border text-xs mb-md ${isMe ? 'bg-primary-600/50 border-primary-400/40 text-primary-100' : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
+                                  {msg.fileUrl && (
+                                    <div className="mb-md p-md rounded-xl bg-black/10 flex items-center justify-between gap-md">
+                                      <div className="flex items-center gap-sm text-xs font-semibold truncate"><FileText className="w-4 h-4 flex-shrink-0" /> {msg.fileName || 'Attachment'}</div>
+                                      <a href={msg.fileUrl} download={msg.fileName || 'file'} target="_blank" rel="noreferrer" className="p-xs hover:bg-black/10 rounded"><Download className="w-3.5 h-3.5" /></a>
+                                    </div>
+                                  )}
+                                  <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                                  {msg.edited && <span className="text-[9px] opacity-60 ml-xs italic">(edited)</span>}
+                                  <div className="flex items-center justify-end gap-xs mt-xs">
+                                    {isStarred && <Star className="w-3 h-3 text-amber-400 fill-amber-400" />}
+                                    <p className={`text-[10px] opacity-70 ${isMe ? 'text-primary-100' : 'text-neutral-400'}`}>{formatTime(msg.timestamp)}</p>
+                                  </div>
+                                </div>
+
+                                {/* Message Hover Actions */}
+                                {!isSelectMode && (
+                                  <div className={`absolute top-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-xs bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full shadow-md px-md py-[3px] z-10 ${isMe ? 'right-full mr-md' : 'left-full ml-md'}`}>
+                                    <button onClick={() => setCommunityReplyingTo(msg)} className="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-xs" title="Reply"><Reply className="w-3.5 h-3.5" /></button>
+                                    <button onClick={() => handleStarGroupMessage(msg.id)} className={`p-xs ${isStarred ? 'text-amber-500' : 'text-neutral-400 hover:text-amber-500'}`} title={isStarred ? 'Unstar' : 'Star'}><Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-amber-400' : ''}`} /></button>
+                                    <button onClick={() => handleCopyMsgText(msg.content)} className="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-xs" title="Copy text"><Copy className="w-3.5 h-3.5" /></button>
+                                    {isMe && <button onClick={() => handleStartEditMsg(msg)} className="text-neutral-400 hover:text-primary-500 p-xs" title="Edit"><Edit3 className="w-3.5 h-3.5" /></button>}
+                                    <button onClick={() => handleTogglePinMsg(msg)} className="text-neutral-400 hover:text-amber-500 p-xs" title="Pin message"><Pin className="w-3.5 h-3.5" /></button>
+                                    <button onClick={() => handleDeleteMsgForMe(msg.id)} className="text-neutral-400 hover:text-rose-500 p-xs" title="Delete for me"><Trash2 className="w-3.5 h-3.5" /></button>
                                   </div>
                                 )}
-                                <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                                {msg.edited && <span className="text-[9px] opacity-60 ml-xs italic">(edited)</span>}
-                                <div className="flex items-center justify-end gap-xs mt-xs">
-                                  {isStarred && <Star className="w-3 h-3 text-amber-400 fill-amber-400" />}
-                                  <p className={`text-[10px] opacity-70 ${isMe ? 'text-primary-100' : 'text-neutral-400'}`}>{formatTime(msg.timestamp)}</p>
-                                </div>
                               </div>
-
-                              {/* Message Hover Actions */}
-                              {!isSelectMode && (
-                                <div className={`absolute top-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-xs bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full shadow-md px-md py-[3px] z-10 ${isMe ? 'right-full mr-md' : 'left-full ml-md'}`}>
-                                  <button onClick={() => setCommunityReplyingTo(msg)} className="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-xs" title="Reply"><Reply className="w-3.5 h-3.5" /></button>
-                                  <button onClick={() => handleStarGroupMessage(msg.id)} className={`p-xs ${isStarred ? 'text-amber-500' : 'text-neutral-400 hover:text-amber-500'}`} title={isStarred ? 'Unstar' : 'Star'}><Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-amber-400' : ''}`} /></button>
-                                  <button onClick={() => handleCopyMsgText(msg.content)} className="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-xs" title="Copy text"><Copy className="w-3.5 h-3.5" /></button>
-                                  {isMe && <button onClick={() => handleStartEditMsg(msg)} className="text-neutral-400 hover:text-primary-500 p-xs" title="Edit"><Edit3 className="w-3.5 h-3.5" /></button>}
-                                  <button onClick={() => handleTogglePinMsg(msg)} className="text-neutral-400 hover:text-amber-500 p-xs" title="Pin message"><Pin className="w-3.5 h-3.5" /></button>
-                                  <button onClick={() => handleDeleteMsgForMe(msg.id)} className="text-neutral-400 hover:text-rose-500 p-xs" title="Delete for me"><Trash2 className="w-3.5 h-3.5" /></button>
-                                </div>
-                              )}
                             </div>
-                          </div>
-                        </SwipeableMessageRow>
+                          </SwipeableMessageRow>
+                        </div>
                       );
                     })}
               </div>
 
               {/* Chat Input Bar */}
-              <div className="bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 px-lg pt-md pb-md flex-shrink-0">
+              <div className="sticky bottom-0 z-30 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 px-sm sm:px-lg py-xs sm:py-md flex-shrink-0 pb-safe shadow-lg">
                 {editingMsg && (
                   <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded-lg p-sm flex justify-between items-center text-xs mb-xs">
                     <div className="flex-1 min-w-0 mr-md">
@@ -2160,11 +2300,11 @@ export default function Community() {
                 />
                 <div className="flex items-center gap-md">
                   <div className="relative group/drawerAvatar flex-shrink-0 cursor-pointer" onClick={() => canEditInfo && drawerHeaderAvatarFileRef.current?.click()}>
-                    {selectedRoom.avatar ? (
-                      <img src={selectedRoom.avatar} alt={selectedRoom.name} className="w-12 h-12 rounded-xl object-cover shadow-md border border-neutral-200 dark:border-neutral-700" />
+                    {selectedRoom?.avatar ? (
+                      <img src={selectedRoom.avatar} alt={selectedRoom?.name || 'Community'} className="w-12 h-12 rounded-xl object-cover shadow-md border border-neutral-200 dark:border-neutral-700" />
                     ) : (
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
-                        {selectedRoom.name.charAt(0).toUpperCase()}
+                        {(selectedRoom?.name || 'Community')[0].toUpperCase()}
                       </div>
                     )}
                     {canEditInfo && (
@@ -2179,7 +2319,7 @@ export default function Community() {
                   </div>
                   <div>
                     <h2 className="font-bold text-neutral-900 dark:text-white flex items-center gap-xs">
-                      {selectedRoom.name}
+                      {selectedRoom?.name || 'Community'}
                       {canEditInfo && (
                         <button
                           onClick={() => drawerHeaderAvatarFileRef.current?.click()}
@@ -2278,11 +2418,13 @@ export default function Community() {
                     })()}
                   </div>
                 )}
-                {manageTab === 'starred' && (
+                 {manageTab === 'starred' && (
                   <div className="p-xl space-y-md">
                     <h3 className="font-bold text-sm text-neutral-700 dark:text-neutral-300 mb-md">Starred Messages</h3>
                     {(() => {
-                      const starredMsgs = communityMessages.filter(m => (m.starredBy || []).includes(user?.uid));
+                      const isCollege = isCollegeRoom || selectedRoom?.roomType === 'college';
+                      const targetMsgs = isCollege ? messages : communityMessages;
+                      const starredMsgs = targetMsgs.filter(m => Array.isArray(m.starredBy) && m.starredBy.includes(user?.uid));
                       return starredMsgs.length === 0 ? (
                         <div className="text-center py-2xl">
                           <Star className="w-10 h-10 text-neutral-300 dark:text-neutral-700 mx-auto mb-md" />
@@ -2568,7 +2710,61 @@ export default function Community() {
           </div>
         </div>
       </Modal>
+
+      {/* ── GLOBAL ALL COMMUNITY STARRED MESSAGES MODAL ── */}
+      <Modal
+        isOpen={isGlobalStarredModalOpen}
+        onClose={() => setIsGlobalStarredModalOpen(false)}
+        title="All Starred Community Messages"
+      >
+        <div className="space-y-md max-h-[60vh] overflow-y-auto pr-xs">
+          {allStarredCommunityMsgs.length === 0 ? (
+            <div className="text-center py-3xl">
+              <Star className="w-12 h-12 text-neutral-300 dark:text-neutral-700 mx-auto mb-md" />
+              <p className="text-sm text-neutral-500 font-semibold">No starred messages in any community yet</p>
+              <p className="text-xs text-neutral-400 mt-xs">Star important messages in any community chat to save them here.</p>
+            </div>
+          ) : (
+            allStarredCommunityMsgs.map((sMsg) => (
+              <div
+                key={sMsg.id}
+                onClick={() => handleJumpToStarredMessage(sMsg)}
+                className="p-md rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 hover:border-amber-500/50 hover:bg-amber-500/5 transition-all cursor-pointer space-y-xs group"
+              >
+                <div className="flex items-center justify-between gap-md">
+                  <div className="flex items-center gap-xs min-w-0">
+                    <span className="px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 font-bold text-[10px] truncate">
+                      {sMsg.roomName}
+                    </span>
+                    <span className="text-xs font-bold text-neutral-900 dark:text-white truncate">
+                      {sMsg.sender?.name || 'User'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStarGroupMessage(sMsg.id);
+                    }}
+                    className="text-xs text-amber-500 hover:text-amber-600 font-semibold flex items-center gap-xs p-xs rounded hover:bg-amber-500/10 transition-colors flex-shrink-0"
+                    title="Unstar message"
+                  >
+                    <Star className="w-3.5 h-3.5 fill-amber-400" />
+                  </button>
+                </div>
+                <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap line-clamp-3">
+                  {sMsg.content}
+                </p>
+                <div className="flex items-center justify-between text-[10px] text-neutral-400 pt-xs">
+                  <span className="text-amber-500 group-hover:underline font-semibold flex items-center gap-xs">
+                    Tap to open in chat →
+                  </span>
+                  <span>{formatTime(sMsg.timestamp)}</span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </Modal>
     </div>
   );
-
 }

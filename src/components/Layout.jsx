@@ -14,6 +14,7 @@ export const Layout = ({ children }) => {
   const location = useLocation();
   const isLandingPage = location.pathname === '/';
   const isMessagesPage = location.pathname === '/messages';
+  const isCommunityPage = location.pathname === '/community';
 
   if (isLandingPage) {
     return (
@@ -29,20 +30,20 @@ export const Layout = ({ children }) => {
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-neutral-950">
-      <div className={isMessagesPage ? 'hidden md:block' : 'block'}>
+      <div className={isMessagesPage || isCommunityPage ? 'hidden md:block' : 'block'}>
         <Header />
       </div>
       
       <div className="flex flex-1 overflow-hidden">
         {isAuthenticated && <Sidebar />}
         
-        <main className={`flex-1 overflow-y-auto ${isAuthenticated ? 'lg:ml-20' : ''} ${isMessagesPage ? 'pb-0' : 'pb-16 lg:pb-0'}`}>
+        <main className={`flex-1 overflow-y-auto ${isAuthenticated ? 'lg:ml-20' : ''} ${isMessagesPage || isCommunityPage ? 'pb-0' : 'pb-16 lg:pb-0'}`}>
           {children}
         </main>
       </div>
 
       {isAuthenticated && (
-        <div className={isMessagesPage ? 'hidden lg:block' : 'block'}>
+        <div className={isMessagesPage || isCommunityPage ? 'hidden lg:block' : 'block'}>
           <MobileNav />
         </div>
       )}

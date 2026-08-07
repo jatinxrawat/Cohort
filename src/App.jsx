@@ -68,6 +68,14 @@ function App() {
                     }
                   />
                   <Route
+                    path="/confessions"
+                    element={
+                      <ProtectedRoute>
+                        <AnonymousFeed defaultTab="confessions" />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/community"
                     element={
                       <ProtectedRoute>

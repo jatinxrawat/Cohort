@@ -146,6 +146,14 @@ export const Header = () => {
                     <span>Messages</span>
                   </Link>
                   <Link
+                    to="/community"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-md p-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg"
+                  >
+                    <Users className="w-5 h-5 text-indigo-500" />
+                    <span>Community</span>
+                  </Link>
+                  <Link
                     to="/saved-posts"
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center gap-md p-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg"
