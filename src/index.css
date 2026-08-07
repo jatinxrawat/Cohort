@@ -22,7 +22,12 @@ html.dark body {
   color: #F3F4F6;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Outfit', 'Inter', sans-serif;
 }
 
@@ -107,18 +112,40 @@ h1, h2, h3, h4, h5, h6 {
 
   /* Animations */
   @keyframes shimmer {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
+    0% {
+      background-position: -1000px 0;
+    }
+
+    100% {
+      background-position: 1000px 0;
+    }
   }
 
   @keyframes pulseSlow {
-    0%, 100% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(1.05); }
+
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 0.6;
+      transform: scale(1.05);
+    }
   }
 
   @keyframes typingBounce {
-    0%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-5px); }
+
+    0%,
+    80%,
+    100% {
+      transform: translateY(0);
+    }
+
+    40% {
+      transform: translateY(-5px);
+    }
   }
 
   .animate-shimmer {
@@ -130,17 +157,27 @@ h1, h2, h3, h4, h5, h6 {
   .animate-typing-dot-1 {
     animation: typingBounce 1.4s infinite 0s;
   }
+
   .animate-typing-dot-2 {
     animation: typingBounce 1.4s infinite 0.2s;
   }
+
   .animate-typing-dot-3 {
     animation: typingBounce 1.4s infinite 0.4s;
   }
 
   @keyframes textGlowShimmer {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
   }
 
   .brand-logo-text {
@@ -175,14 +212,14 @@ h1, h2, h3, h4, h5, h6 {
 
   .bg-grid-pattern {
     background-size: 36px 36px;
-    background-image: 
+    background-image:
       linear-gradient(to right, rgba(0, 166, 245, 0.08) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(0, 166, 245, 0.08) 1px, transparent 1px);
   }
 
   .dark .bg-grid-pattern {
     background-size: 36px 36px;
-    background-image: 
+    background-image:
       linear-gradient(to right, rgba(0, 166, 245, 0.12) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(0, 166, 245, 0.12) 1px, transparent 1px);
   }
@@ -338,16 +375,26 @@ h1, h2, h3, h4, h5, h6 {
    ============================================= */
 
 @keyframes typingBounce {
-  0%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-4px); }
+
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+
+  40% {
+    transform: translateY(-4px);
+  }
 }
 
 .animate-typing-dot-1 {
   animation: typingBounce 1.4s infinite 0s;
 }
+
 .animate-typing-dot-2 {
   animation: typingBounce 1.4s infinite 0.2s;
 }
+
 .animate-typing-dot-3 {
   animation: typingBounce 1.4s infinite 0.4s;
 }
@@ -356,25 +403,37 @@ h1, h2, h3, h4, h5, h6 {
    GLOW BORDERS
    ============================================= */
 
-.glow-border-blue { transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+.glow-border-blue {
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
 .glow-border-blue:hover {
   border-color: rgba(91, 127, 255, 0.4);
   box-shadow: 0 0 30px rgba(91, 127, 255, 0.12);
 }
 
-.glow-border-purple { transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+.glow-border-purple {
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
 .glow-border-purple:hover {
   border-color: rgba(139, 92, 246, 0.4);
   box-shadow: 0 0 30px rgba(139, 92, 246, 0.12);
 }
 
-.glow-border-pink { transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+.glow-border-pink {
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
 .glow-border-pink:hover {
   border-color: rgba(255, 107, 157, 0.4);
   box-shadow: 0 0 30px rgba(255, 107, 157, 0.12);
 }
 
-.glow-border-cyan { transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+.glow-border-cyan {
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
 .glow-border-cyan:hover {
   border-color: rgba(6, 214, 160, 0.4);
   box-shadow: 0 0 30px rgba(6, 214, 160, 0.12);
@@ -399,8 +458,17 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes pulseDot {
-  0%, 100% { opacity: 0; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(1.8); }
+
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.4;
+    transform: scale(1.8);
+  }
 }
 
 /* =============================================
