@@ -12,6 +12,45 @@ import { uploadImageToCloudinary } from '@/utils/cloudinary';
 import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, query, where, deleteDoc, increment } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 
+const renderGenderBadge = (gender) => {
+  if (!gender || gender === 'Prefer not to say') return null;
+  const g = gender.toLowerCase();
+  if (g === 'male') {
+    return (
+      <span
+        title="Gender: Male"
+        className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-500 dark:text-sky-400 border border-sky-500/30 shadow-xs"
+      >
+        <span className="font-mono text-xs font-black">♂</span>
+        <span>Male</span>
+      </span>
+    );
+  }
+  if (g === 'female') {
+    return (
+      <span
+        title="Gender: Female"
+        className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-500/15 text-pink-500 dark:text-pink-400 border border-pink-500/30 shadow-xs"
+      >
+        <span className="font-mono text-xs font-black">♀</span>
+        <span>Female</span>
+      </span>
+    );
+  }
+  if (g === 'non-binary') {
+    return (
+      <span
+        title="Gender: Non-binary"
+        className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-500 dark:text-purple-400 border border-purple-500/30 shadow-xs"
+      >
+        <span className="font-mono text-xs font-black">⚧</span>
+        <span>Non-binary</span>
+      </span>
+    );
+  }
+  return null;
+};
+
 export default function Profile() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -807,7 +846,7 @@ export default function Profile() {
                 {userAnonPosts.map((post) => (
                   <div key={post.id} className="pt-lg first:pt-0 group">
                     <div className="flex items-center justify-between gap-md mb-xs">
-                      <div className="flex items-center gap-xs text-xs font-semibold">
+                      <div className="flex items-center gap-xs text-xs font-semibold flex-wrap">
                         {post.isConfession ? (
                           <span className="text-rose-400 flex items-center gap-1 bg-rose-500/10 px-md py-xs rounded-full border border-rose-500/20">
                             <Flame className="w-3.5 h-3.5" /> Confession
@@ -817,6 +856,7 @@ export default function Profile() {
                             <EyeOff className="w-3.5 h-3.5" /> Anonymous Post ({post.anonymousName || 'Anonymous'})
                           </span>
                         )}
+                        {renderGenderBadge(post.gender || profileUser?.gender)}
                       </div>
 
                       {isOwnProfile && (

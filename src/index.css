@@ -493,3 +493,14 @@ h6 {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Mobile Keyboard & Safe Area Utilities */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@supports (height: 100dvh) {
+  .h-dvh {
+    height: 100dvh;
+  }
+}

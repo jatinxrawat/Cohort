@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Heart,
@@ -42,14 +43,71 @@ const ANONYMOUS_NAMES = [
   'Anonymous Panther',
 ];
 
-export default function AnonymousFeed() {
+const renderGenderBadge = (gender) => {
+  if (!gender || gender === 'Prefer not to say') return null;
+  const g = gender.toLowerCase();
+  if (g === 'male') {
+    return (
+      <span
+        title="Gender: Male"
+        className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-500 dark:text-sky-400 border border-sky-500/30 shadow-xs"
+      >
+        <span className="font-mono text-xs font-black">♂</span>
+        <span>Male</span>
+      </span>
+    );
+  }
+  if (g === 'female') {
+    return (
+      <span
+        title="Gender: Female"
+        className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-500/15 text-pink-500 dark:text-pink-400 border border-pink-500/30 shadow-xs"
+      >
+        <span className="font-mono text-xs font-black">♀</span>
+        <span>Female</span>
+      </span>
+    );
+  }
+  if (g === 'non-binary') {
+    return (
+      <span
+        title="Gender: Non-binary"
+        className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-500 dark:text-purple-400 border border-purple-500/30 shadow-xs"
+      >
+        <span className="font-mono text-xs font-black">⚧</span>
+        <span>Non-binary</span>
+      </span>
+    );
+  }
+  return null;
+};
+
+export default function AnonymousFeed({ defaultTab }) {
   const { user } = useAuth();
   const { showSuccess, showWarning } = useNotification();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('feed'); // 'feed' | 'confessions'
+  const getInitialTab = () => {
+    if (defaultTab) return defaultTab;
+    if (location.pathname === '/confessions') return 'confessions';
+    return 'feed';
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialTab);
   const [posts, setPosts] = useState([]);
   const [confessions, setConfessions] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (location.pathname === '/confessions') {
+      setActiveTab('confessions');
+    } else if (location.pathname === '/anonymous') {
+      setActiveTab('feed');
+    } else if (defaultTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [location.pathname, defaultTab]);
 
   // Modal State
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -406,6 +464,7 @@ export default function AnonymousFeed() {
 
         await addDoc(collection(db, 'confessions'), {
           authorUid: user?.uid || 'anonymous_guest',
+          gender: user?.gender || 'Prefer not to say',
           text: inputText.trim(),
           createdAt: now,
           expiresAt: expiresAt,
@@ -418,6 +477,7 @@ export default function AnonymousFeed() {
       } else {
         await addDoc(collection(db, 'anonymousPosts'), {
           authorUid: user?.uid || 'anonymous_guest',
+          gender: user?.gender || 'Prefer not to say',
           anonymousName: chosenName,
           text: inputText.trim(),
           likesCount: 0,
@@ -598,7 +658,7 @@ export default function AnonymousFeed() {
       {/* Segmented Switcher */}
       <div className="max-w-xs mx-auto p-xs bg-neutral-200/80 dark:bg-zinc-900/90 border border-neutral-300 dark:border-zinc-800 rounded-full flex items-center relative shadow-inner">
         <button
-          onClick={() => { setActiveTab('feed'); setActiveCommentPostId(null); }}
+          onClick={() => { setActiveTab('feed'); setActiveCommentPostId(null); navigate('/anonymous'); }}
           className={`flex-1 py-xs rounded-full text-xs font-semibold flex items-center justify-center gap-xs transition-colors relative z-10 ${
             activeTab === 'feed' ? 'text-white' : 'text-neutral-600 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-200'
           }`}
@@ -615,7 +675,7 @@ export default function AnonymousFeed() {
         </button>
 
         <button
-          onClick={() => { setActiveTab('confessions'); setActiveCommentPostId(null); }}
+          onClick={() => { setActiveTab('confessions'); setActiveCommentPostId(null); navigate('/confessions'); }}
           className={`flex-1 py-xs rounded-full text-xs font-semibold flex items-center justify-center gap-xs transition-colors relative z-10 ${
             activeTab === 'confessions' ? 'text-white' : 'text-neutral-600 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-200'
           }`}
@@ -676,10 +736,11 @@ export default function AnonymousFeed() {
                           <EyeOff className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="flex items-center gap-xs">
+                          <div className="flex items-center gap-xs flex-wrap">
                             <span className="text-xs font-semibold text-violet-700 dark:text-violet-300 bg-violet-100 dark:bg-violet-950/40 px-md py-xs rounded-full border border-violet-200 dark:border-violet-500/20">
                               {post.anonymousName || 'Anonymous Fox'}
                             </span>
+                            {renderGenderBadge(post.gender || (isPostOwner ? user?.gender : null))}
                             {isPostOwner && (
                               <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full shadow-xs">
                                 Posted by You
@@ -1036,10 +1097,11 @@ export default function AnonymousFeed() {
                   >
                     {/* Header Badges */}
                     <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-xs">
+                      <div className="flex items-center gap-xs flex-wrap">
                         <span className="font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-xs bg-rose-500/10 px-md py-xs rounded-full border border-rose-500/20">
                           <Flame className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" /> Confession
                         </span>
+                        {renderGenderBadge(confession.gender || (isConfessionOwner ? user?.gender : null))}
                         {isConfessionOwner && (
                           <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full shadow-xs">
                             Posted by You
