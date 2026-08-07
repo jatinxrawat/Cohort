@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { Mail, MapPin, Calendar, Award, Edit, MessageSquare, Share2, Heart, UserPlus, UserCheck, MessageCircleCode, AtSign, AlertCircle, User, GraduationCap, Gift, X, Search, Users, Edit2, Trash2, Repeat, EyeOff, Flame } from 'lucide-react';
+import { Mail, MapPin, Calendar, Award, Edit, MessageSquare, Share2, Heart, UserPlus, UserCheck, MessageCircleCode, AtSign, AlertCircle, User, GraduationCap, Gift, X, Search, Users, Edit2, Trash2, Repeat, EyeOff, Flame, Tag, ShoppingBag, ArrowRight, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
+import { Input } from '@/components/Input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
-import { formatRelativeTime } from '@/utils/helpers';
+import { formatRelativeTime, compressImage } from '@/utils/helpers';
+import { uploadImageToCloudinary } from '@/utils/cloudinary';
 import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, query, where, deleteDoc, increment } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 
@@ -22,9 +24,17 @@ export default function Profile() {
   const [profileUser, setProfileUser] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
   const [userAnonPosts, setUserAnonPosts] = useState([]);
-  const [postsTab, setPostsTab] = useState('feed'); // 'feed' | 'anonymous'
+  const [userMarketplaceItems, setUserMarketplaceItems] = useState([]);
+  const [postsTab, setPostsTab] = useState('feed'); // 'feed' | 'anonymous' | 'marketplace'
   const [totalLikes, setTotalLikes] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  // Edit / Delete Marketplace Item State
+  const [editingMarketplaceItem, setEditingMarketplaceItem] = useState(null);
+  const [deletingMarketplaceItem, setDeletingMarketplaceItem] = useState(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const editMarketplaceFileInputRef = useRef(null);
+
 
   // Followers / Following Modal State
   const [connectionsModalOpen, setConnectionsModalOpen] = useState(false);
@@ -100,6 +110,60 @@ export default function Profile() {
       setDeletingPost(null);
     } catch (err) {
       console.error('Failed to delete post:', err);
+    }
+  };
+
+  // Marketplace Edit / Delete Handlers in Profile
+  const handleMarketplaceImageUpload = async (file) => {
+    if (!file || !editingMarketplaceItem) return;
+    setImageUploading(true);
+    try {
+      let finalUrl = '';
+      try {
+        finalUrl = await uploadImageToCloudinary(file);
+      } catch (err) {
+        finalUrl = await compressImage(file);
+      }
+      setEditingMarketplaceItem(prev => ({ ...prev, imageUrl: finalUrl }));
+    } catch (err) {
+      console.error('Failed to upload marketplace image:', err);
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  const handleSaveMarketplaceEdit = async (e) => {
+    e.preventDefault();
+    if (!editingMarketplaceItem || !editingMarketplaceItem.name?.trim() || !editingMarketplaceItem.price) return;
+    try {
+      const updatedFields = {
+        name: editingMarketplaceItem.name.trim(),
+        price: Number(editingMarketplaceItem.price),
+        category: editingMarketplaceItem.category,
+        condition: editingMarketplaceItem.condition,
+        age: editingMarketplaceItem.age.trim(),
+        desc: editingMarketplaceItem.desc.trim(),
+        imageUrl: editingMarketplaceItem.imageUrl || '',
+        updatedAt: new Date().toISOString()
+      };
+      await updateDoc(doc(db, 'marketplace', editingMarketplaceItem.id), updatedFields);
+      setUserMarketplaceItems(prev => prev.map(item => item.id === editingMarketplaceItem.id ? { ...item, ...updatedFields } : item));
+      showSuccess(`Updated listing for "${editingMarketplaceItem.name}"!`);
+      setEditingMarketplaceItem(null);
+    } catch (err) {
+      console.error('Failed to update marketplace listing:', err);
+    }
+  };
+
+  const confirmDeleteMarketplaceItem = async () => {
+    if (!deletingMarketplaceItem) return;
+    try {
+      await deleteDoc(doc(db, 'marketplace', deletingMarketplaceItem.id));
+      setUserMarketplaceItems(prev => prev.filter(item => item.id !== deletingMarketplaceItem.id));
+      showSuccess(`Deleted listing for "${deletingMarketplaceItem.name}"!`);
+      setDeletingMarketplaceItem(null);
+    } catch (err) {
+      console.error('Failed to delete marketplace listing:', err);
     }
   };
 
@@ -214,6 +278,27 @@ export default function Profile() {
             setUserAnonPosts(loadedAnon);
           } catch (err) {
             console.error('Error fetching user anonymous posts:', err);
+          }
+
+          // Fetch Marketplace Listings authored by this user
+          try {
+            const marketplaceSnap = await getDocs(collection(db, 'marketplace'));
+            const loadedMarketplace = [];
+            marketplaceSnap.forEach(d => {
+              const data = d.data();
+              const isMatch = (data.sellerUid && data.sellerUid === currentUid) ||
+                              (data.seller && currentName && data.seller.toLowerCase() === currentName.toLowerCase());
+              if (isMatch) {
+                loadedMarketplace.push({
+                  id: d.id,
+                  docId: d.id,
+                  ...data
+                });
+              }
+            });
+            setUserMarketplaceItems(loadedMarketplace);
+          } catch (err) {
+            console.error('Error fetching user marketplace items:', err);
           }
         }
       } catch (e) {
@@ -576,27 +661,27 @@ export default function Profile() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-lg border-b border-neutral-100 dark:border-neutral-800 pb-md">
             <h2 className="text-xl font-heading font-bold text-neutral-900 dark:text-white">
               {isOwnProfile
-                ? (postsTab === 'feed' ? 'My Feed Posts' : 'My Anonymous Posts')
-                : `Posts by ${profileUser?.name?.split(' ')[0] || 'User'}`}
+                ? (postsTab === 'feed' ? 'My Feed Posts' : postsTab === 'anonymous' ? 'My Anonymous Posts' : 'My Marketplace Listings')
+                : (postsTab === 'marketplace' ? `Listings by ${profileUser?.name?.split(' ')[0] || 'User'}` : `Posts by ${profileUser?.name?.split(' ')[0] || 'User'}`)}
             </h2>
 
-            {isOwnProfile && (
-              <div className="p-xs bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center gap-xs text-xs font-semibold">
-                <button
-                  type="button"
-                  onClick={() => setPostsTab('feed')}
-                  className={`px-md py-xs rounded-full transition-all cursor-pointer ${
-                    postsTab === 'feed'
-                      ? 'bg-primary-500 text-white shadow-xs'
-                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                  }`}
-                >
-                  Feed Posts ({userPosts.length})
-                </button>
+            <div className="p-xs bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center gap-xs text-xs font-semibold overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => setPostsTab('feed')}
+                className={`px-md py-xs rounded-full transition-all cursor-pointer whitespace-nowrap ${
+                  postsTab === 'feed'
+                    ? 'bg-primary-500 text-white shadow-xs'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                }`}
+              >
+                Feed Posts ({userPosts.length})
+              </button>
+              {isOwnProfile && (
                 <button
                   type="button"
                   onClick={() => setPostsTab('anonymous')}
-                  className={`px-md py-xs rounded-full transition-all cursor-pointer flex items-center gap-xs ${
+                  className={`px-md py-xs rounded-full transition-all cursor-pointer flex items-center gap-xs whitespace-nowrap ${
                     postsTab === 'anonymous'
                       ? 'bg-violet-600 text-white shadow-xs'
                       : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
@@ -605,8 +690,20 @@ export default function Profile() {
                   <EyeOff className="w-3.5 h-3.5" />
                   Anonymous ({userAnonPosts.length})
                 </button>
-              </div>
-            )}
+              )}
+              <button
+                type="button"
+                onClick={() => setPostsTab('marketplace')}
+                className={`px-md py-xs rounded-full transition-all cursor-pointer flex items-center gap-xs whitespace-nowrap ${
+                  postsTab === 'marketplace'
+                    ? 'bg-amber-500 text-white shadow-xs'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                }`}
+              >
+                <Tag className="w-3.5 h-3.5" />
+                Marketplace ({userMarketplaceItems.length})
+              </button>
+            </div>
           </div>
 
           {postsTab === 'feed' ? (
@@ -703,7 +800,7 @@ export default function Profile() {
                 </p>
               </div>
             )
-          ) : (
+          ) : postsTab === 'anonymous' ? (
             /* ANONYMOUS POSTS TAB */
             userAnonPosts.length > 0 ? (
               <div className="space-y-lg divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -762,6 +859,102 @@ export default function Profile() {
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
                   No anonymous posts published yet.
                 </p>
+              </div>
+            )
+          ) : (
+            /* MARKETPLACE LISTINGS TAB */
+            userMarketplaceItems.length > 0 ? (
+              <div className="grid md:grid-cols-2 gap-lg">
+                {userMarketplaceItems.map((item) => (
+                  <div key={item.id} className="border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden bg-white dark:bg-neutral-900 flex flex-col group hover:shadow-md transition-shadow relative">
+                    <div className="h-40 relative bg-neutral-900 overflow-hidden">
+                      {item.imageUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className={`w-full h-full bg-gradient-to-r ${item.gradient || 'from-primary-500 to-blue-600'} p-md flex flex-col justify-end text-white`}>
+                          <p className="text-xl font-bold font-mono">₹{item.price}</p>
+                        </div>
+                      )}
+
+                      <div className="absolute top-2 left-2 flex gap-xs">
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-black/50 backdrop-blur-md text-white px-md py-xs rounded-full border border-white/10">
+                          {item.category}
+                        </span>
+                        <span className="text-[10px] font-semibold bg-black/50 backdrop-blur-md text-white px-md py-xs rounded-full border border-white/10">
+                          {item.condition}
+                        </span>
+                      </div>
+
+                      {item.imageUrl && (
+                        <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md px-md py-xs rounded-lg text-white font-mono font-bold text-sm border border-white/10">
+                          ₹{item.price}
+                        </div>
+                      )}
+
+                      {isOwnProfile && (
+                        <div className="absolute top-2 right-2 flex items-center gap-xs">
+                          <button
+                            type="button"
+                            onClick={() => setEditingMarketplaceItem(item)}
+                            className="p-1.5 bg-black/60 hover:bg-primary-500 text-white rounded-full backdrop-blur-md transition-colors"
+                            title="Edit listing"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeletingMarketplaceItem(item)}
+                            className="p-1.5 bg-black/60 hover:bg-rose-500 text-white rounded-full backdrop-blur-md transition-colors"
+                            title="Delete listing"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-md flex-1 flex flex-col justify-between space-y-md">
+                      <div>
+                        <h4 className="font-bold text-sm text-neutral-900 dark:text-white line-clamp-1">
+                          {item.name}
+                        </h4>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                          Age: {item.age}
+                        </p>
+                        <p className="text-xs text-neutral-600 dark:text-neutral-300 line-clamp-2 mt-xs leading-relaxed">
+                          {item.desc}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-sm border-t border-neutral-100 dark:border-neutral-800 text-xs">
+                        <span className="font-mono font-bold text-neutral-900 dark:text-white">₹{item.price}</span>
+                        <button
+                          type="button"
+                          onClick={() => navigate('/marketplace')}
+                          className="text-primary-500 font-semibold hover:underline flex items-center gap-xs text-xs"
+                        >
+                          View in Marketplace <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-xl">
+                <ShoppingBag className="w-12 h-12 text-neutral-300 dark:text-neutral-700 mx-auto mb-md" />
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-md">
+                  No active products listed in Campus Marketplace.
+                </p>
+                {isOwnProfile && (
+                  <Button variant="primary" size="sm" onClick={() => navigate('/marketplace')}>
+                    List a Product Now
+                  </Button>
+                )}
               </div>
             )
           )}
@@ -835,6 +1028,180 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={confirmDeleteProfilePost}
+                className="w-full py-2 px-md bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-rose-500/25 active:scale-95 transition-all cursor-pointer"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Edit Marketplace Item Modal */}
+      {editingMarketplaceItem && (
+        <Modal
+          isOpen={Boolean(editingMarketplaceItem)}
+          onClose={() => setEditingMarketplaceItem(null)}
+          title="Edit Product Listing"
+          size="md"
+        >
+          <form onSubmit={handleSaveMarketplaceEdit} className="space-y-lg">
+            {/* Image Upload Component */}
+            <div>
+              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-xs">
+                Product Photo
+              </label>
+              {editingMarketplaceItem.imageUrl ? (
+                <div className="relative h-40 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-neutral-900 group">
+                  <img
+                    src={editingMarketplaceItem.imageUrl}
+                    alt="Product preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setEditingMarketplaceItem({ ...editingMarketplaceItem, imageUrl: '' })}
+                    className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-rose-600 text-white rounded-full transition-colors shadow-md"
+                    title="Remove Photo"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => editMarketplaceFileInputRef.current?.click()}
+                  className="h-32 rounded-xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 hover:border-primary-500 dark:hover:border-primary-500 bg-neutral-50 dark:bg-neutral-900/50 flex flex-col items-center justify-center cursor-pointer transition-all p-md text-center group"
+                >
+                  {imageUploading ? (
+                    <div className="flex items-center gap-xs text-xs font-semibold text-primary-500">
+                      <Loader2 className="w-5 h-5 animate-spin" /> Processing image...
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-10 h-10 rounded-full bg-neutral-200/60 dark:bg-neutral-800 flex items-center justify-center mb-xs group-hover:scale-110 transition-transform">
+                        <ImageIcon className="w-5 h-5 text-neutral-500 dark:text-neutral-400 group-hover:text-primary-500" />
+                      </div>
+                      <p className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                        Upload or replace product photo
+                      </p>
+                      <p className="text-[10px] text-neutral-400 mt-0.5">
+                        PNG, JPG, WebP up to 5MB
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
+              <input
+                ref={editMarketplaceFileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleMarketplaceImageUpload(e.target.files?.[0])}
+              />
+            </div>
+
+            <Input
+              label="Item Title"
+              value={editingMarketplaceItem.name || ''}
+              onChange={(e) => setEditingMarketplaceItem({ ...editingMarketplaceItem, name: e.target.value })}
+            />
+
+            <div className="grid grid-cols-2 gap-md">
+              <div>
+                <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-xs">
+                  Category
+                </label>
+                <select
+                  value={editingMarketplaceItem.category || 'Books'}
+                  onChange={(e) => setEditingMarketplaceItem({ ...editingMarketplaceItem, category: e.target.value })}
+                  className="input-base text-sm py-md"
+                >
+                  {['Books', 'Electronics', 'Bicycles', 'Clothing', 'Room Essentials'].map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-xs">
+                  Condition
+                </label>
+                <select
+                  value={editingMarketplaceItem.condition || 'Excellent'}
+                  onChange={(e) => setEditingMarketplaceItem({ ...editingMarketplaceItem, condition: e.target.value })}
+                  className="input-base text-sm py-md"
+                >
+                  {['Like New', 'Excellent', 'Good', 'Fair'].map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-md">
+              <Input
+                label="Price (₹)"
+                type="number"
+                value={editingMarketplaceItem.price || ''}
+                onChange={(e) => setEditingMarketplaceItem({ ...editingMarketplaceItem, price: e.target.value })}
+              />
+
+              <Input
+                label="Item Age / Usage"
+                value={editingMarketplaceItem.age || ''}
+                onChange={(e) => setEditingMarketplaceItem({ ...editingMarketplaceItem, age: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-xs">
+                Detailed Description
+              </label>
+              <textarea
+                rows={3}
+                value={editingMarketplaceItem.desc || ''}
+                onChange={(e) => setEditingMarketplaceItem({ ...editingMarketplaceItem, desc: e.target.value })}
+                className="input-base text-sm resize-none"
+              />
+            </div>
+
+            <div className="flex gap-md pt-md border-t border-neutral-100 dark:border-neutral-800">
+              <Button variant="secondary" className="flex-1" onClick={() => setEditingMarketplaceItem(null)}>
+                Cancel
+              </Button>
+              <Button variant="primary" type="submit" className="flex-1" disabled={imageUploading}>
+                Save Changes
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Delete Marketplace Item Confirmation Modal */}
+      {deletingMarketplaceItem && (
+        <Modal
+          isOpen={Boolean(deletingMarketplaceItem)}
+          onClose={() => setDeletingMarketplaceItem(null)}
+          title="Delete Marketplace Listing"
+          size="sm"
+        >
+          <div className="text-center py-sm space-y-md">
+            <div className="w-14 h-14 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto shadow-inner">
+              <AlertCircle className="w-8 h-8" />
+            </div>
+            <div>
+              <h4 className="text-lg font-bold text-neutral-900 dark:text-white">Delete "{deletingMarketplaceItem.name}"?</h4>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-xs leading-relaxed">
+                This item will be permanently removed from your profile and the Campus Marketplace. This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-md pt-sm">
+              <Button variant="secondary" size="sm" onClick={() => setDeletingMarketplaceItem(null)} className="w-full">
+                Cancel
+              </Button>
+              <button
+                type="button"
+                onClick={confirmDeleteMarketplaceItem}
                 className="w-full py-2 px-md bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-rose-500/25 active:scale-95 transition-all cursor-pointer"
               >
                 Yes, Delete
