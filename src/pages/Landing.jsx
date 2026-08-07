@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
+import { SplashIntro } from '@/components/SplashIntro';
 
 // --- MOCK UNIVERSITY DATA ---
 const COLLEGES = [
@@ -156,6 +157,21 @@ export default function Landing() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  // --- SPLASH INTRO STATE ---
+  const [showSplash, setShowSplash] = useState(() => {
+    return !sessionStorage.getItem('hasSeenSplashIntro');
+  });
+
+  // Preload video & landing resources
+  useEffect(() => {
+    const videoPreload = document.createElement('link');
+    videoPreload.rel = 'preload';
+    videoPreload.as = 'video';
+    videoPreload.href = '/assets/intro.mp4';
+    videoPreload.type = 'video/mp4';
+    document.head.appendChild(videoPreload);
+  }, []);
+
   // --- STATE MANAGEMENT ---
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedCollege, setSelectedCollege] = useState(COLLEGES[0]);
@@ -239,7 +255,11 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-midnight-slate text-neutral-100 overflow-x-hidden selection:bg-vandal-pink/20 selection:text-vandal-pink flex flex-col justify-between">
+    <>
+      {showSplash && (
+        <SplashIntro onComplete={() => setShowSplash(false)} />
+      )}
+      <div className="relative min-h-screen bg-midnight-slate text-neutral-100 overflow-x-hidden selection:bg-vandal-pink/20 selection:text-vandal-pink flex flex-col justify-between">
       
       {/* --- FLOATING AMBIENT GLOW ORBS --- */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0 overflow-hidden">
@@ -1144,5 +1164,6 @@ export default function Landing() {
         </div>
       </footer>
     </div>
+    </>
   );
 }
