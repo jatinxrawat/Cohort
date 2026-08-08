@@ -1716,7 +1716,7 @@ export default function Messages() {
           {activeConversation ? (
             <Card className="flex-1 flex flex-col p-0 overflow-hidden border-none md:border rounded-none md:rounded-xl border-neutral-100 dark:border-neutral-800 h-full min-h-0">
               {/* WhatsApp-Style Chat Header */}
-              <div className="p-sm sm:p-lg border-b border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 sticky top-0 z-40 flex-shrink-0">
+              <div className="p-sm sm:p-lg border-b border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex-shrink-0 z-40 w-full shadow-sm">
                 {/* Standard or Select Mode Header Bar */}
                 {isSelectMode ? (
                   <div className="flex items-center justify-between">

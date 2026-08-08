@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
@@ -15,6 +15,26 @@ export const Layout = ({ children }) => {
   const isLandingPage = location.pathname === '/';
   const isMessagesPage = location.pathname === '/messages';
   const isCommunityPage = location.pathname === '/community';
+  const isChatRoute = isMessagesPage || isCommunityPage;
+
+  useEffect(() => {
+    if (!window.visualViewport) return;
+
+    const handleViewportResize = () => {
+      if (isChatRoute && window.innerWidth < 1024) {
+        document.documentElement.style.setProperty('--vv-height', `${window.visualViewport.height}px`);
+      }
+    };
+
+    window.visualViewport.addEventListener('resize', handleViewportResize);
+    window.visualViewport.addEventListener('scroll', handleViewportResize);
+    handleViewportResize();
+
+    return () => {
+      window.visualViewport.removeEventListener('resize', handleViewportResize);
+      window.visualViewport.removeEventListener('scroll', handleViewportResize);
+    };
+  }, [isChatRoute]);
 
   if (isLandingPage) {
     return (
@@ -29,21 +49,28 @@ export const Layout = ({ children }) => {
   }
 
   return (
-    <div className="flex flex-col h-screen h-[100dvh] bg-white dark:bg-neutral-950 overflow-hidden">
-      <div className={isMessagesPage || isCommunityPage ? 'hidden md:block' : 'block'}>
+    <div
+      className={`flex flex-col bg-white dark:bg-neutral-950 overflow-hidden ${
+        isChatRoute
+          ? 'fixed inset-0 w-full h-full max-h-[100dvh] max-w-[100vw] z-10'
+          : 'h-screen h-[100dvh]'
+      }`}
+      style={isChatRoute && window.innerWidth < 1024 ? { height: 'var(--vv-height, 100dvh)' } : {}}
+    >
+      <div className={isChatRoute ? 'hidden md:block' : 'block'}>
         <Header />
       </div>
       
-      <div className="flex flex-1 overflow-hidden min-h-0">
+      <div className="flex flex-1 overflow-hidden min-h-0 h-full w-full">
         {isAuthenticated && <Sidebar />}
         
-        <main className={`flex-1 ${isMessagesPage || isCommunityPage ? 'overflow-hidden h-full' : 'overflow-y-auto'} ${isAuthenticated ? 'lg:ml-20' : ''} ${isMessagesPage || isCommunityPage ? 'pb-0' : 'pb-16 lg:pb-0'}`}>
+        <main className={`flex-1 ${isChatRoute ? 'overflow-hidden h-full w-full' : 'overflow-y-auto'} ${isAuthenticated ? 'lg:ml-20' : ''} ${isChatRoute ? 'pb-0' : 'pb-16 lg:pb-0'}`}>
           {children}
         </main>
       </div>
 
       {isAuthenticated && (
-        <div className={isMessagesPage || isCommunityPage ? 'hidden lg:block' : 'block'}>
+        <div className={isChatRoute ? 'hidden lg:block' : 'block'}>
           <MobileNav />
         </div>
       )}
