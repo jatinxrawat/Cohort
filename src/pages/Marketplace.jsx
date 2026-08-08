@@ -210,10 +210,15 @@ export default function Marketplace() {
 
   const handleContactSeller = (sellerName, itemTitle, sellerUid) => {
     setSelectedItem(null);
+    if (sellerUid && user?.uid && sellerUid === user.uid) {
+      navigate('/messages');
+      return;
+    }
+    const productParam = itemTitle ? `&product=${encodeURIComponent(itemTitle)}` : '';
     if (sellerUid) {
-      navigate(`/messages?recipientUid=${sellerUid}&recipientName=${encodeURIComponent(sellerName)}`);
+      navigate(`/messages?recipientUid=${sellerUid}&recipientName=${encodeURIComponent(sellerName)}${productParam}`);
     } else {
-      navigate(`/messages?recipientName=${encodeURIComponent(sellerName)}`);
+      navigate(`/messages?recipientName=${encodeURIComponent(sellerName)}${productParam}`);
     }
   };
 
@@ -369,14 +374,41 @@ export default function Marketplace() {
 
                   <div className="flex items-center justify-between pt-md border-t border-neutral-100 dark:border-neutral-800">
                     <span className="text-lg font-bold text-neutral-900 dark:text-white font-mono">₹{item.price}</span>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="flex items-center gap-xs text-xs"
-                      onClick={() => setSelectedItem(item)}
-                    >
-                      View Details <ArrowRight className="w-3.5 h-3.5" />
-                    </Button>
+                    <div className="flex items-center gap-xs">
+                      {userIsOwner ? (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="flex items-center gap-xs text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate('/messages');
+                          }}
+                        >
+                          <MessageCircleCode className="w-3.5 h-3.5 text-primary-500" /> My DMs
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          className="flex items-center gap-xs text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleContactSeller(item.seller, item.name, item.sellerUid);
+                          }}
+                        >
+                          <MessageCircleCode className="w-3.5 h-3.5" /> DM Seller
+                        </Button>
+                      )}
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="flex items-center gap-xs text-xs"
+                        onClick={() => setSelectedItem(item)}
+                      >
+                        Details <ArrowRight className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Card>

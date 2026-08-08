@@ -297,19 +297,30 @@ export default function Messages() {
       setConversations(loaded);
       setLoading(false);
 
-      // Handle query param target recipient
+      // Handle query param target recipient & Marketplace product inquiry
       if (targetRecipientUid) {
+        if (targetRecipientUid === user?.uid) {
+          setMobileView('list');
+          return;
+        }
+
         const existing = loaded.find(c =>
           c.participants?.includes(targetRecipientUid) ||
           c.recipientUid === targetRecipientUid ||
           c.name.toLowerCase() === targetRecipientName?.toLowerCase()
         );
 
+        const targetProduct = searchParams.get('product');
+
         if (existing) {
           setSelectedId(existing.id);
           setMobileView('chat');
+          if (targetProduct) {
+            setMessageText(`Hi, I'm interested in your product listed on Marketplace: "${decodeURIComponent(targetProduct)}"`);
+          }
         } else if (targetRecipientName) {
           const createThread = async () => {
+            const initialMsgText = targetProduct ? `Hi, I'm interested in your product listed on Marketplace: "${decodeURIComponent(targetProduct)}"` : '';
             const newConvData = {
               name: decodeURIComponent(targetRecipientName),
               recipientUid: targetRecipientUid,
@@ -317,13 +328,16 @@ export default function Messages() {
               createdBy: user.uid,
               readBy: [user.uid],
               avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(targetRecipientName)}`,
-              lastMessage: 'Started a new conversation',
+              lastMessage: targetProduct ? `Inquiring about ${decodeURIComponent(targetProduct)}` : 'Started a new conversation',
               time: new Date(),
               messages: []
             };
             const docRef = await addDoc(collection(db, 'messages'), newConvData);
             setSelectedId(docRef.id);
             setMobileView('chat');
+            if (initialMsgText) {
+              setMessageText(initialMsgText);
+            }
           };
           createThread();
         }
@@ -1702,7 +1716,7 @@ export default function Messages() {
           {activeConversation ? (
             <Card className="flex-1 flex flex-col p-0 overflow-hidden border-none md:border rounded-none md:rounded-xl border-neutral-100 dark:border-neutral-800 h-full min-h-0">
               {/* WhatsApp-Style Chat Header */}
-              <div className="p-sm sm:p-lg border-b border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 sticky top-0 z-40 flex-shrink-0">
+              <div className="p-sm sm:p-lg border-b border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex-shrink-0 z-40 w-full shadow-sm">
                 {/* Standard or Select Mode Header Bar */}
                 {isSelectMode ? (
                   <div className="flex items-center justify-between">

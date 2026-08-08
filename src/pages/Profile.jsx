@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { Mail, MapPin, Calendar, Award, Edit, MessageSquare, Share2, Heart, UserPlus, UserCheck, MessageCircleCode, AtSign, AlertCircle, User, GraduationCap, Gift, X, Search, Users, Edit2, Trash2, Repeat, EyeOff, Flame, Tag, ShoppingBag, ArrowRight, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Mail, MapPin, Calendar, Award, Edit, MessageSquare, Share2, Heart, UserPlus, UserCheck, MessageCircleCode, AtSign, AlertCircle, User, GraduationCap, Gift, X, Search, Users, Edit2, Trash2, Repeat, EyeOff, Flame, Tag, ShoppingBag, ArrowRight, Image as ImageIcon, Loader2, Send } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { formatRelativeTime, compressImage } from '@/utils/helpers';
 import { uploadImageToCloudinary } from '@/utils/cloudinary';
-import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, query, where, deleteDoc, increment } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, query, where, deleteDoc, increment, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 
 const renderGenderBadge = (gender) => {
@@ -86,6 +86,173 @@ export default function Profile() {
   const [editingPost, setEditingPost] = useState(null);
   const [editedContent, setEditedContent] = useState('');
   const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
+
+  // Likes & Comments Modals State
+  const [selectedPostForLikes, setSelectedPostForLikes] = useState(null);
+  const [likedUsersList, setLikedUsersList] = useState([]);
+  const [loadingLikedUsers, setLoadingLikedUsers] = useState(false);
+
+  const [selectedPostForComments, setSelectedPostForComments] = useState(null);
+  const [commentsList, setCommentsList] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [newCommentText, setNewCommentText] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [replyingToComment, setReplyingToComment] = useState(null);
+  const commentInputRef = useRef(null);
+
+  const parseCommentDate = (rawDate) => {
+    if (!rawDate) return 'Recently';
+    if (typeof rawDate === 'string') {
+      const p = new Date(rawDate);
+      if (!isNaN(p.getTime())) return formatRelativeTime(p);
+      return rawDate;
+    }
+    if (typeof rawDate === 'number') return formatRelativeTime(new Date(rawDate));
+    if (rawDate?.toDate && typeof rawDate.toDate === 'function') return formatRelativeTime(rawDate.toDate());
+    if (rawDate?.seconds) return formatRelativeTime(new Date(rawDate.seconds * 1000));
+    return 'Recently';
+  };
+
+  const handleOpenLikesModal = async (post) => {
+    setSelectedPostForLikes(post);
+    setLoadingLikedUsers(true);
+    try {
+      const likedUids = post.likedUsers || post.upvotedUsers || post.likedBy || (Array.isArray(post.likes) ? post.likes : []);
+      if (!likedUids || likedUids.length === 0) {
+        setLikedUsersList([]);
+        setLoadingLikedUsers(false);
+        return;
+      }
+
+      const userDocs = await Promise.all(
+        likedUids.map(uid => getDoc(doc(db, 'users', uid)).catch(() => null))
+      );
+
+      const list = [];
+      userDocs.forEach((d, idx) => {
+        const uid = likedUids[idx];
+        if (d && d.exists()) {
+          const data = d.data();
+          list.push({
+            uid,
+            name: data.name || 'Student',
+            avatar: data.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(uid)}`,
+            college: data.college || 'Campus Member'
+          });
+        } else {
+          list.push({
+            uid,
+            name: 'Student',
+            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(uid)}`,
+            college: 'Campus Member'
+          });
+        }
+      });
+      setLikedUsersList(list);
+    } catch (err) {
+      console.error('Failed to fetch liked users:', err);
+    } finally {
+      setLoadingLikedUsers(false);
+    }
+  };
+
+  const handleOpenCommentsModal = (post) => {
+    setSelectedPostForComments(post);
+    setReplyingToComment(null);
+  };
+
+  const handleReplyToComment = (c) => {
+    setReplyingToComment(c);
+    const mention = (c.authorUsername || c.authorName || 'user').replace(/\s+/g, '');
+    setNewCommentText(`@${mention} `);
+    if (commentInputRef.current) {
+      commentInputRef.current.focus();
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedPostForComments) {
+      setCommentsList([]);
+      setReplyingToComment(null);
+      return;
+    }
+
+    setLoadingComments(true);
+    const collName = selectedPostForComments.collectionName ||
+      (selectedPostForComments.isConfession ? 'confessions' : (selectedPostForComments.isAnonymous ? 'anonymousPosts' : 'posts'));
+
+    const q = collection(db, collName, selectedPostForComments.id, 'comments');
+
+    const unsub = onSnapshot(q, (snap) => {
+      const loaded = [];
+      snap.forEach(d => {
+        const data = d.data();
+        const rawDate = data.createdAt || data.timestamp;
+        loaded.push({
+          id: d.id,
+          ...data,
+          authorName: data.authorName || data.author || data.authorUsername || 'Student',
+          authorAvatar: data.authorAvatar || data.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(data.authorUid || d.id)}`,
+          displayDateText: parseCommentDate(rawDate)
+        });
+      });
+      setCommentsList(loaded);
+      setLoadingComments(false);
+    }, (err) => {
+      console.error('Error fetching comments:', err);
+      setLoadingComments(false);
+    });
+
+    return () => unsub();
+  }, [selectedPostForComments]);
+
+  const handleAddComment = async (e) => {
+    if (e) e.preventDefault();
+    if (!newCommentText.trim() || !selectedPostForComments || !currentUser) return;
+
+    setSubmittingComment(true);
+    const collName = selectedPostForComments.collectionName ||
+      (selectedPostForComments.isConfession ? 'confessions' : (selectedPostForComments.isAnonymous ? 'anonymousPosts' : 'posts'));
+
+    try {
+      const now = new Date();
+      const commentData = {
+        text: newCommentText.trim(),
+        authorUid: currentUser.uid,
+        authorName: currentUser.name || 'Student',
+        author: currentUser.name || 'Student',
+        authorAvatar: currentUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(currentUser.uid)}`,
+        avatar: currentUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(currentUser.uid)}`,
+        createdAt: now,
+        timestamp: now,
+        parentId: replyingToComment ? replyingToComment.id : null,
+        replyToAuthorUid: replyingToComment ? (replyingToComment.authorUid || null) : null,
+        replyToAuthorName: replyingToComment ? (replyingToComment.authorName || replyingToComment.author || null) : null,
+        likes: 0,
+        likedBy: []
+      };
+
+      await addDoc(collection(db, collName, selectedPostForComments.id, 'comments'), commentData);
+
+      const postRef = doc(db, collName, selectedPostForComments.id);
+      await updateDoc(postRef, {
+        commentsCount: increment(1),
+        comments: increment(1)
+      }).catch(() => {});
+
+      const updateList = (list) => list.map(p => p.id === selectedPostForComments.id ? { ...p, commentsCount: (p.commentsCount || 0) + 1 } : p);
+      setUserPosts(prev => updateList(prev));
+      setUserAnonPosts(prev => updateList(prev));
+
+      setNewCommentText('');
+      setReplyingToComment(null);
+      showSuccess('Comment posted!');
+    } catch (err) {
+      console.error('Failed to add comment:', err);
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
 
   const handleOpenEditModal = (post) => {
     setEditingPost(post);
@@ -268,50 +435,111 @@ export default function Profile() {
           // Fetch posts by this user from Firestore
           const querySnapshot = await getDocs(collection(db, 'posts'));
           const loaded = [];
-          querySnapshot.forEach(docSnap => {
+          for (const docSnap of querySnapshot.docs) {
             const data = docSnap.data();
             const isMatch = (data.author?.uid && data.author.uid === currentUid) ||
                             (data.author?.name && currentName && data.author.name.toLowerCase() === currentName.toLowerCase());
             if (isMatch) {
+              const likedUsers = data.likedUsers || data.upvotedUsers || data.likedBy || (Array.isArray(data.likes) ? data.likes : []);
+              const likesCount = (typeof data.likes === 'number' && data.likes > 0)
+                ? data.likes
+                : (typeof data.upvotes === 'number' && data.upvotes > 0
+                  ? data.upvotes
+                  : (data.likesCount || likedUsers.length));
+              let commentsCount = (typeof data.comments === 'number' && data.comments > 0)
+                ? data.comments
+                : (data.commentsCount || (Array.isArray(data.comments) ? data.comments.length : 0));
+              try {
+                const cSnap = await getDocs(collection(db, 'posts', docSnap.id, 'comments'));
+                if (cSnap.size > 0 || !commentsCount) {
+                  commentsCount = cSnap.size;
+                }
+              } catch (e) {}
+
               loaded.push({
                 id: docSnap.id,
+                docId: docSnap.id,
+                collectionName: 'posts',
                 ...data,
+                likedUsers,
+                likesCount,
+                commentsCount,
                 timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp || Date.now())
               });
             }
-          });
+          }
           setUserPosts(loaded);
-          const likesSum = loaded.reduce((acc, curr) => acc + (curr.likes || 0), 0);
+          const likesSum = loaded.reduce((acc, curr) => acc + (curr.likesCount || 0), 0);
           setTotalLikes(likesSum);
 
           // Fetch Anonymous Posts & Confessions authored by this user
           try {
             const loadedAnon = [];
             const anonSnap = await getDocs(query(collection(db, 'anonymousPosts'), where('authorUid', '==', currentUid)));
-            anonSnap.forEach(d => {
+            for (const d of anonSnap.docs) {
               const data = d.data();
+              const likedUsers = data.likedUsers || data.upvotedUsers || data.likedBy || (Array.isArray(data.likes) ? data.likes : []);
+              const likesCount = (typeof data.likes === 'number' && data.likes > 0)
+                ? data.likes
+                : (typeof data.upvotes === 'number' && data.upvotes > 0
+                  ? data.upvotes
+                  : (data.likesCount || likedUsers.length));
+              let commentsCount = (typeof data.comments === 'number' && data.comments > 0)
+                ? data.comments
+                : (data.commentsCount || (Array.isArray(data.comments) ? data.comments.length : 0));
+              try {
+                const cSnap = await getDocs(collection(db, 'anonymousPosts', d.id, 'comments'));
+                if (cSnap.size > 0 || !commentsCount) {
+                  commentsCount = cSnap.size;
+                }
+              } catch (e) {}
+
               loadedAnon.push({
                 id: d.id,
                 docId: d.id,
+                collectionName: 'anonymousPosts',
                 isAnonymous: true,
                 isConfession: false,
                 ...data,
+                likedUsers,
+                likesCount,
+                commentsCount,
                 createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now())
               });
-            });
+            }
 
             const confessionSnap = await getDocs(query(collection(db, 'confessions'), where('authorUid', '==', currentUid)));
-            confessionSnap.forEach(d => {
+            for (const d of confessionSnap.docs) {
               const data = d.data();
+              const likedUsers = data.likedUsers || data.upvotedUsers || data.likedBy || (Array.isArray(data.likes) ? data.likes : []);
+              const likesCount = (typeof data.likes === 'number' && data.likes > 0)
+                ? data.likes
+                : (typeof data.upvotes === 'number' && data.upvotes > 0
+                  ? data.upvotes
+                  : (data.likesCount || likedUsers.length));
+              let commentsCount = (typeof data.comments === 'number' && data.comments > 0)
+                ? data.comments
+                : (data.commentsCount || (Array.isArray(data.comments) ? data.comments.length : 0));
+              try {
+                const cSnap = await getDocs(collection(db, 'confessions', d.id, 'comments'));
+                if (cSnap.size > 0 || !commentsCount) {
+                  commentsCount = cSnap.size;
+                }
+              } catch (e) {}
+
               loadedAnon.push({
                 id: d.id,
                 docId: d.id,
+                collectionName: 'confessions',
                 isAnonymous: true,
                 isConfession: true,
                 ...data,
+                likedUsers,
+                likesCount,
+                commentsCount,
                 createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now())
               });
-            });
+            }
 
             loadedAnon.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             setUserAnonPosts(loadedAnon);
@@ -823,10 +1051,32 @@ export default function Profile() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-lg text-[10px] text-neutral-400 font-semibold uppercase tracking-wider">
+                    <div className="flex items-center gap-md text-[10px] text-neutral-400 font-semibold uppercase tracking-wider mt-sm pt-xs border-t border-neutral-100 dark:border-neutral-800/60">
                       <span>{formatRelativeTime(post.timestamp)}</span>
-                      <span className="flex items-center gap-xs"><Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" /> {post.likes || 0} likes</span>
-                      <span className="flex items-center gap-xs"><MessageSquare className="w-3.5 h-3.5 text-primary-500" /> {post.comments || 0} replies</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenLikesModal(post);
+                        }}
+                        className="flex items-center gap-xs text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 px-sm py-xs rounded-lg transition-colors cursor-pointer font-bold"
+                        title="Click to see who liked this post"
+                      >
+                        <Heart className="w-3.5 h-3.5 fill-current" />
+                        <span>{post.likesCount || 0} Likes</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenCommentsModal(post);
+                        }}
+                        className="flex items-center gap-xs text-primary-500 hover:text-primary-400 hover:bg-primary-500/10 px-sm py-xs rounded-lg transition-colors cursor-pointer font-bold"
+                        title="Click to read comments"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5 fill-current" />
+                        <span>{post.commentsCount || 0} Replies</span>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -885,10 +1135,32 @@ export default function Profile() {
                       {post.text}
                     </p>
 
-                    <div className="flex items-center gap-lg text-[10px] text-neutral-400 font-semibold uppercase tracking-wider mt-sm">
+                    <div className="flex items-center gap-md text-[10px] text-neutral-400 font-semibold uppercase tracking-wider mt-sm pt-xs border-t border-neutral-100 dark:border-neutral-800/60">
                       <span>{formatRelativeTime(post.createdAt)}</span>
-                      <span className="flex items-center gap-xs"><Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" /> {post.likesCount || post.likes || 0} likes</span>
-                      <span className="flex items-center gap-xs"><MessageSquare className="w-3.5 h-3.5 text-primary-500" /> {post.commentsCount || post.comments || 0} replies</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenLikesModal(post);
+                        }}
+                        className="flex items-center gap-xs text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 px-sm py-xs rounded-lg transition-colors cursor-pointer font-bold"
+                        title="Click to see who liked this post"
+                      >
+                        <Heart className="w-3.5 h-3.5 fill-current" />
+                        <span>{post.likesCount || 0} Likes</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenCommentsModal(post);
+                        }}
+                        className="flex items-center gap-xs text-primary-500 hover:text-primary-400 hover:bg-primary-500/10 px-sm py-xs rounded-lg transition-colors cursor-pointer font-bold"
+                        title="Click to read comments"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5 fill-current" />
+                        <span>{post.commentsCount || 0} Replies</span>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -1404,6 +1676,175 @@ export default function Profile() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── LIKES LIST MODAL ── */}
+      {selectedPostForLikes && (
+        <Modal
+          isOpen={Boolean(selectedPostForLikes)}
+          onClose={() => { setSelectedPostForLikes(null); setLikedUsersList([]); }}
+          title="Liked By"
+          size="sm"
+        >
+          <div className="space-y-md">
+            {loadingLikedUsers ? (
+              <div className="space-y-sm py-xl text-center">
+                <Loader2 className="w-6 h-6 animate-spin text-primary-500 mx-auto" />
+                <p className="text-xs text-neutral-400">Loading likes list...</p>
+              </div>
+            ) : likedUsersList.length > 0 ? (
+              <div className="space-y-xs max-h-80 overflow-y-auto pr-xs scrollbar-thin">
+                {likedUsersList.map((u) => (
+                  <div
+                    key={u.uid}
+                    onClick={() => {
+                      setSelectedPostForLikes(null);
+                      navigate(`/profile?uid=${u.uid}`);
+                    }}
+                    className="flex items-center justify-between p-sm rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800/80 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-md min-w-0">
+                      <img
+                        src={u.avatar}
+                        alt={u.name}
+                        className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-neutral-800 border border-neutral-700"
+                      />
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-xs text-neutral-900 dark:text-white truncate">
+                          {u.name}
+                        </h4>
+                        <p className="text-[10px] text-neutral-500 truncate">
+                          {u.college}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-xs">
+                      <Heart className="w-4 h-4 text-rose-500 fill-rose-500 flex-shrink-0" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-xl">
+                <Heart className="w-10 h-10 text-neutral-300 dark:text-neutral-700 mx-auto mb-xs" />
+                <p className="text-xs font-bold text-neutral-600 dark:text-neutral-400">No likes yet</p>
+                <p className="text-[10px] text-neutral-400 mt-1">Be the first to like this post!</p>
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
+
+      {/* ── COMMENTS & DISCUSSION MODAL ── */}
+      {selectedPostForComments && (
+        <Modal
+          isOpen={Boolean(selectedPostForComments)}
+          onClose={() => { setSelectedPostForComments(null); setCommentsList([]); setNewCommentText(''); }}
+          title="Comments & Discussion"
+          size="md"
+        >
+          <div className="space-y-lg flex flex-col max-h-[75vh]">
+            {/* Post Summary Header */}
+            <div className="p-md rounded-xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/60 dark:border-neutral-700/60 space-y-xs flex-shrink-0">
+              <p className="text-xs font-semibold text-neutral-900 dark:text-white leading-relaxed line-clamp-3">
+                {selectedPostForComments.thought || selectedPostForComments.content || selectedPostForComments.text || 'Post details'}
+              </p>
+              <div className="flex items-center justify-between text-[10px] text-neutral-400 font-mono pt-xs">
+                <span>{formatRelativeTime(selectedPostForComments.timestamp || selectedPostForComments.createdAt)}</span>
+                <span className="text-primary-500 font-bold">{commentsList.length} comments</span>
+              </div>
+            </div>
+
+            {/* Comments List */}
+            <div className="flex-1 overflow-y-auto space-y-md pr-xs scrollbar-thin min-h-[150px] max-h-[300px]">
+              {loadingComments ? (
+                <div className="py-xl text-center space-y-xs">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary-500 mx-auto" />
+                  <p className="text-xs text-neutral-400">Loading comments...</p>
+                </div>
+              ) : commentsList.length > 0 ? (
+                commentsList.map((c) => (
+                  <div key={c.id} className="p-md rounded-xl bg-neutral-100/70 dark:bg-neutral-800/50 border border-neutral-200/40 dark:border-neutral-700/40 space-y-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-sm">
+                        <img
+                          src={c.authorAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c.authorName || 'u')}`}
+                          alt={c.authorName}
+                          className="w-6 h-6 rounded-full object-cover border border-neutral-700"
+                        />
+                        <span className="font-bold text-xs text-neutral-900 dark:text-white">
+                          {c.authorName || 'Student'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-xs">
+                        <span className="text-[10px] text-neutral-400 font-mono">
+                          {c.displayDateText || 'Recently'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleReplyToComment(c)}
+                          className="flex items-center gap-1 text-[10px] font-bold text-primary-500 hover:text-primary-400 px-2 py-0.5 rounded-md hover:bg-primary-500/10 transition-colors cursor-pointer ml-xs"
+                        >
+                          <MessageSquare className="w-3 h-3" />
+                          <span>Reply</span>
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed pl-8">
+                      {c.text}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-xl">
+                  <MessageSquare className="w-8 h-8 text-neutral-300 dark:text-neutral-700 mx-auto mb-xs" />
+                  <p className="text-xs text-neutral-400 font-medium">No comments on this post yet.</p>
+                  <p className="text-[10px] text-neutral-500 mt-0.5">Start the conversation below!</p>
+                </div>
+              )}
+            </div>
+
+            {/* Replying Banner */}
+            {replyingToComment && (
+              <div className="flex items-center justify-between px-md py-xs bg-primary-500/10 border border-primary-500/30 rounded-xl text-xs text-primary-400 font-semibold flex-shrink-0">
+                <span>Replying to <strong className="text-white">@{replyingToComment.authorName}</strong></span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReplyingToComment(null);
+                    setNewCommentText('');
+                  }}
+                  className="text-neutral-400 hover:text-white p-0.5 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {/* Comment Form */}
+            <form onSubmit={handleAddComment} className="flex gap-sm items-center pt-md border-t border-neutral-100 dark:border-neutral-800 flex-shrink-0">
+              <input
+                ref={commentInputRef}
+                type="text"
+                placeholder={replyingToComment ? `Replying to @${replyingToComment.authorName}...` : "Write a comment..."}
+                value={newCommentText}
+                onChange={(e) => setNewCommentText(e.target.value)}
+                className="flex-1 px-md py-xs bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs outline-none text-neutral-900 dark:text-white placeholder-neutral-400 focus:ring-1 focus:ring-primary-500"
+              />
+              <Button
+                type="submit"
+                size="sm"
+                variant="primary"
+                disabled={!newCommentText.trim() || submittingComment}
+                className="flex items-center gap-xs text-xs"
+              >
+                {submittingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                <span>Post</span>
+              </Button>
+            </form>
+          </div>
+        </Modal>
       )}
     </div>
   );

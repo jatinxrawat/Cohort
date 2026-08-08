@@ -16,7 +16,27 @@ import {
   Compass,
   ArrowRight,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Battery,
+  Crown,
+  Clock,
+  MessageCircle,
+  Mountain,
+  Music,
+  Utensils,
+  Film,
+  Dumbbell,
+  Lightbulb,
+  Rocket,
+  Globe,
+  PenTool,
+  FileText,
+  VolumeX,
+  Zap,
+  Filter,
+  Sliders,
+  MapPin,
+  Smile
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
@@ -28,14 +48,14 @@ import { collection, getDocs, doc, setDoc, updateDoc, addDoc } from 'firebase/fi
 // Define Categories
 const CATEGORIES = ['Personality', 'Interests', 'Passion', 'Dislikes'];
 
-// Define Questions (5 per category, total 20)
+// Define Questions (5 per category, total 20) with clean Lucide icons
 const QUESTIONS = [
   // Category: Personality
   {
     id: 'p1',
     category: 'Personality',
     text: 'How do you charge your social battery?',
-    icon: '🔋',
+    icon: Battery,
     options: [
       'Chattering with a crowd (Extrovert)',
       'Gaming or reading solo in my room (Introvert)',
@@ -47,7 +67,7 @@ const QUESTIONS = [
     id: 'p2',
     category: 'Personality',
     text: 'In a group project, what role do you naturally fall into?',
-    icon: '👑',
+    icon: Crown,
     options: [
       'The Leader: Organizing tasks & pushing deadlines',
       'The Workhorse: Doing the actual work & coding',
@@ -59,7 +79,7 @@ const QUESTIONS = [
     id: 'p3',
     category: 'Personality',
     text: 'Your friend is crying over a breakup. What do you do?',
-    icon: '🫂',
+    icon: Heart,
     options: [
       'Hug them and listen to them vent for hours (Listener)',
       'Plan a distraction or suggest rational solutions (Fixer)',
@@ -71,7 +91,7 @@ const QUESTIONS = [
     id: 'p4',
     category: 'Personality',
     text: 'How do you handle deadlines?',
-    icon: '⏰',
+    icon: Clock,
     options: [
       'Planned out and finished weeks in advance',
       'Procrastinate until the last 3 hours, then excel',
@@ -83,11 +103,11 @@ const QUESTIONS = [
     id: 'p5',
     category: 'Personality',
     text: 'What is your communication style?',
-    icon: '💬',
+    icon: MessageCircle,
     options: [
       'Blunt & Direct: Say exactly what is on my mind',
       'Gentle & Diplomatic: Sugarcoat to keep the peace',
-      'Meme-lord: Answer exclusively in memes and emojis',
+      'Meme-lord: Answer exclusively in memes and witty lines',
       'Essayist: Send long, detailed text blocks'
     ]
   },
@@ -97,7 +117,7 @@ const QUESTIONS = [
     id: 'i1',
     category: 'Interests',
     text: 'What is your ultimate weekend escape?',
-    icon: '⛰️',
+    icon: Mountain,
     options: [
       'Outdoors: Hiking and catching sunsets',
       'Indoors: Bingeing series or gaming all day',
@@ -109,7 +129,7 @@ const QUESTIONS = [
     id: 'i2',
     category: 'Interests',
     text: 'Choose your sonic vibe (Favorite music genre):',
-    icon: '🎵',
+    icon: Music,
     options: [
       'Rock / Metal / Indie',
       'Pop / EDM / Hip-Hop',
@@ -121,7 +141,7 @@ const QUESTIONS = [
     id: 'i3',
     category: 'Interests',
     text: "What's your go-to cuisine when ordering out?",
-    icon: '🍕',
+    icon: Utensils,
     options: [
       'Western: Pizza, burgers, and fries',
       'Asian: Ramen, sushi, or spicy noodles',
@@ -133,10 +153,10 @@ const QUESTIONS = [
     id: 'i4',
     category: 'Interests',
     text: 'Which form of content gets most of your screentime?',
-    icon: '🍿',
+    icon: Film,
     options: [
       'Cinematic: Movies and heavy TV series',
-      'Short-form: Reels, TikToks, or YouTube shorts',
+      'Short-form: Reels or YouTube shorts',
       'Literary: Novels, manga, or webtoons',
       'Intellectual: Podcasts, video essays, documentaries'
     ]
@@ -145,7 +165,7 @@ const QUESTIONS = [
     id: 'i5',
     category: 'Interests',
     text: 'What is your favorite physical/active outlet?',
-    icon: '⚽',
+    icon: Dumbbell,
     options: [
       'Team sports: Football, cricket, basketball',
       'Fitness: Weightlifting, yoga, running',
@@ -159,7 +179,7 @@ const QUESTIONS = [
     id: 'pa1',
     category: 'Passion',
     text: 'What drives you to learn coding/career skills?',
-    icon: '💡',
+    icon: Lightbulb,
     options: [
       'Creation: Building things that solve real problems',
       'Wealth: Securing the bag and early retirement',
@@ -171,7 +191,7 @@ const QUESTIONS = [
     id: 'pa2',
     category: 'Passion',
     text: 'If you had $10M to start any business, it would be...',
-    icon: '🚀',
+    icon: Rocket,
     options: [
       'A high-tech AI startup changing the world',
       'A cozy bookstore cafe or animal shelter',
@@ -183,7 +203,7 @@ const QUESTIONS = [
     id: 'pa3',
     category: 'Passion',
     text: 'What is your dream travel destination type?',
-    icon: '⛩️',
+    icon: Globe,
     options: [
       'Cultural: Historic temples in Kyoto or Rome',
       'Tropical: Relaxing on a beach in Bali or Maldives',
@@ -195,7 +215,7 @@ const QUESTIONS = [
     id: 'pa4',
     category: 'Passion',
     text: 'What kind of impact do you want to make on campus?',
-    icon: '🤝',
+    icon: Users,
     options: [
       'Leader: Run clubs and lead student government',
       'Connector: Plan social mixers & welcome everyone',
@@ -207,7 +227,7 @@ const QUESTIONS = [
     id: 'pa5',
     category: 'Passion',
     text: 'What is your favorite medium of creative expression?',
-    icon: '✍️',
+    icon: PenTool,
     options: [
       'Writing: Poetry, blogs, or clean syntax',
       'Visuals: Sketching, photography, UI design',
@@ -221,7 +241,7 @@ const QUESTIONS = [
     id: 'd1',
     category: 'Dislikes',
     text: 'What is your biggest social pet peeve?',
-    icon: '⏰',
+    icon: Clock,
     options: [
       'Lateness: Showing up 45m late without texting',
       'Screen-staring: Being on phones during a 1-on-1',
@@ -233,7 +253,7 @@ const QUESTIONS = [
     id: 'd2',
     category: 'Dislikes',
     text: 'Which academic hazard do you despise the most?',
-    icon: '📝',
+    icon: FileText,
     options: [
       'Surprise quizzes on Monday morning',
       'Group slackers who disappear until submission night',
@@ -245,7 +265,7 @@ const QUESTIONS = [
     id: 'd3',
     category: 'Dislikes',
     text: 'What is your biggest digital dealbreaker?',
-    icon: '👻',
+    icon: MessageSquare,
     options: [
       'Ghosting: Leaving a message on read for 3 days',
       'Dry texts: Single-letter replies like "K" or "Cool"',
@@ -257,7 +277,7 @@ const QUESTIONS = [
     id: 'd4',
     category: 'Dislikes',
     text: 'What kind of environmental vibe do you hate?',
-    icon: '🔊',
+    icon: VolumeX,
     options: [
       'Loud chaos: Extremely noisy cafes or shouting crowds',
       'Freeze: Rooms with AC blasting at 16°C',
@@ -269,7 +289,7 @@ const QUESTIONS = [
     id: 'd5',
     category: 'Dislikes',
     text: 'What is your absolute worst food offense?',
-    icon: '🍕',
+    icon: Utensils,
     options: [
       'Pineapple chunks on pizza',
       'Extremely bland, zero-spice food',
@@ -438,8 +458,6 @@ export default function MakeAFriend() {
     }
   };
 
-
-
   // Compute shared interests list
   const getSharedInterests = (answersA, answersB) => {
     const list = [];
@@ -447,7 +465,7 @@ export default function MakeAFriend() {
       if (answersA[q.id] === answersB[q.id]) {
         list.push({
           text: q.options[answersA[q.id]],
-          icon: q.icon
+          Icon: q.icon
         });
       }
     });
@@ -463,22 +481,18 @@ export default function MakeAFriend() {
       }
     });
 
-    // Base compatibility = 40%
-    // 20 questions, each answer adds 2.5% contribution
     let base = 40 + matchCount * 2.5;
 
-    // Bonus for matching college
     if (collegeA && collegeB && collegeA.toLowerCase() === collegeB.toLowerCase()) {
       base += 5;
     }
 
-    // Deterministic offset based on UIDs so percentages look real (e.g. 87.4% instead of 85%)
     const combinedUid = (uidA || '') + (uidB || '');
     let hash = 0;
     for (let i = 0; i < combinedUid.length; i++) {
       hash = combinedUid.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const variance = (Math.abs(hash) % 49) / 10; // 0.0% to 4.9%
+    const variance = (Math.abs(hash) % 49) / 10;
     const finalPct = base + variance;
 
     return Math.min(100, Math.round(finalPct * 10) / 10);
@@ -488,7 +502,6 @@ export default function MakeAFriend() {
     const nextAnswers = { ...answers, [questionId]: optionIndex };
     setAnswers(nextAnswers);
 
-    // Auto advance
     setTimeout(() => {
       if (currentQuestionIndex < QUESTIONS.length - 1) {
         setCurrentQuestionIndex((prev) => prev + 1);
@@ -506,7 +519,6 @@ export default function MakeAFriend() {
 
   const submitOnboardingAnswers = async () => {
     try {
-      // Force view mode back to swipe deck
       setViewMode('swipe');
 
       const friendProfile = {
@@ -521,7 +533,6 @@ export default function MakeAFriend() {
         gender: genderConfirmation
       });
 
-      // Show matching scanning screen
       setStep('matching_animation');
       runMatchingSequence();
     } catch (err) {
@@ -532,12 +543,12 @@ export default function MakeAFriend() {
 
   const runMatchingSequence = () => {
     const logs = [
-      '🚀 Launching Campus Vibe Checker...',
-      '📡 Syncing student interests & profiles...',
-      '📚 Analyzing personality maps & hobbies...',
-      '🔍 Scanning campus cohorts...',
-      '✨ Calibrating vibe alignments...',
-      '🎉 Vibe twins located! Loading profiles...'
+      'Launching Campus Vibe Checker...',
+      'Syncing student interests & profiles...',
+      'Analyzing personality maps & hobbies...',
+      'Scanning campus cohorts...',
+      'Calibrating vibe alignments...',
+      'Vibe twins located! Loading profiles...'
     ];
 
     setMatchingConsoleLogs([]);
@@ -560,7 +571,6 @@ export default function MakeAFriend() {
     const targetProfile = profiles[currentProfileIndex];
     setSwipeDirection(direction);
 
-    // Update swiped database record and update local state
     const updatedSwipes = {
       ...(user?.makeAFriendProfile?.swiped || {}),
       [targetProfile.uid]: direction
@@ -578,7 +588,6 @@ export default function MakeAFriend() {
     ];
 
     if (direction === 'right') {
-      // Notify target user
       taskList.push(
         addDoc(collection(db, 'notifications'), {
           recipientUid: targetProfile.uid,
@@ -592,7 +601,6 @@ export default function MakeAFriend() {
         })
       );
 
-      // Check if target user liked current user back:
       const targetUserSnap = await getDocs(collection(db, 'users'));
       let targetUserLikedUs = false;
       targetUserSnap.forEach((d) => {
@@ -604,7 +612,6 @@ export default function MakeAFriend() {
         }
       });
 
-      // 25% chance of automated simulate match or if they liked us back
       const isMatch = targetUserLikedUs || Math.random() < 0.25;
 
       if (isMatch) {
@@ -648,11 +655,12 @@ export default function MakeAFriend() {
     navigate(`/messages?recipientUid=${profile.uid}&recipientName=${encodeURIComponent(profile.name)}`);
   };
 
-  // Rendering Helper for Questionnaire Progress
+  // Questionnaire Helper
   const currentCategory = QUESTIONS[currentQuestionIndex]?.category;
   const currentQuestion = QUESTIONS[currentQuestionIndex];
   const questionNumber = currentQuestionIndex + 1;
   const progressPercent = (questionNumber / QUESTIONS.length) * 100;
+  const QuestionIcon = currentQuestion?.icon;
 
   return (
     <div className="section-container min-h-[calc(100vh-120px)] lg:min-h-[calc(100vh-80px)] flex flex-col items-center justify-center p-md select-none relative overflow-hidden bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 text-white rounded-none border-0 my-0 lg:my-4 lg:rounded-3xl lg:border lg:border-neutral-800 w-full lg:max-w-4xl mx-auto shadow-none lg:shadow-glass-lg">
@@ -672,24 +680,24 @@ export default function MakeAFriend() {
               Reveal Your Vibe
             </h2>
             <p className="text-xs text-neutral-400 mt-xs font-medium">
-              Answer {QUESTIONS.length} fun campus questions to find your absolute match!
+              Answer {QUESTIONS.length} campus questions to find your absolute match!
             </p>
           </div>
 
-          {/* Category Badges indicators */}
-          <div className="flex gap-xs w-full justify-between mb-lg px-xs">
+          {/* Category Progress Segmented Toggle Bar */}
+          <div className="flex gap-xs w-full justify-between mb-lg p-1 bg-black/40 backdrop-blur-md rounded-2xl border border-neutral-800/80">
             {CATEGORIES.map((cat, idx) => {
               const isCurrent = currentCategory === cat;
               const isPassed = CATEGORIES.indexOf(currentCategory) > idx;
               return (
                 <div
                   key={cat}
-                  className={`flex-1 text-center py-xs rounded-lg text-[10px] font-bold tracking-wider border transition-all ${
+                  className={`flex-1 text-center py-xs rounded-xl text-[10px] font-extrabold tracking-wider transition-all duration-300 ${
                     isCurrent
-                      ? 'bg-vandal-pink text-white border-vandal-pink shadow-md'
+                      ? 'bg-gradient-to-r from-vandal-pink to-topic-violet text-white shadow-lg shadow-vandal-pink/20 scale-[1.02]'
                       : isPassed
-                      ? 'bg-neutral-800/80 text-neutral-400 border-neutral-700'
-                      : 'bg-neutral-900/40 text-neutral-600 border-neutral-800'
+                      ? 'bg-neutral-800/80 text-neutral-300 border border-neutral-700/60'
+                      : 'text-neutral-500'
                   }`}
                 >
                   {cat}
@@ -705,8 +713,12 @@ export default function MakeAFriend() {
             </div>
 
             <div className="flex items-center gap-md mb-lg">
-              <span className="text-3xl filter drop-shadow-md select-none">{currentQuestion?.icon}</span>
-              <span className="text-xs font-semibold uppercase tracking-wider text-vandal-pink font-mono">
+              {QuestionIcon && (
+                <div className="w-10 h-10 rounded-2xl bg-vandal-pink/15 border border-vandal-pink/30 flex items-center justify-center flex-shrink-0 shadow-glow-pink">
+                  <QuestionIcon className="w-5 h-5 text-vandal-pink" />
+                </div>
+              )}
+              <span className="text-xs font-bold uppercase tracking-wider text-vandal-pink font-mono">
                 {currentQuestion?.category}
               </span>
             </div>
@@ -720,7 +732,7 @@ export default function MakeAFriend() {
                 <button
                   key={oIdx}
                   onClick={() => handleSelectOption(currentQuestion.id, oIdx)}
-                  className="w-full text-left p-md bg-neutral-950/50 hover:bg-gradient-to-r hover:from-neutral-900 hover:to-neutral-950 text-sm font-semibold rounded-xl border border-neutral-800 hover:border-vandal-pink/60 text-neutral-300 hover:text-white transition-all transform hover:scale-[1.01] active:scale-[0.99] flex items-center justify-between group"
+                  className="w-full text-left p-md bg-neutral-950/50 hover:bg-gradient-to-r hover:from-neutral-900 hover:to-neutral-950 text-sm font-semibold rounded-xl border border-neutral-800 hover:border-vandal-pink/60 text-neutral-300 hover:text-white transition-all transform hover:scale-[1.01] active:scale-[0.99] flex items-center justify-between group cursor-pointer"
                 >
                   <span>{opt}</span>
                   <div className="w-5 h-5 rounded-full border border-neutral-700 flex items-center justify-center flex-shrink-0 group-hover:border-vandal-pink transition-colors">
@@ -734,7 +746,7 @@ export default function MakeAFriend() {
             {currentQuestionIndex > 0 && (
               <button
                 onClick={handleOnboardingBack}
-                className="mt-xl flex items-center gap-xs text-xs font-bold text-neutral-500 hover:text-neutral-300 transition-colors"
+                className="mt-xl flex items-center gap-xs text-xs font-bold text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" /> Go Back
               </button>
@@ -755,7 +767,6 @@ export default function MakeAFriend() {
       {step === 'match_ready' && (
         <div className="w-full max-w-md flex flex-col items-center justify-center text-center relative z-10 py-lg">
           <div className="relative w-32 h-32 mb-lg flex items-center justify-center">
-            {/* Spinning glowing border */}
             <div className="absolute inset-0 bg-gradient-to-tr from-vandal-pink via-topic-violet to-neon-indigo rounded-full opacity-70 animate-spin-slow blur-xs" />
             <div className="absolute inset-1.5 bg-black rounded-full" />
             <Sparkles className="w-12 h-12 text-white animate-pulse-slow relative z-10" />
@@ -769,19 +780,20 @@ export default function MakeAFriend() {
           </p>
 
           {/* Campus Match Toggle */}
-          <Card className="w-full bg-neutral-900/60 border border-neutral-800/60 p-md mb-md rounded-2xl max-w-xs">
-            <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-sm">
-              Matching Radius
+          <Card className="w-full bg-neutral-900/60 border border-neutral-800/60 p-md mb-md rounded-2xl max-w-xs shadow-xl">
+            <label className="block text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest mb-sm flex items-center justify-center gap-xs">
+              <MapPin className="w-3.5 h-3.5 text-vandal-pink" /> Matching Radius
             </label>
-            <div className="grid grid-cols-2 gap-sm bg-black/40 p-xs rounded-xl border border-neutral-850">
+            <div className="flex bg-black/60 p-1 rounded-xl border border-neutral-800">
               {['On Campus', 'Outside Campus'].map((opt) => (
                 <button
                   key={opt}
+                  type="button"
                   onClick={() => setCampusFilter(opt)}
-                  className={`py-md text-[10px] font-bold rounded-lg border transition-all ${
+                  className={`flex-1 py-sm text-[11px] font-extrabold rounded-lg transition-all duration-300 cursor-pointer ${
                     campusFilter === opt
-                      ? 'bg-vandal-pink border-vandal-pink text-white shadow-lg shadow-vandal-pink/20'
-                      : 'bg-transparent border-transparent text-neutral-400 hover:text-neutral-200'
+                      ? 'bg-gradient-to-r from-vandal-pink to-topic-violet text-white shadow-md shadow-vandal-pink/30 scale-[1.02]'
+                      : 'text-neutral-400 hover:text-neutral-200'
                   }`}
                 >
                   {opt}
@@ -792,14 +804,14 @@ export default function MakeAFriend() {
 
           <button
             onClick={submitOnboardingAnswers}
-            className="px-8 py-3.5 bg-gradient-to-r from-vandal-pink via-topic-violet to-neon-indigo text-white font-extrabold text-sm rounded-full shadow-[0_0_30px_rgba(255,42,133,0.5)] hover:scale-105 active:scale-95 transition-all flex items-center gap-md border border-white/10 uppercase tracking-wider"
+            className="px-8 py-3.5 bg-gradient-to-r from-vandal-pink via-topic-violet to-neon-indigo text-white font-extrabold text-sm rounded-full shadow-[0_0_30px_rgba(255,42,133,0.5)] hover:scale-105 active:scale-95 transition-all flex items-center gap-md border border-white/10 uppercase tracking-wider cursor-pointer"
           >
             Make a Friend <ArrowRight className="w-4 h-4" />
           </button>
 
           <button
             onClick={handleRetakeQuiz}
-            className="mt-md text-xs font-bold text-neutral-500 hover:text-neutral-300 transition-colors"
+            className="mt-md text-xs font-bold text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
           >
             Review Answers
           </button>
@@ -832,36 +844,40 @@ export default function MakeAFriend() {
       {/* STEP 4: SWIPING INTERFACE */}
       {step === 'swiping' && (
         <div className="w-full flex flex-col items-center relative z-10 py-md">
-          {/* Top Filter and Actions Bar */}
-          <div className="w-full max-w-sm flex items-center justify-between mb-lg bg-neutral-900/50 backdrop-blur-md px-md py-sm rounded-2xl border border-neutral-800/60">
-            <div className="flex items-center gap-xs">
-              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mr-xs">Show:</span>
-              {['All', 'Male', 'Female', 'Liked Profiles'].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => {
-                    if (tab === 'Liked Profiles') {
-                      setViewMode('liked');
-                    } else {
-                      setGenderFilter(tab);
-                      setViewMode('swipe');
-                    }
-                  }}
-                  className={`px-sm py-md text-[10px] font-bold rounded-lg transition-colors ${
-                    (tab === 'Liked Profiles' ? viewMode === 'liked' : (viewMode === 'swipe' && genderFilter === tab))
-                      ? 'bg-vandal-pink text-white font-extrabold shadow-sm'
-                      : 'text-neutral-400 hover:text-white'
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
+          {/* Top Filter Bar with Best Segmented Toggle Switch */}
+          <div className="w-full max-w-sm flex items-center justify-between mb-md bg-black/60 backdrop-blur-xl p-1.5 rounded-2xl border border-neutral-800/80 shadow-lg">
+            <div className="flex items-center gap-1 flex-1">
+              {['All', 'Male', 'Female', 'Liked Profiles'].map((tab) => {
+                const isActive = tab === 'Liked Profiles' ? viewMode === 'liked' : (viewMode === 'swipe' && genderFilter === tab);
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => {
+                      if (tab === 'Liked Profiles') {
+                        setViewMode('liked');
+                      } else {
+                        setGenderFilter(tab);
+                        setViewMode('swipe');
+                      }
+                    }}
+                    className={`flex-1 py-1.5 px-xs text-[10px] font-extrabold rounded-xl transition-all duration-300 cursor-pointer text-center ${
+                      isActive
+                        ? 'bg-gradient-to-r from-vandal-pink to-topic-violet text-white shadow-md shadow-vandal-pink/25 scale-[1.02]'
+                        : 'text-neutral-400 hover:text-white hover:bg-neutral-850/50'
+                    }`}
+                  >
+                    {tab === 'Liked Profiles' ? 'Liked' : tab}
+                  </button>
+                );
+              })}
             </div>
 
             <button
+              type="button"
               onClick={handleRetakeQuiz}
               title="Retake Personality Quiz"
-              className="p-md bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-lg hover:text-white transition-colors border border-neutral-700/60 flex-shrink-0"
+              className="p-2 ml-xs bg-neutral-850 hover:bg-neutral-750 text-neutral-300 rounded-xl hover:text-white transition-all border border-neutral-750 flex-shrink-0 cursor-pointer active:scale-95"
             >
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
@@ -869,15 +885,17 @@ export default function MakeAFriend() {
 
           {/* Campus Toggle in Swiping screen */}
           {viewMode === 'swipe' && (
-            <div className="w-full max-w-sm flex items-center justify-between mb-md bg-neutral-900/30 backdrop-blur-md px-md py-xs rounded-xl border border-neutral-800/40">
-              <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">Radius:</span>
-              <div className="flex gap-xs bg-black/20 p-[2px] rounded-lg border border-neutral-800/60">
+            <div className="w-full max-w-sm flex items-center justify-between mb-md bg-black/40 backdrop-blur-md px-md py-xs rounded-xl border border-neutral-800/50">
+              <span className="text-[9px] font-extrabold text-neutral-400 uppercase tracking-widest flex items-center gap-xs">
+                <MapPin className="w-3 h-3 text-vandal-pink" /> Radius
+              </span>
+              <div className="flex bg-neutral-900/80 p-0.5 rounded-lg border border-neutral-800">
                 {['On Campus', 'Outside Campus'].map((opt) => (
                   <button
                     key={opt}
+                    type="button"
                     onClick={async () => {
                       setCampusFilter(opt);
-                      // Save preference to Firestore in background
                       if (user?.makeAFriendProfile) {
                         const updatedProfile = {
                           ...user.makeAFriendProfile,
@@ -888,9 +906,9 @@ export default function MakeAFriend() {
                         });
                       }
                     }}
-                    className={`px-sm py-xs text-[9px] font-bold rounded-md transition-all ${
+                    className={`px-md py-xs text-[9px] font-extrabold rounded-md transition-all duration-200 cursor-pointer ${
                       campusFilter === opt
-                        ? 'bg-vandal-pink text-white shadow-sm'
+                        ? 'bg-gradient-to-r from-vandal-pink to-topic-violet text-white shadow-xs'
                         : 'text-neutral-400 hover:text-white'
                     }`}
                   >
@@ -1022,19 +1040,22 @@ export default function MakeAFriend() {
                             {/* Middle Section: Shared Vibes list */}
                             <div className="flex-1 my-xs overflow-y-auto pr-xs">
                               <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest mb-xs flex items-center gap-xs">
-                                <TrendingUp className="w-3 h-3" /> Shared Vibe Vectors
+                                <TrendingUp className="w-3 h-3 text-vandal-pink" /> Shared Vibe Vectors
                               </div>
                               {profile.sharedInterests.length > 0 ? (
                                 <div className="flex flex-wrap gap-xs">
-                                  {profile.sharedInterests.slice(0, 5).map((interest, iIdx) => (
-                                    <span
-                                      key={iIdx}
-                                      className="inline-flex items-center gap-xs text-[9px] font-semibold bg-neutral-900 border border-neutral-800/80 text-neutral-300 px-sm py-xs rounded-xl shadow-sm hover:border-vandal-pink/30 hover:text-white transition-colors"
-                                    >
-                                      <span>{interest.icon}</span>
-                                      <span>{interest.text.split('(')[0].trim()}</span>
-                                    </span>
-                                  ))}
+                                  {profile.sharedInterests.slice(0, 5).map((interest, iIdx) => {
+                                    const InterestIcon = interest.Icon || Sparkles;
+                                    return (
+                                      <span
+                                        key={iIdx}
+                                        className="inline-flex items-center gap-xs text-[9px] font-semibold bg-neutral-900 border border-neutral-800/80 text-neutral-300 px-sm py-xs rounded-xl shadow-sm hover:border-vandal-pink/30 hover:text-white transition-colors"
+                                      >
+                                        <InterestIcon className="w-3 h-3 text-vandal-pink flex-shrink-0" />
+                                        <span>{interest.text.split('(')[0].trim()}</span>
+                                      </span>
+                                    );
+                                  })}
                                 </div>
                               ) : (
                                 <p className="text-xs text-neutral-500 italic mt-sm">
@@ -1048,13 +1069,13 @@ export default function MakeAFriend() {
                               <div className="flex items-center justify-around border-t border-neutral-800/80 pt-xs mt-xs">
                                 <button
                                   onClick={() => handleSwipe('left')}
-                                  className="w-10 h-10 bg-neutral-950 border border-neutral-800 hover:border-danger hover:text-danger rounded-full flex items-center justify-center text-neutral-400 transition-all hover:scale-110 active:scale-95 shadow-md"
+                                  className="w-10 h-10 bg-neutral-950 border border-neutral-800 hover:border-danger hover:text-danger rounded-full flex items-center justify-center text-neutral-400 transition-all hover:scale-110 active:scale-95 shadow-md cursor-pointer"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleSwipe('right')}
-                                  className="w-10 h-10 bg-gradient-to-r from-vandal-pink to-topic-violet text-white rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-[0_0_20px_rgba(255,42,133,0.4)]"
+                                  className="w-10 h-10 bg-gradient-to-r from-vandal-pink to-topic-violet text-white rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-[0_0_20px_rgba(255,42,133,0.4)] cursor-pointer"
                                 >
                                   <Sparkles className="w-4 h-4 text-white" />
                                 </button>
@@ -1101,10 +1122,18 @@ export default function MakeAFriend() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/95 z-[999] flex flex-col items-center justify-center p-xl backdrop-blur-lg"
           >
-            <div className="absolute top-1/4 left-1/4 animate-bounce">✨</div>
-            <div className="absolute top-1/3 right-1/4 text-3xl animate-ping">⚡</div>
-            <div className="absolute bottom-1/4 right-1/3 animate-bounce">👋</div>
-            <div className="absolute bottom-1/3 left-1/3 text-xl animate-bounce">🚀</div>
+            <div className="absolute top-1/4 left-1/4 animate-bounce p-xs bg-vandal-pink/20 rounded-full border border-vandal-pink/40">
+              <Sparkles className="w-5 h-5 text-vandal-pink" />
+            </div>
+            <div className="absolute top-1/3 right-1/4 animate-pulse p-xs bg-amber-500/20 rounded-full border border-amber-500/40">
+              <Flame className="w-6 h-6 text-amber-400" />
+            </div>
+            <div className="absolute bottom-1/4 right-1/3 animate-bounce p-xs bg-rose-500/20 rounded-full border border-rose-500/40">
+              <Heart className="w-5 h-5 text-rose-400" />
+            </div>
+            <div className="absolute bottom-1/3 left-1/3 animate-bounce p-xs bg-topic-violet/20 rounded-full border border-topic-violet/40">
+              <Zap className="w-5 h-5 text-topic-violet" />
+            </div>
 
             <div className="text-center max-w-sm relative z-10 flex flex-col items-center">
               <h2 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-vandal-pink via-topic-violet to-neon-indigo font-display mb-md animate-pulse">
@@ -1130,13 +1159,13 @@ export default function MakeAFriend() {
               <div className="flex flex-col gap-md w-full px-lg">
                 <button
                   onClick={() => startChat(matchedProfile)}
-                  className="w-full py-4 bg-gradient-to-r from-vandal-pink via-topic-violet to-neon-indigo text-white font-bold rounded-xl shadow-lg hover:scale-105 transition-all text-sm flex items-center justify-center gap-sm uppercase tracking-wider"
+                  className="w-full py-4 bg-gradient-to-r from-vandal-pink via-topic-violet to-neon-indigo text-white font-bold rounded-xl shadow-lg hover:scale-105 transition-all text-sm flex items-center justify-center gap-sm uppercase tracking-wider cursor-pointer"
                 >
                   <MessageSquare className="w-4 h-4" /> Open Chat Window
                 </button>
                 <button
                   onClick={() => setIsMatchOverlayOpen(false)}
-                  className="w-full py-md border border-neutral-700 hover:border-neutral-500 rounded-xl text-neutral-400 hover:text-white transition-all text-xs font-semibold"
+                  className="w-full py-md border border-neutral-700 hover:border-neutral-500 rounded-xl text-neutral-400 hover:text-white transition-all text-xs font-semibold cursor-pointer"
                 >
                   Keep Matching
                 </button>
