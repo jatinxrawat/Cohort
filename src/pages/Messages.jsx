@@ -297,19 +297,30 @@ export default function Messages() {
       setConversations(loaded);
       setLoading(false);
 
-      // Handle query param target recipient
+      // Handle query param target recipient & Marketplace product inquiry
       if (targetRecipientUid) {
+        if (targetRecipientUid === user?.uid) {
+          setMobileView('list');
+          return;
+        }
+
         const existing = loaded.find(c =>
           c.participants?.includes(targetRecipientUid) ||
           c.recipientUid === targetRecipientUid ||
           c.name.toLowerCase() === targetRecipientName?.toLowerCase()
         );
 
+        const targetProduct = searchParams.get('product');
+
         if (existing) {
           setSelectedId(existing.id);
           setMobileView('chat');
+          if (targetProduct) {
+            setMessageText(`Hi, I'm interested in your product listed on Marketplace: "${decodeURIComponent(targetProduct)}"`);
+          }
         } else if (targetRecipientName) {
           const createThread = async () => {
+            const initialMsgText = targetProduct ? `Hi, I'm interested in your product listed on Marketplace: "${decodeURIComponent(targetProduct)}"` : '';
             const newConvData = {
               name: decodeURIComponent(targetRecipientName),
               recipientUid: targetRecipientUid,
@@ -317,13 +328,16 @@ export default function Messages() {
               createdBy: user.uid,
               readBy: [user.uid],
               avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(targetRecipientName)}`,
-              lastMessage: 'Started a new conversation',
+              lastMessage: targetProduct ? `Inquiring about ${decodeURIComponent(targetProduct)}` : 'Started a new conversation',
               time: new Date(),
               messages: []
             };
             const docRef = await addDoc(collection(db, 'messages'), newConvData);
             setSelectedId(docRef.id);
             setMobileView('chat');
+            if (initialMsgText) {
+              setMessageText(initialMsgText);
+            }
           };
           createThread();
         }
