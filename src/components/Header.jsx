@@ -66,11 +66,23 @@ export const Header = () => {
         )}
 
         {/* Right Actions */}
-        <div className="flex items-center gap-md">
+        <div className="flex items-center gap-xs sm:gap-md">
+          {isAuthenticated && (
+            <Link
+              to="/search"
+              className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 p-sm sm:p-md rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+              aria-label="Search"
+              title="Search"
+            >
+              <Search className="w-5 h-5" />
+            </Link>
+          )}
+
           <button
             onClick={toggleTheme}
-            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 p-md rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 p-sm sm:p-md rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
             aria-label="Toggle theme"
+            title="Toggle theme"
           >
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
@@ -146,7 +158,7 @@ export const Header = () => {
                     <span>Messages</span>
                   </Link>
                   <Link
-                    to="/community"
+                    to="/messages?tab=community"
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center gap-md p-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg"
                   >

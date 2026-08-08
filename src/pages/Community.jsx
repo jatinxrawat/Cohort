@@ -6,7 +6,7 @@ import {
   Shield, UserMinus, Settings, Link2, Trash2, Lock, Globe, X, ChevronLeft,
   Check, Copy, Crown, MessageSquare, Hash, Pin, PinOff, UserPlus2, Star, Info,
   Edit3, Mic, MicOff, CheckSquare, Square, CornerUpLeft, MoreVertical, Eraser, Volume2,
-  EyeOff, Bell, BellOff, Camera
+  EyeOff, Eye, Bell, BellOff, Camera, User, Ban
 } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
@@ -188,6 +188,14 @@ export default function Community() {
   const [pinnedCommunityIds, setPinnedCommunityIds] = useState([]);
   const [sidebarMenuOpenId, setSidebarMenuOpenId] = useState(null);
   const [leaveCommunityModal, setLeaveCommunityModal] = useState(null);
+  const [msgToDeleteModal, setMsgToDeleteModal] = useState(null);
+  const [revealedDeletedMsgs, setRevealedDeletedMsgs] = useState([]);
+
+  const handleToggleRevealDeleted = (msgId) => {
+    setRevealedDeletedMsgs(prev =>
+      prev.includes(msgId) ? prev.filter(id => id !== msgId) : [...prev, msgId]
+    );
+  };
   // ── Global Starred Messages Across Communities State
   const [allStarredCommunityMsgs, setAllStarredCommunityMsgs] = useState([]);
   const [isGlobalStarredModalOpen, setIsGlobalStarredModalOpen] = useState(false);
@@ -375,7 +383,10 @@ export default function Community() {
   // ── Check invite link / query params
   useEffect(() => {
     const joinId = searchParams.get('join');
-    if (!joinId) return;
+    if (!joinId) {
+      setSelectedRoom(null);
+      return;
+    }
     if (joinId === 'college') {
       setSelectedRoom({ roomType: 'college' });
       return;
@@ -518,9 +529,8 @@ export default function Community() {
       replyTo: replyingTo ? { name: replyingTo.sender.name, text: replyingTo.content } : null
     };
     try {
-      const docRef = await addDoc(collection(db, 'community-messages'), messageData);
-      setMessages(prev => [...prev, { id: docRef.id, docId: docRef.id, ...messageData }]);
       setMessageText(''); setReplyingTo(null); setAttachedFile(null);
+      await addDoc(collection(db, 'community-messages'), messageData);
     } catch (e) { console.error(e); }
   };
 
@@ -901,23 +911,40 @@ export default function Community() {
     } catch (e) { console.error(e); }
   };
 
+  const handleRequestDeleteMsg = (msg) => {
+    const isMe = msg.senderUid === user?.uid || msg.sender?.uid === user?.uid || msg.sender?.name === user?.name;
+    const canEveryone = isMe || isCreator || (isAdmin && currentAdminPerms.canDeleteMessages !== false);
+    setMsgToDeleteModal({ msg, isMe, canEveryone });
+  };
+
   const handleDeleteMsgForMe = async (msgId) => {
-    if (!user?.uid) return;
+    if (!user?.uid || !msgId) return;
     const targetColl = isCollegeRoom ? 'community-messages' : `userCommunities/${selectedRoom.id}/messages`;
     try {
       await updateDoc(doc(db, targetColl, msgId), {
         deletedFor: arrayUnion(user.uid)
       });
-      showSuccess('Message deleted for you');
+      showSuccess('Message deleted for you 🗑️');
+      setMsgToDeleteModal(null);
     } catch (e) { console.error(e); }
   };
 
   const handleDeleteMsgForEveryone = async (msgId) => {
+    if (!msgId) return;
     const targetColl = isCollegeRoom ? 'community-messages' : `userCommunities/${selectedRoom.id}/messages`;
+    const targetMsg = (messages || []).find(m => m.id === msgId);
+    const origText = (targetMsg?.content && targetMsg.content !== 'This message was deleted by sender')
+      ? targetMsg.content
+      : (targetMsg?.originalText || targetMsg?.fileName || 'Message attachment');
     try {
-      await deleteDoc(doc(db, targetColl, msgId));
-      showSuccess('Message deleted for everyone');
-    } catch (e) { console.error(e); }
+      await updateDoc(doc(db, targetColl, msgId), {
+        isDeletedForEveryone: true,
+        originalText: origText,
+        content: 'This message was deleted by sender'
+      });
+      showSuccess('Message deleted for everyone 🗑️');
+      setMsgToDeleteModal(null);
+    } catch (e) { console.error('Failed to delete for everyone:', e); }
   };
 
   const handleTogglePinMsg = (msg) => {
@@ -1491,7 +1518,7 @@ export default function Community() {
           <div className="flex-1 flex flex-col min-h-0">
             {/* Header */}
             <div className="flex items-center gap-md px-lg py-md bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 flex-shrink-0 shadow-sm">
-              <button onClick={() => { setSelectedRoom(null); navigate('/messages?tab=community'); }} className="p-md rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors flex-shrink-0 cursor-pointer active:scale-95 z-10" title="Go Back to Messages">
+              <button onClick={() => { setSelectedRoom(null); setSearchParams({}, { replace: true }); }} className="p-md rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors flex-shrink-0 cursor-pointer active:scale-95 z-10" title="Back to Communities List">
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-md">
@@ -1656,31 +1683,40 @@ export default function Community() {
                                 <img src={msg.sender?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(msg.sender?.name || 'u')}`} alt={msg.sender?.name} className="w-8 h-8 rounded-full flex-shrink-0 mt-xs object-cover" />
                                 <div className="space-y-xs relative group">
                                   {!isMe && <span className="text-[10px] font-bold text-neutral-500 ml-sm">{msg.sender?.name}{msg.sender?.role && ` · ${msg.sender?.role}`}</span>}
-                                  <div className={`p-lg rounded-2xl border text-sm shadow-sm ${isMe ? 'bg-primary-500 text-white border-primary-600 rounded-tr-none' : 'bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 border-neutral-100 dark:border-neutral-800 rounded-tl-none'}`}>
-                                    {msg.replyTo && <div className={`p-md rounded-lg border text-xs mb-md ${isMe ? 'bg-primary-600/50 border-primary-400/40 text-primary-100' : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
-                                    {msg.fileUrl && (
-                                      <div className="mb-md p-md rounded-xl bg-black/10 flex items-center justify-between gap-md">
-                                        <div className="flex items-center gap-sm text-xs font-semibold truncate"><FileText className="w-4 h-4 flex-shrink-0" /> {msg.fileName || 'Attachment'}</div>
-                                        <a href={msg.fileUrl} download={msg.fileName || 'file'} target="_blank" rel="noreferrer" className="p-xs hover:bg-black/10 rounded"><Download className="w-3.5 h-3.5" /></a>
+                                  {msg.isDeletedForEveryone || msg.content === 'This message was deleted by sender' || msg.text === 'This message was deleted by sender' ? (
+                                    <div className="my-xs max-w-sm">
+                                      <div className="flex items-center gap-xs px-md py-xs rounded-2xl bg-rose-500/5 dark:bg-rose-500/10 border border-dashed border-rose-400/40 text-neutral-600 dark:text-neutral-300 text-xs backdrop-blur-xs shadow-xs">
+                                        <Ban className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
+                                        <span className="italic font-medium text-[11px] opacity-90">
+                                          This message was deleted by sender
+                                        </span>
                                       </div>
-                                    )}
-                                    <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                                    {msg.edited && <span className="text-[9px] opacity-60 ml-xs italic">(edited)</span>}
-                                    <div className="flex items-center justify-end gap-xs mt-xs">
-                                      {isStarred && <Star className="w-3 h-3 text-amber-400 fill-amber-400" />}
-                                      <p className={`text-[10px] opacity-70 ${isMe ? 'text-primary-100' : 'text-neutral-400'}`}>{formatTime(msg.timestamp)}</p>
                                     </div>
-                                  </div>
-
-                                  {/* Message Hover Actions */}
-                                  {!isSelectMode && (
+                                  ) : (
+                                    <div className={`p-lg rounded-2xl border text-sm shadow-sm ${isMe ? 'bg-primary-500 text-white border-primary-600 rounded-tr-none' : 'bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 border-neutral-100 dark:border-neutral-800 rounded-tl-none'}`}>
+                                      {msg.replyTo && <div className={`p-md rounded-lg border text-xs mb-md ${isMe ? 'bg-primary-600/50 border-primary-400/40 text-primary-100' : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
+                                      {msg.fileUrl && (
+                                        <div className="mb-md p-md rounded-xl bg-black/10 flex items-center justify-between gap-md">
+                                          <div className="flex items-center gap-sm text-xs font-semibold truncate"><FileText className="w-4 h-4 flex-shrink-0" /> {msg.fileName || 'Attachment'}</div>
+                                          <a href={msg.fileUrl} download={msg.fileName || 'file'} target="_blank" rel="noreferrer" className="p-xs hover:bg-black/10 rounded"><Download className="w-3.5 h-3.5" /></a>
+                                        </div>
+                                      )}
+                                      <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                                      {msg.edited && <span className="text-[9px] opacity-60 ml-xs italic">(edited)</span>}
+                                      <div className="flex items-center justify-end gap-xs mt-xs">
+                                        {isStarred && <Star className="w-3 h-3 text-amber-400 fill-amber-400" />}
+                                        <p className={`text-[10px] opacity-70 ${isMe ? 'text-primary-100' : 'text-neutral-400'}`}>{formatTime(msg.timestamp)}</p>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {!isSelectMode && !msg.isDeletedForEveryone && msg.content !== 'This message was deleted by sender' && msg.text !== 'This message was deleted by sender' && (
                                     <div className={`absolute top-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-xs bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full shadow-md px-md py-[3px] z-10 ${isMe ? 'right-full mr-md' : 'left-full ml-md'}`}>
                                       <button onClick={() => setReplyingTo(msg)} className="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-xs" title="Reply"><Reply className="w-3.5 h-3.5" /></button>
                                       <button onClick={() => handleStarGroupMessage(msg.id)} className={`p-xs ${isStarred ? 'text-amber-500' : 'text-neutral-400 hover:text-amber-500'}`} title={isStarred ? 'Unstar' : 'Star'}><Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-amber-400' : ''}`} /></button>
                                       <button onClick={() => handleCopyMsgText(msg.content)} className="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-xs" title="Copy text"><Copy className="w-3.5 h-3.5" /></button>
                                       {isMe && <button onClick={() => handleStartEditMsg(msg)} className="text-neutral-400 hover:text-primary-500 p-xs" title="Edit"><Edit3 className="w-3.5 h-3.5" /></button>}
+                                      <button onClick={() => handleRequestDeleteMsg(msg)} className="text-neutral-400 hover:text-rose-500 p-xs" title="Delete message"><Trash2 className="w-3.5 h-3.5" /></button>
                                       <button onClick={() => handleTogglePinMsg(msg)} className="text-neutral-400 hover:text-amber-500 p-xs" title="Pin message"><Pin className="w-3.5 h-3.5" /></button>
-                                      <button onClick={() => handleDeleteMsgForMe(msg.id)} className="text-neutral-400 hover:text-rose-500 p-xs" title="Delete for me"><Trash2 className="w-3.5 h-3.5" /></button>
                                     </div>
                                   )}
                                 </div>
@@ -1875,7 +1911,7 @@ export default function Community() {
           <div className="flex-1 flex flex-col min-h-0">
             {/* Header */}
             <div className="flex items-center gap-md px-lg py-md bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 flex-shrink-0 shadow-sm">
-              <button onClick={() => { setSelectedRoom(null); navigate('/messages?tab=community'); }} className="p-md rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors flex-shrink-0 cursor-pointer active:scale-95 z-10" title="Go Back to Messages">
+              <button onClick={() => { setSelectedRoom(null); setSearchParams({}, { replace: true }); }} className="p-md rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors flex-shrink-0 cursor-pointer active:scale-95 z-10" title="Back to Communities List">
                 <ChevronLeft className="w-5 h-5" />
               </button>
               {selectedRoom?.avatar ? (
@@ -1886,11 +1922,10 @@ export default function Community() {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <h2 className="font-bold text-neutral-900 dark:text-white flex items-center gap-xs">
-                  {selectedRoom?.name || 'Community'}
-                  {isAdmin && <Shield className="w-4 h-4 text-indigo-500" />}
+                <h2 className="font-bold text-base text-neutral-900 dark:text-white flex items-center gap-xs truncate">
+                  <span className="truncate">{selectedRoom?.name || 'Community'}</span>
+                  {isAdmin && <Shield className="w-4 h-4 text-indigo-500 flex-shrink-0" />}
                 </h2>
-                <p className="text-xs text-neutral-500 font-semibold">{(selectedRoom?.members || []).length} members{selectedRoom?.description && ` · ${selectedRoom.description}`}</p>
               </div>
 
               {/* Action Buttons */}
@@ -1910,9 +1945,6 @@ export default function Community() {
                   title="Search messages"
                 >
                   <Search className="w-4 h-4" />
-                </button>
-                <button onClick={handleOpenManage} className="flex items-center gap-xs px-md py-sm bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-xl text-xs font-semibold text-neutral-700 dark:text-neutral-300 transition-colors">
-                  <Info className="w-3.5 h-3.5" /> Group Info
                 </button>
 
                 {/* Options Dropdown Menu */}
@@ -2073,14 +2105,14 @@ export default function Community() {
                                 </div>
 
                                 {/* Message Hover Actions */}
-                                {!isSelectMode && (
+                                {!isSelectMode && !msg.isDeletedForEveryone && msg.content !== 'This message was deleted by sender' && msg.text !== 'This message was deleted by sender' && (
                                   <div className={`absolute top-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-xs bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full shadow-md px-md py-[3px] z-10 ${isMe ? 'right-full mr-md' : 'left-full ml-md'}`}>
                                     <button onClick={() => setCommunityReplyingTo(msg)} className="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-xs" title="Reply"><Reply className="w-3.5 h-3.5" /></button>
                                     <button onClick={() => handleStarGroupMessage(msg.id)} className={`p-xs ${isStarred ? 'text-amber-500' : 'text-neutral-400 hover:text-amber-500'}`} title={isStarred ? 'Unstar' : 'Star'}><Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-amber-400' : ''}`} /></button>
                                     <button onClick={() => handleCopyMsgText(msg.content)} className="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-xs" title="Copy text"><Copy className="w-3.5 h-3.5" /></button>
                                     {isMe && <button onClick={() => handleStartEditMsg(msg)} className="text-neutral-400 hover:text-primary-500 p-xs" title="Edit"><Edit3 className="w-3.5 h-3.5" /></button>}
                                     <button onClick={() => handleTogglePinMsg(msg)} className="text-neutral-400 hover:text-amber-500 p-xs" title="Pin message"><Pin className="w-3.5 h-3.5" /></button>
-                                    <button onClick={() => handleDeleteMsgForMe(msg.id)} className="text-neutral-400 hover:text-rose-500 p-xs" title="Delete for me"><Trash2 className="w-3.5 h-3.5" /></button>
+                                    <button onClick={() => handleRequestDeleteMsg(msg)} className="text-neutral-400 hover:text-rose-500 p-xs" title="Delete message"><Trash2 className="w-3.5 h-3.5" /></button>
                                   </div>
                                 )}
                               </div>
@@ -2762,6 +2794,89 @@ export default function Community() {
                 </div>
               </div>
             ))
+          )}
+        </div>
+      </Modal>
+
+      {/* ── CONFIRM DELETE INDIVIDUAL MESSAGE MODAL ── */}
+      <Modal
+        isOpen={!!msgToDeleteModal}
+        onClose={() => setMsgToDeleteModal(null)}
+        title="Delete Message?"
+        size="sm"
+      >
+        <div className="space-y-lg">
+          <div className="flex items-start gap-md p-md bg-neutral-50 dark:bg-neutral-800/60 rounded-2xl border border-neutral-200/80 dark:border-neutral-700/80">
+            <div className="p-sm bg-rose-500/10 text-rose-500 rounded-xl flex-shrink-0">
+              <Trash2 className="w-5 h-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-sm text-neutral-900 dark:text-white mb-xs">
+                {msgToDeleteModal?.canEveryone ? 'Message Deletion Options' : 'Delete from your view'}
+              </p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-2 italic bg-white dark:bg-neutral-900 p-xs px-sm rounded-lg border border-neutral-200/60 dark:border-neutral-800">
+                "{msgToDeleteModal?.msg?.content || msgToDeleteModal?.msg?.text || msgToDeleteModal?.msg?.fileName || 'Message attachment'}"
+              </p>
+            </div>
+          </div>
+
+          {msgToDeleteModal?.canEveryone ? (
+            <div className="space-y-sm">
+              <p className="text-xs text-neutral-600 dark:text-neutral-300 font-medium">
+                Choose how you would like to delete this message:
+              </p>
+
+              <button
+                type="button"
+                onClick={() => handleDeleteMsgForEveryone(msgToDeleteModal.msg?.id)}
+                className="w-full py-md px-lg bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-xs cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete for Everyone (Both Sides)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDeleteMsgForMe(msgToDeleteModal.msg?.id)}
+                className="w-full py-md px-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 active:scale-95 text-neutral-900 dark:text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-xs cursor-pointer border border-neutral-200 dark:border-neutral-700"
+              >
+                <User className="w-4 h-4 text-primary-500" />
+                <span>Delete for Me Only</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMsgToDeleteModal(null)}
+                className="w-full py-xs text-xs font-semibold text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors text-center"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-sm">
+              <p className="text-xs text-neutral-600 dark:text-neutral-300 font-medium">
+                This message will be removed only from your view.
+              </p>
+
+              <div className="flex gap-md pt-xs">
+                <Button
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={() => setMsgToDeleteModal(null)}
+                >
+                  Cancel
+                </Button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDeleteMsgForMe(msgToDeleteModal.msg?.id)}
+                  className="flex-1 py-md px-lg bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-xs cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete for Me</span>
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </Modal>
