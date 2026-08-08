@@ -2329,9 +2329,9 @@ export default function Messages() {
               {/* Input Area */}
               <form
                 onSubmit={handleSendMessage}
-                className={`flex-shrink-0 z-30 p-sm sm:p-md pb-md sm:pb-md border-t flex gap-xs sm:gap-md items-center transition-all ${
+                className={`flex-shrink-0 z-30 p-2 sm:p-3 border-t flex gap-2 sm:gap-3 items-center transition-all ${
                   activeConversation.isVanishMode
-                    ? 'bg-neutral-900/95 border-amber-500/30 dark:border-amber-500/20 shadow-[0_-4px_20px_rgba(245,158,11,0.15)]'
+                    ? 'bg-neutral-900 border-amber-500/30 dark:border-amber-500/20 shadow-[0_-4px_20px_rgba(245,158,11,0.15)]'
                     : 'bg-white dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800 shadow-lg'
                 }`}
               >

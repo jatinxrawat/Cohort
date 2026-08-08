@@ -27,34 +27,17 @@ export const Layout = ({ children }) => {
     document.documentElement.classList.add('chat-active');
     document.body.classList.add('chat-active');
 
-    const updateViewport = () => {
-      if (window.visualViewport && window.innerWidth < 1024) {
-        const vh = window.visualViewport.height;
-        const vt = window.visualViewport.offsetTop;
-        document.documentElement.style.setProperty('--vv-height', `${vh}px`);
-        document.documentElement.style.setProperty('--vv-top', `${vt}px`);
-        if (window.scrollY !== 0) {
-          window.scrollTo(0, 0);
-        }
+    const handleScroll = () => {
+      if (window.scrollY !== 0) {
+        window.scrollTo(0, 0);
       }
     };
 
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', updateViewport);
-      window.visualViewport.addEventListener('scroll', updateViewport);
-      updateViewport();
-    }
-
-    window.addEventListener('scroll', updateViewport);
-
+    window.addEventListener('scroll', handleScroll);
     return () => {
       document.documentElement.classList.remove('chat-active');
       document.body.classList.remove('chat-active');
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', updateViewport);
-        window.visualViewport.removeEventListener('scroll', updateViewport);
-      }
-      window.removeEventListener('scroll', updateViewport);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [isChatRoute]);
 
@@ -74,17 +57,9 @@ export const Layout = ({ children }) => {
     <div
       className={`flex flex-col bg-white dark:bg-neutral-900 overflow-hidden ${
         isChatRoute
-          ? 'fixed inset-x-0 top-0 w-full z-10'
+          ? 'fixed inset-0 w-full h-full h-[100dvh] max-h-[100dvh] max-w-[100vw] z-10'
           : 'h-screen h-[100dvh]'
       }`}
-      style={
-        isChatRoute && typeof window !== 'undefined' && window.innerWidth < 1024
-          ? {
-              height: 'var(--vv-height, 100dvh)',
-              top: 'var(--vv-top, 0px)'
-            }
-          : {}
-      }
     >
       <div className={isChatRoute ? 'hidden md:block' : 'block'}>
         <Header />
