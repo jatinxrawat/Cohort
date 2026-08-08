@@ -9,7 +9,8 @@ import {
   Users,
   ShoppingBag,
   Bookmark,
-  Flame
+  Flame,
+  Sparkles
 } from 'lucide-react';
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
@@ -19,8 +20,8 @@ const mobileNavItems = [
   { path: '/home', icon: Home, label: 'Home' },
   { path: '/anonymous', icon: EyeOff, label: 'Anonymous', special: true },
   { path: '/confessions', icon: Flame, label: 'Confessions', specialConfession: true },
+  { path: '/make-friend', icon: Sparkles, label: 'Make Friend', specialFriend: true },
   { path: '/messages', icon: MessageSquare, label: 'Messages', badge: true },
-  { path: '/messages?tab=community', icon: Users, label: 'Community' },
   { path: '/profile', icon: User, label: 'Profile' },
 ];
 
@@ -30,21 +31,14 @@ export const MobileNav = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const isActive = (itemPath) => {
-    const currentFull = `${location.pathname}${location.search}`;
-    if (itemPath === '/messages?tab=community') {
-      return currentFull === '/messages?tab=community' || location.pathname === '/community';
-    }
-    if (itemPath === '/messages') {
-      return location.pathname === '/messages' && currentFull !== '/messages?tab=community';
-    }
     return location.pathname === itemPath;
   };
 
   const quickActions = [
     { label: 'Saved Bookmarks', desc: 'View saved posts & discussions', link: '/saved-posts', icon: Bookmark, color: 'bg-amber-500' },
     { label: 'Post Anonymously', desc: 'Share confessions or thoughts safely', link: '/anonymous', icon: EyeOff, color: 'bg-purple-600' },
+    { label: 'Make a Friend', desc: 'Find your campus vibe twins', link: '/make-friend', icon: Sparkles, color: 'bg-gradient-to-r from-vandal-pink to-topic-violet' },
     { label: 'Create Feed Post', desc: 'Share updates on campus', link: '/home', icon: MessageSquare, color: 'bg-primary-500' },
-    { label: 'Community Hub', desc: 'Connect with your college', link: '/messages?tab=community', icon: Users, color: 'bg-indigo-500' },
     { label: 'Sell on Market', desc: 'List old books or devices', link: '/marketplace', icon: ShoppingBag, color: 'bg-emerald-500' },
   ];
 
@@ -52,7 +46,7 @@ export const MobileNav = () => {
     <>
       <nav className="fixed bottom-0 left-0 right-0 lg:hidden bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-t border-neutral-200/80 dark:border-neutral-800 z-40 shadow-2xl px-0.5">
         <div className="flex items-center justify-around h-16 w-full max-w-md mx-auto">
-          {mobileNavItems.map(({ path, icon: Icon, label, special, specialConfession, badge }) => (
+          {mobileNavItems.map(({ path, icon: Icon, label, special, specialConfession, specialFriend, badge }) => (
             <Link
               key={path}
               to={path}
@@ -62,11 +56,15 @@ export const MobileNav = () => {
                     ? 'text-purple-500 font-bold scale-105'
                     : specialConfession
                     ? 'text-rose-500 font-bold scale-105'
+                    : specialFriend
+                    ? 'text-vandal-pink font-bold scale-105'
                     : 'text-primary-500 dark:text-primary-400 font-bold'
                   : special
                   ? 'text-purple-400/80 hover:text-purple-400'
                   : specialConfession
                   ? 'text-rose-400/80 hover:text-rose-400'
+                  : specialFriend
+                  ? 'text-vandal-pink/80 hover:text-vandal-pink font-semibold'
                   : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
               }`}
               aria-label={label}

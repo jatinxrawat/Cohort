@@ -22,6 +22,7 @@ const Notifications = lazy(() => import('@/pages/Notifications'));
 const Messages = lazy(() => import('@/pages/Messages'));
 const Search = lazy(() => import('@/pages/Search'));
 const Settings = lazy(() => import('@/pages/Settings'));
+const MakeAFriend = lazy(() => import('@/pages/MakeAFriend'));
 const Help = lazy(() => import('@/pages/Help'));
 const About = lazy(() => import('@/pages/About'));
 const Privacy = lazy(() => import('@/pages/Privacy'));
@@ -140,6 +141,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <Messages />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/make-friend"
+                    element={
+                      <ProtectedRoute>
+                        <MakeAFriend />
                       </ProtectedRoute>
                     }
                   />
