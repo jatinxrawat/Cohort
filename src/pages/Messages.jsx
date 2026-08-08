@@ -6,8 +6,8 @@ import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { Input } from '@/components/Input';
-import { motion } from 'framer-motion';
-import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Paperclip, Image, Video } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Eye, Paperclip, Image, Video, Download, Maximize2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { formatRelativeTime } from '@/utils/helpers';
@@ -82,7 +82,31 @@ export default function Messages() {
   const [allStarredCommunityMsgs, setAllStarredCommunityMsgs] = useState([]);
   const [isCommunityStarredModalOpen, setIsCommunityStarredModalOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState(null);
+  const [previewImageModal, setPreviewImageModal] = useState(null);
+  const [msgToDeleteModal, setMsgToDeleteModal] = useState(null);
+  const [revealedDeletedMsgs, setRevealedDeletedMsgs] = useState([]);
   const mediaInputRef = useRef(null);
+
+  const handleToggleRevealDeleted = (msgKey) => {
+    setRevealedDeletedMsgs(prev =>
+      prev.includes(msgKey) ? prev.filter(k => k !== msgKey) : [...prev, msgKey]
+    );
+  };
+
+  const handleDownloadMedia = (url, filename = 'download.png') => {
+    try {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showSuccess('Download started 📥');
+    } catch (err) {
+      console.error('Download error:', err);
+      window.open(url, '_blank');
+    }
+  };
   
   // New Chat Modal & Context Menu States
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
@@ -970,9 +994,15 @@ export default function Messages() {
     }
   };
 
+  // Prompt Delete Message Confirmation Modal
+  const handleRequestDeleteMsg = (msg) => {
+    const isMe = msg.senderUid === myUid || msg.sender === myUid || msg.senderName === (user?.name || user?.email?.split('@')[0]);
+    setMsgToDeleteModal({ msg, isMe });
+  };
+
   // WhatsApp-style: Delete Individual Message ONLY FOR ME
-  const handleDeleteMessage = async (msgToDelete) => {
-    if (!activeConversation || !activeConversation.docId) return;
+  const handleDeleteMessageForMe = async (msgToDelete) => {
+    if (!activeConversation || !activeConversation.docId || !msgToDelete) return;
 
     const currentMsgs = activeConversation.messages || [];
     const updatedMsgs = currentMsgs.map(m => {
@@ -990,9 +1020,44 @@ export default function Messages() {
     try {
       const docRef = doc(db, 'messages', activeConversation.docId);
       await updateDoc(docRef, { messages: updatedMsgs });
-      showSuccess('Message deleted for you');
+      showSuccess('Message deleted for you 🗑️');
+      setMsgToDeleteModal(null);
     } catch (err) {
-      console.error('Failed to delete message:', err);
+      console.error('Failed to delete message for me:', err);
+    }
+  };
+
+  // WhatsApp-style: Delete Individual Message FOR EVERYONE (Both Sides)
+  const handleDeleteMessageForEveryone = async (msgToDelete) => {
+    if (!activeConversation || !activeConversation.docId || !msgToDelete) return;
+
+    const currentMsgs = activeConversation.messages || [];
+    const updatedMsgs = currentMsgs.map(m => {
+      const isTarget = m === msgToDelete ||
+                       (m.text === msgToDelete.text && Math.abs(new Date(m.time).getTime() - new Date(msgToDelete.time).getTime()) < 2000);
+      if (isTarget) {
+        const origText = (m.text && m.text !== 'This message was deleted by sender')
+          ? m.text
+          : (m.originalText || m.mediaName || 'Attachment');
+        return {
+          ...m,
+          isDeletedForEveryone: true,
+          originalText: origText,
+          text: 'This message was deleted by sender',
+          mediaUrl: null,
+          mediaType: null
+        };
+      }
+      return m;
+    });
+
+    try {
+      const docRef = doc(db, 'messages', activeConversation.docId);
+      await updateDoc(docRef, { messages: updatedMsgs });
+      showSuccess('Message deleted for everyone 🗑️');
+      setMsgToDeleteModal(null);
+    } catch (err) {
+      console.error('Failed to delete message for everyone:', err);
     }
   };
 
@@ -1213,10 +1278,6 @@ export default function Messages() {
     if (mobileView === 'chat') {
       setMobileView('list');
       setSelectedId(null);
-      return;
-    }
-    if (messagesTab === 'community') {
-      setMessagesTab('direct');
       return;
     }
     navigate('/home');
@@ -1696,8 +1757,13 @@ export default function Messages() {
                       className="flex items-center gap-md cursor-pointer group"
                     >
                       <button
-                        onClick={(e) => { e.stopPropagation(); setMobileView('list'); }}
-                        className="md:hidden p-xs text-neutral-500 hover:text-neutral-900"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMobileView('list');
+                          setSelectedId(null);
+                        }}
+                        className="p-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                        title="Close Chat"
                       >
                         <ChevronLeft className="w-6 h-6" />
                       </button>
@@ -1959,7 +2025,7 @@ export default function Messages() {
                             onReply={() => setReplyToMsg({ ...msg, msgKey, senderName: isMe ? 'You' : activeConversation.name })}
                           >
                             <div className={`flex items-end gap-xs ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-                              {/* Avatar for recipient (left side) */}
+                        {/* Avatar for recipient (left side) */}
                               {!isMe && (
                                 <img
                                   src={activeConversation.avatar}
@@ -1969,51 +2035,82 @@ export default function Messages() {
                               )}
 
                               {/* Message Bubble */}
-                              <div
-                                className={`p-md rounded-2xl text-sm shadow-sm relative ${
-                                  isMe
-                                    ? 'bg-primary-500 text-white rounded-br-xs'
-                                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700/80 rounded-bl-xs'
-                                }`}
-                              >
-                                {/* Quoted Reply Box if replying to another message */}
-                                {msg.replyTo && (
-                                  <div
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (msg.replyTo.msgKey) handleJumpToMessage(msg.replyTo.msgKey);
-                                    }}
-                                    className={`mb-xs p-xs px-sm rounded-lg border-l-4 text-xs cursor-pointer transition-all hover:opacity-90 ${
-                                      isMe
-                                        ? 'bg-black/25 text-white border-white/90'
-                                        : 'bg-primary-500/10 text-neutral-800 dark:text-neutral-100 border-primary-500'
-                                    }`}
-                                  >
-                                    <p className="font-bold text-[11px] flex items-center gap-1 opacity-95">
-                                      <CornerUpLeft className="w-3 h-3 text-primary-400" />
-                                      {msg.replyTo.senderName}
-                                    </p>
-                                    <p className="truncate text-[11px] opacity-85 mt-0.5 font-medium">
-                                      {msg.replyTo.text}
-                                    </p>
+                              {msg.isDeletedForEveryone || msg.text === 'This message was deleted by sender' ? (
+                                <div className="my-xs max-w-sm">
+                                  <div className="flex items-center gap-xs px-md py-xs rounded-2xl bg-rose-500/5 dark:bg-rose-500/10 border border-dashed border-rose-400/40 text-neutral-600 dark:text-neutral-300 text-xs backdrop-blur-xs shadow-xs">
+                                    <Ban className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
+                                    <span className="italic font-medium text-[11px] opacity-90">
+                                      This message was deleted by sender
+                                    </span>
                                   </div>
-                                )}
+                                </div>
+                              ) : (
+                                <div
+                                  className={`rounded-2xl text-sm shadow-sm relative overflow-hidden ${
+                                    msg.mediaUrl && !msg.text
+                                      ? 'p-0.5 bg-transparent'
+                                      : 'p-md ' + (isMe ? 'bg-primary-500 text-white rounded-br-xs' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700/80 rounded-bl-xs')
+                                  }`}
+                                >
+                                  {/* Quoted Reply Box if replying to another message */}
+                                  {msg.replyTo && (
+                                    <div
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (msg.replyTo.msgKey) handleJumpToMessage(msg.replyTo.msgKey);
+                                      }}
+                                      className={`mb-xs p-xs px-sm rounded-lg border-l-4 text-xs cursor-pointer transition-all hover:opacity-90 ${
+                                        isMe
+                                          ? 'bg-black/25 text-white border-white/90'
+                                          : 'bg-primary-500/10 text-neutral-800 dark:text-neutral-100 border-primary-500'
+                                      }`}
+                                    >
+                                      <p className="font-bold text-[11px] flex items-center gap-1 opacity-95">
+                                        <CornerUpLeft className="w-3 h-3 text-primary-400" />
+                                        {msg.replyTo.senderName}
+                                      </p>
+                                      <p className="truncate text-[11px] opacity-85 mt-0.5 font-medium">
+                                        {msg.replyTo.text}
+                                      </p>
+                                    </div>
+                                  )}
 
                                 {msg.mediaUrl && (
-                                  <div className="my-xs">
+                                  <div className="relative group overflow-hidden rounded-2xl cursor-pointer shadow-md my-0.5 border border-black/10 dark:border-white/10 max-w-xs sm:max-w-sm">
                                     {msg.mediaType === 'video' ? (
                                       <video
                                         src={msg.mediaUrl}
                                         controls
-                                        className="max-w-xs max-h-60 rounded-2xl shadow-md border border-black/10 dark:border-white/10"
+                                        className="w-full max-h-72 object-cover rounded-2xl"
                                       />
                                     ) : (
-                                      <img
-                                        src={msg.mediaUrl}
-                                        alt="Photo attachment"
-                                        onClick={() => window.open(msg.mediaUrl, '_blank')}
-                                        className="max-w-xs max-h-60 rounded-2xl object-cover shadow-md cursor-pointer hover:opacity-95 transition-opacity border border-black/10 dark:border-white/10"
-                                      />
+                                      <div
+                                        onClick={() => setPreviewImageModal({ url: msg.mediaUrl, name: msg.mediaName || 'Photo Attachment' })}
+                                        className="relative overflow-hidden group/img cursor-pointer"
+                                      >
+                                        <img
+                                          src={msg.mediaUrl}
+                                          alt="Photo attachment"
+                                          className="w-full max-h-72 object-cover rounded-2xl group-hover/img:scale-[1.02] transition-transform duration-200"
+                                        />
+                                        {/* Hover Overlay with Preview & Download Actions */}
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-md backdrop-blur-[2px]">
+                                          <span className="p-2.5 bg-white/20 text-white rounded-full hover:bg-white/30 backdrop-blur-md transition-all shadow-lg" title="View Fullscreen">
+                                            <Maximize2 className="w-5 h-5" />
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDownloadMedia(msg.mediaUrl, msg.mediaName || 'photo.png');
+                                            }}
+                                            className="p-2.5 bg-primary-500 text-white rounded-full hover:bg-primary-600 transition-all shadow-lg"
+                                            title="Download Image"
+                                          >
+                                            <Download className="w-5 h-5" />
+                                          </button>
+                                        </div>
+                                      </div>
                                     )}
                                   </div>
                                 )}
@@ -2098,9 +2195,10 @@ export default function Messages() {
                                   </div>
                                 )}
                               </div>
+                              )}
 
                               {/* Message Action Buttons (Reply, Keep Forever, Star & Delete) on Hover */}
-                              {!isSelectMode && (
+                              {!isSelectMode && !msg.isDeletedForEveryone && msg.text !== 'This message was deleted by sender' && (
                                 <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-xs">
                                   <button
                                     type="button"
@@ -2129,9 +2227,9 @@ export default function Messages() {
                                     <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-amber-400' : ''}`} />
                                   </button>
                                   <button
-                                    onClick={() => handleDeleteMessage(msg)}
+                                    onClick={() => handleRequestDeleteMsg(msg)}
                                     className="p-xs text-neutral-400 hover:text-danger rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
-                                    title="Delete for me"
+                                    title="Delete Message"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
@@ -2923,6 +3021,89 @@ export default function Messages() {
         </div>
       </Modal>
 
+      {/* ── CONFIRM DELETE INDIVIDUAL MESSAGE MODAL ── */}
+      <Modal
+        isOpen={!!msgToDeleteModal}
+        onClose={() => setMsgToDeleteModal(null)}
+        title="Delete Message?"
+        size="sm"
+      >
+        <div className="space-y-lg">
+          <div className="flex items-start gap-md p-md bg-neutral-50 dark:bg-neutral-800/60 rounded-2xl border border-neutral-200/80 dark:border-neutral-700/80">
+            <div className="p-sm bg-rose-500/10 text-rose-500 rounded-xl flex-shrink-0">
+              <Trash2 className="w-5 h-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-sm text-neutral-900 dark:text-white mb-xs">
+                {msgToDeleteModal?.isMe ? 'You sent this message' : 'Delete from your chat'}
+              </p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-2 italic bg-white dark:bg-neutral-900 p-xs px-sm rounded-lg border border-neutral-200/60 dark:border-neutral-800">
+                "{msgToDeleteModal?.msg?.text || msgToDeleteModal?.msg?.mediaName || 'Media message'}"
+              </p>
+            </div>
+          </div>
+
+          {msgToDeleteModal?.isMe ? (
+            <div className="space-y-sm">
+              <p className="text-xs text-neutral-600 dark:text-neutral-300 font-medium">
+                Choose how you would like to delete this message:
+              </p>
+
+              <button
+                type="button"
+                onClick={() => handleDeleteMessageForEveryone(msgToDeleteModal.msg)}
+                className="w-full py-md px-lg bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-xs cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete for Everyone (Both Sides)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDeleteMessageForMe(msgToDeleteModal.msg)}
+                className="w-full py-md px-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 active:scale-95 text-neutral-900 dark:text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-xs cursor-pointer border border-neutral-200 dark:border-neutral-700"
+              >
+                <User className="w-4 h-4 text-primary-500" />
+                <span>Delete for Me Only</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMsgToDeleteModal(null)}
+                className="w-full py-xs text-xs font-semibold text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors text-center"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-sm">
+              <p className="text-xs text-neutral-600 dark:text-neutral-300 font-medium">
+                This message will be removed only from your view.
+              </p>
+
+              <div className="flex gap-md pt-xs">
+                <Button
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={() => setMsgToDeleteModal(null)}
+                >
+                  Cancel
+                </Button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDeleteMessageForMe(msgToDeleteModal.msg)}
+                  className="flex-1 py-md px-lg bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-xs cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete for Me</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </Modal>
+
       {/* ── ALL STARRED COMMUNITY MESSAGES MODAL ── */}
       <Modal
         isOpen={isCommunityStarredModalOpen}
@@ -2972,6 +3153,82 @@ export default function Messages() {
           )}
         </div>
       </Modal>
+
+      {/* ── FULL SCREEN IMAGE LIGHTBOX PREVIEW MODAL ── */}
+      <AnimatePresence>
+        {previewImageModal && (
+          <div
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-between p-md sm:p-xl animate-fade-in"
+            onClick={() => setPreviewImageModal(null)}
+          >
+            {/* Top Header Controls Bar */}
+            <div
+              className="w-full max-w-5xl flex items-center justify-between text-white z-10 py-xs"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-md min-w-0">
+                <div className="p-xs bg-white/10 rounded-lg flex-shrink-0">
+                  <Image className="w-5 h-5 text-primary-400" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-sm sm:text-base text-white truncate max-w-xs sm:max-w-md">
+                    {previewImageModal.name || 'Photo Attachment'}
+                  </h3>
+                  <p className="text-xs text-neutral-400">Click anywhere outside image to close</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-sm flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleDownloadMedia(previewImageModal.url, previewImageModal.name || 'photo.png')}
+                  className="px-lg py-sm bg-primary-500 hover:bg-primary-600 active:scale-95 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-xs cursor-pointer"
+                  title="Download Image"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPreviewImageModal(null)}
+                  className="p-md hover:bg-white/10 rounded-xl text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                  title="Close Preview"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Main Image Display Area */}
+            <div
+              className="flex-1 flex items-center justify-center w-full max-w-5xl my-auto p-md overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={previewImageModal.url}
+                alt={previewImageModal.name || 'Full preview'}
+                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl ring-1 ring-white/10 animate-zoom-in"
+              />
+            </div>
+
+            {/* Bottom Action Footer */}
+            <div
+              className="w-full max-w-md flex items-center justify-center gap-md z-10 py-xs"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <a
+                href={previewImageModal.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-semibold text-neutral-300 hover:text-white underline transition-colors"
+              >
+                Open original file in new tab ↗
+              </a>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -20,7 +20,7 @@ const mobileNavItems = [
   { path: '/anonymous', icon: EyeOff, label: 'Anonymous', special: true },
   { path: '/confessions', icon: Flame, label: 'Confessions', specialConfession: true },
   { path: '/messages', icon: MessageSquare, label: 'Messages', badge: true },
-  { path: '/search', icon: Search, label: 'Search' },
+  { path: '/messages?tab=community', icon: Users, label: 'Community' },
   { path: '/profile', icon: User, label: 'Profile' },
 ];
 
@@ -29,13 +29,22 @@ export const MobileNav = () => {
   const { user, hasUnreadMessages, unreadCount } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (itemPath) => {
+    const currentFull = `${location.pathname}${location.search}`;
+    if (itemPath === '/messages?tab=community') {
+      return currentFull === '/messages?tab=community' || location.pathname === '/community';
+    }
+    if (itemPath === '/messages') {
+      return location.pathname === '/messages' && currentFull !== '/messages?tab=community';
+    }
+    return location.pathname === itemPath;
+  };
 
   const quickActions = [
     { label: 'Saved Bookmarks', desc: 'View saved posts & discussions', link: '/saved-posts', icon: Bookmark, color: 'bg-amber-500' },
     { label: 'Post Anonymously', desc: 'Share confessions or thoughts safely', link: '/anonymous', icon: EyeOff, color: 'bg-purple-600' },
     { label: 'Create Feed Post', desc: 'Share updates on campus', link: '/home', icon: MessageSquare, color: 'bg-primary-500' },
-    { label: 'Community Hub', desc: 'Connect with your college', link: '/community', icon: Users, color: 'bg-indigo-500' },
+    { label: 'Community Hub', desc: 'Connect with your college', link: '/messages?tab=community', icon: Users, color: 'bg-indigo-500' },
     { label: 'Sell on Market', desc: 'List old books or devices', link: '/marketplace', icon: ShoppingBag, color: 'bg-emerald-500' },
   ];
 
