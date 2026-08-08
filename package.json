@@ -10,6 +10,9 @@
     "format": "prettier --write \"src/**/*.{js,jsx,css}\""
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
     "firebase": "^12.16.0",
     "framer-motion": "^11.18.2",
     "lucide-react": "^0.408.0",
