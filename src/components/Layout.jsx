@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
@@ -17,25 +17,6 @@ export const Layout = ({ children }) => {
   const isCommunityPage = location.pathname === '/community';
   const isChatRoute = isMessagesPage || isCommunityPage;
 
-  useEffect(() => {
-    if (!window.visualViewport) return;
-
-    const handleViewportResize = () => {
-      if (isChatRoute && window.innerWidth < 1024) {
-        document.documentElement.style.setProperty('--vv-height', `${window.visualViewport.height}px`);
-      }
-    };
-
-    window.visualViewport.addEventListener('resize', handleViewportResize);
-    window.visualViewport.addEventListener('scroll', handleViewportResize);
-    handleViewportResize();
-
-    return () => {
-      window.visualViewport.removeEventListener('resize', handleViewportResize);
-      window.visualViewport.removeEventListener('scroll', handleViewportResize);
-    };
-  }, [isChatRoute]);
-
   if (isLandingPage) {
     return (
       <div className="min-h-screen bg-[#edf4ed] dark:bg-neutral-950 font-sans">
@@ -50,12 +31,11 @@ export const Layout = ({ children }) => {
 
   return (
     <div
-      className={`flex flex-col bg-white dark:bg-neutral-950 overflow-hidden ${
+      className={`flex flex-col bg-white dark:bg-neutral-900 overflow-hidden ${
         isChatRoute
           ? 'fixed inset-0 w-full h-full max-h-[100dvh] max-w-[100vw] z-10'
           : 'h-screen h-[100dvh]'
       }`}
-      style={isChatRoute && window.innerWidth < 1024 ? { height: 'var(--vv-height, 100dvh)' } : {}}
     >
       <div className={isChatRoute ? 'hidden md:block' : 'block'}>
         <Header />
