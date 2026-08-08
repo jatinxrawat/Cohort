@@ -11,13 +11,15 @@ import {
   Search,
   User,
   Bookmark,
-  Flame
+  Flame,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
   { path: '/home', label: 'Home', icon: Home },
   { path: '/search', label: 'Search', icon: Search },
+  { path: '/make-friend', label: 'Make a Friend', icon: Sparkles, specialFriend: true },
   { path: '/anonymous', label: 'Anonymous', icon: EyeOff, special: true },
   { path: '/confessions', label: 'Confessions', icon: Flame, specialConfession: true },
   { path: '/messages', label: 'Messages', icon: MessageSquare, badge: true },
@@ -42,7 +44,7 @@ export const Sidebar = () => {
       }`}
     >
       <nav className="flex-1 p-md space-y-xs overflow-y-auto overflow-x-hidden">
-        {navItems.map(({ path, label, icon: Icon, special, specialConfession, badge }) => (
+        {navItems.map(({ path, label, icon: Icon, special, specialConfession, specialFriend, badge }) => (
           <Link
             key={path}
             to={path}
@@ -53,11 +55,15 @@ export const Sidebar = () => {
                   ? 'bg-purple-600 text-white font-bold shadow-[0_0_15px_rgba(168,85,247,0.4)]'
                   : specialConfession
                   ? 'bg-rose-600 text-white font-bold shadow-[0_0_15px_rgba(244,63,94,0.4)]'
+                  : specialFriend
+                  ? 'bg-gradient-to-r from-vandal-pink to-topic-violet text-white font-bold shadow-[0_0_15px_rgba(255,42,133,0.4)]'
                   : 'bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400 font-semibold'
                 : special
                 ? 'text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/40 font-semibold'
                 : specialConfession
                 ? 'text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-semibold'
+                : specialFriend
+                ? 'text-vandal-pink hover:bg-vandal-pink/5 dark:hover:bg-vandal-pink/10 font-bold'
                 : 'text-neutral-700 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
             } ${!isExpanded ? 'justify-center' : ''}`}
           >
