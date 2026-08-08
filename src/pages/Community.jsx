@@ -1730,7 +1730,7 @@ export default function Community() {
                   </div>
                   {showScrollBtn && <button onClick={() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }} className="absolute bottom-20 right-lg w-10 h-10 rounded-full bg-primary-500 text-white shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 z-20"><ArrowDown className="w-5 h-5" /></button>}
                   {/* Chat Input */}
-                  <div className="sticky bottom-0 z-30 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 px-sm sm:px-lg py-xs sm:py-md flex-shrink-0 pb-safe shadow-lg">
+                  <div className="flex-shrink-0 z-30 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 px-md sm:px-lg py-sm sm:py-md pb-md sm:pb-md shadow-lg">
                     {editingMsg && (
                       <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded-lg p-sm flex justify-between items-center text-xs mb-xs">
                         <div className="flex-1 min-w-0 mr-md">
@@ -2124,7 +2124,7 @@ export default function Community() {
               </div>
 
               {/* Chat Input Bar */}
-              <div className="sticky bottom-0 z-30 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 px-sm sm:px-lg py-xs sm:py-md flex-shrink-0 pb-safe shadow-lg">
+              <div className="flex-shrink-0 z-30 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 px-md sm:px-lg py-sm sm:py-md pb-md sm:pb-md shadow-lg">
                 {editingMsg && (
                   <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded-lg p-sm flex justify-between items-center text-xs mb-xs">
                     <div className="flex-1 min-w-0 mr-md">
