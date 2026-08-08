@@ -1284,7 +1284,7 @@ export default function Messages() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-0 md:p-md h-[calc(100vh-4rem)] flex flex-col font-sans antialiased text-neutral-900 dark:text-white overflow-hidden">
+    <div className="max-w-7xl mx-auto p-0 md:p-md h-full w-full flex flex-col font-sans antialiased text-neutral-900 dark:text-white overflow-hidden">
       <div className="flex flex-col md:flex-row gap-0 md:gap-lg h-full min-h-0 flex-1 overflow-hidden">
         {/* Left Sidebar - Conversations List */}
         <div className={`w-full md:w-80 lg:w-96 flex-shrink-0 flex flex-col h-full overflow-hidden ${
@@ -1700,9 +1700,9 @@ export default function Messages() {
           mobileView === 'list' || !activeConversation ? 'hidden md:flex' : 'flex'
         }`}>
           {activeConversation ? (
-            <Card className="flex-1 flex flex-col p-0 overflow-hidden border-none md:border rounded-none md:rounded-xl border-neutral-100 dark:border-neutral-800">
+            <Card className="flex-1 flex flex-col p-0 overflow-hidden border-none md:border rounded-none md:rounded-xl border-neutral-100 dark:border-neutral-800 h-full min-h-0">
               {/* WhatsApp-Style Chat Header */}
-              <div className="p-lg border-b border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 relative">
+              <div className="p-sm sm:p-lg border-b border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 sticky top-0 z-40 flex-shrink-0">
                 {/* Standard or Select Mode Header Bar */}
                 {isSelectMode ? (
                   <div className="flex items-center justify-between">
@@ -2315,7 +2315,7 @@ export default function Messages() {
               {/* Input Area */}
               <form
                 onSubmit={handleSendMessage}
-                className={`sticky bottom-0 z-30 p-xs sm:p-md border-t flex gap-xs sm:gap-md items-center transition-all pb-safe ${
+                className={`sticky bottom-0 z-30 flex-shrink-0 p-xs sm:p-md border-t flex gap-xs sm:gap-md items-center transition-all pb-safe ${
                   activeConversation.isVanishMode
                     ? 'bg-neutral-900/95 border-amber-500/30 dark:border-amber-500/20 shadow-[0_-4px_20px_rgba(245,158,11,0.15)]'
                     : 'bg-white dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800 shadow-lg'

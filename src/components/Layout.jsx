@@ -29,15 +29,15 @@ export const Layout = ({ children }) => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-white dark:bg-neutral-950">
+    <div className="flex flex-col h-screen h-[100dvh] bg-white dark:bg-neutral-950 overflow-hidden">
       <div className={isMessagesPage || isCommunityPage ? 'hidden md:block' : 'block'}>
         <Header />
       </div>
       
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden min-h-0">
         {isAuthenticated && <Sidebar />}
         
-        <main className={`flex-1 overflow-y-auto ${isAuthenticated ? 'lg:ml-20' : ''} ${isMessagesPage || isCommunityPage ? 'pb-0' : 'pb-16 lg:pb-0'}`}>
+        <main className={`flex-1 ${isMessagesPage || isCommunityPage ? 'overflow-hidden h-full' : 'overflow-y-auto'} ${isAuthenticated ? 'lg:ml-20' : ''} ${isMessagesPage || isCommunityPage ? 'pb-0' : 'pb-16 lg:pb-0'}`}>
           {children}
         </main>
       </div>
