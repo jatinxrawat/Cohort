@@ -35,29 +35,44 @@ export const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
-      <div className="w-full px-md sm:px-lg py-sm flex items-center justify-between">
-        {/* Brand Logo - Cohort (Aligned Top Left) */}
+    <header className="sticky top-0 z-50 bg-white/80 dark:bg-neutral-950/85 backdrop-blur-xl border-b border-neutral-200/60 dark:border-neutral-800/60 shadow-sm transition-all duration-300">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between">
+        {/* Brand Logo - Cohort */}
         <Logo isLanding={false} iconSize="w-9 h-9" textSize="text-2xl" />
 
-        {/* Desktop Navigation - Hidden on mobile */}
+        {/* Desktop Quick Nav */}
         {isAuthenticated && (
-          <div className="hidden md:flex items-center gap-lg">
-            <Link to="/search" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 p-md rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors" aria-label="Search">
+          <div className="hidden md:flex items-center gap-2">
+            <Link
+              to="/search"
+              className="p-2.5 text-neutral-600 dark:text-neutral-400 hover:text-sky-500 dark:hover:text-sky-400 hover:bg-sky-500/10 rounded-full transition-all duration-200 cursor-pointer"
+              aria-label="Search"
+              title="Search"
+            >
               <Search className="w-5 h-5" />
             </Link>
-            <Link to="/notifications" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 p-md rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 relative" aria-label="Notifications">
+            <Link
+              to="/notifications"
+              className="p-2.5 text-neutral-600 dark:text-neutral-400 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/10 rounded-full transition-all duration-200 relative cursor-pointer"
+              aria-label="Notifications"
+              title="Notifications"
+            >
               <Bell className="w-5 h-5" />
               {unreadNotifs > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-4.5 px-1 bg-red-500 text-white font-extrabold text-[10px] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-900 animate-pulse">
+                <span className="absolute top-1 right-1 min-w-[18px] h-4.5 px-1 bg-rose-500 text-white font-extrabold text-[10px] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-950 animate-pulse shadow-sm">
                   {unreadNotifs > 99 ? '99+' : unreadNotifs}
                 </span>
               )}
             </Link>
-            <Link to="/messages" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 p-md rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 relative" aria-label="Messages">
+            <Link
+              to="/messages"
+              className="p-2.5 text-neutral-600 dark:text-neutral-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-all duration-200 relative cursor-pointer"
+              aria-label="Messages"
+              title="Messages"
+            >
               <MessageSquare className="w-5 h-5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-4.5 px-1 bg-primary-500 text-white font-extrabold text-[10px] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-900 animate-pulse">
+                <span className="absolute top-1 right-1 min-w-[18px] h-4.5 px-1 bg-sky-500 text-white font-extrabold text-[10px] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-950 animate-pulse shadow-sm">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
@@ -65,12 +80,12 @@ export const Header = () => {
           </div>
         )}
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-xs sm:gap-md">
+        {/* Right Actions (Theme toggle, Search, Profile, Mobile Menu) */}
+        <div className="flex items-center gap-2">
           {isAuthenticated && (
             <Link
               to="/search"
-              className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 p-sm sm:p-md rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+              className="md:hidden p-2 text-neutral-600 dark:text-neutral-300 hover:text-sky-500 dark:hover:text-sky-400 hover:bg-sky-500/10 rounded-full transition-all cursor-pointer"
               aria-label="Search"
               title="Search"
             >
@@ -78,123 +93,138 @@ export const Header = () => {
             </Link>
           )}
 
+          {/* Glowing Theme Toggle Button */}
           <button
+            type="button"
             onClick={toggleTheme}
-            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 p-sm sm:p-md rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+            className="p-2 sm:p-2.5 text-neutral-600 dark:text-neutral-300 hover:text-amber-500 dark:hover:text-amber-400 bg-neutral-100/80 dark:bg-neutral-900/80 hover:bg-amber-500/10 border border-neutral-200/60 dark:border-neutral-800/80 rounded-full transition-all duration-300 cursor-pointer shadow-xs active:scale-90 flex items-center justify-center"
             aria-label="Toggle theme"
             title="Toggle theme"
           >
-            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            {isDark ? (
+              <Sun className="w-5 h-5 text-amber-400 transition-transform duration-300 rotate-0 hover:rotate-90" />
+            ) : (
+              <Moon className="w-5 h-5 text-indigo-600 transition-transform duration-300 hover:-rotate-12" />
+            )}
           </button>
 
           {isAuthenticated ? (
-            <div className="hidden md:flex items-center gap-md">
-              <Link to="/profile" className="flex items-center gap-md px-md py-xs bg-neutral-100 dark:bg-neutral-800 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
+            <div className="hidden md:flex items-center">
+              <Link
+                to="/profile"
+                className="flex items-center gap-2 px-3 py-1.5 bg-neutral-100/80 dark:bg-neutral-900/80 hover:bg-neutral-200/80 dark:hover:bg-neutral-800/80 border border-neutral-200/60 dark:border-neutral-800/80 rounded-full transition-all cursor-pointer shadow-xs group"
+              >
                 {user?.avatar ? (
                   <img
                     src={user.avatar}
                     alt={user.name || 'User'}
-                    className="w-8 h-8 rounded-full object-cover border border-primary-500/50"
+                    className="w-7 h-7 rounded-full object-cover ring-2 ring-primary-500/40 group-hover:scale-105 transition-transform"
                   />
                 ) : (
-                  <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                  <div className="w-7 h-7 bg-gradient-to-r from-sky-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-xs">
                     {user?.name?.charAt(0) || 'U'}
                   </div>
                 )}
-                <span className="text-sm font-medium hidden sm:inline">{user?.name?.split(' ')[0] || 'User'}</span>
+                <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-primary-500 transition-colors">
+                  {user?.name?.split(' ')[0] || 'User'}
+                </span>
               </Link>
             </div>
           ) : (
-            <div className="hidden md:flex items-center gap-md">
+            <div className="hidden md:flex items-center gap-2">
               <Link to="/signup">
-                <Button variant="primary" size="md">Signup</Button>
+                <Button variant="primary" size="sm" className="rounded-full px-5">Signup</Button>
               </Link>
             </div>
           )}
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Toggle Button */}
           <button
+            type="button"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden text-neutral-600 dark:text-neutral-400 p-md rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            className="md:hidden p-2 text-neutral-700 dark:text-neutral-300 hover:text-sky-500 dark:hover:text-sky-400 bg-neutral-100/80 dark:bg-neutral-900/80 hover:bg-neutral-200/60 dark:hover:bg-neutral-800/80 border border-neutral-200/60 dark:border-neutral-800/80 rounded-full transition-all duration-300 cursor-pointer shadow-xs active:scale-90 flex items-center justify-center ml-1"
             aria-label="Toggle menu"
           >
-            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isMenuOpen ? (
+              <X className="w-5 h-5 transition-transform duration-300 rotate-90" />
+            ) : (
+              <Menu className="w-5 h-5 transition-transform duration-300" />
+            )}
           </button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Translucent Glass Mobile Dropdown Overlay */}
         {isMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 md:hidden">
-            <div className="p-lg space-y-md">
+          <div className="absolute top-full left-0 right-0 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-2xl border-b border-neutral-200/80 dark:border-neutral-800/80 shadow-2xl md:hidden animate-in fade-in slide-in-from-top-3 duration-200 rounded-b-3xl">
+            <div className="p-4 space-y-1.5">
               {isAuthenticated ? (
                 <>
                   <Link
                     to="/search"
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-md p-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg"
+                    className="flex items-center gap-3 p-3 text-neutral-700 dark:text-neutral-200 hover:bg-sky-500/10 hover:text-sky-500 dark:hover:text-sky-400 rounded-2xl transition-all font-medium text-sm"
                   >
-                    <Search className="w-5 h-5" />
+                    <Search className="w-5 h-5 text-sky-500" />
                     <span>Search</span>
                   </Link>
                   <Link
                     to="/notifications"
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-md p-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg"
+                    className="flex items-center gap-3 p-3 text-neutral-700 dark:text-neutral-200 hover:bg-indigo-500/10 hover:text-indigo-500 dark:hover:text-indigo-400 rounded-2xl transition-all font-medium text-sm"
                   >
-                    <Bell className="w-5 h-5" />
+                    <Bell className="w-5 h-5 text-indigo-500" />
                     <span>Notifications</span>
                   </Link>
                   <Link
                     to="/messages"
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-md p-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg relative"
+                    className="flex items-center gap-3 p-3 text-neutral-700 dark:text-neutral-200 hover:bg-blue-500/10 hover:text-blue-500 dark:hover:text-blue-400 rounded-2xl transition-all font-medium text-sm relative"
                   >
-                    <div className="relative">
-                      <MessageSquare className="w-5 h-5" />
-                      {hasUnreadMessages && (
-                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-neutral-900 animate-pulse" />
-                      )}
-                    </div>
+                    <MessageSquare className="w-5 h-5 text-blue-500" />
                     <span>Messages</span>
+                    {hasUnreadMessages && (
+                      <span className="ml-auto w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white dark:ring-neutral-900 animate-pulse" />
+                    )}
                   </Link>
                   <Link
                     to="/messages?tab=community"
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-md p-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg"
+                    className="flex items-center gap-3 p-3 text-neutral-700 dark:text-neutral-200 hover:bg-purple-500/10 hover:text-purple-500 dark:hover:text-purple-400 rounded-2xl transition-all font-medium text-sm"
                   >
-                    <Users className="w-5 h-5 text-indigo-500" />
+                    <Users className="w-5 h-5 text-purple-500" />
                     <span>Community</span>
                   </Link>
                   <Link
                     to="/saved-posts"
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-md p-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg"
+                    className="flex items-center gap-3 p-3 text-neutral-700 dark:text-neutral-200 hover:bg-amber-500/10 hover:text-amber-500 dark:hover:text-amber-400 rounded-2xl transition-all font-medium text-sm"
                   >
                     <Bookmark className="w-5 h-5 text-amber-500" />
-                    <span>Saved</span>
+                    <span>Saved Posts</span>
                   </Link>
                   <Link
                     to="/profile"
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-md p-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg"
+                    className="flex items-center gap-3 p-3 text-neutral-700 dark:text-neutral-200 hover:bg-emerald-500/10 hover:text-emerald-500 dark:hover:text-emerald-400 rounded-2xl transition-all font-medium text-sm"
                   >
-                    <div className="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+                    <div className="w-6 h-6 bg-gradient-to-r from-sky-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-xs">
                       {user?.name?.charAt(0) || 'U'}
                     </div>
-                    <span>Profile</span>
+                    <span>My Profile</span>
                   </Link>
                   <button
+                    type="button"
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-md p-md text-danger hover:bg-red-50 dark:hover:bg-red-950 rounded-lg text-left"
+                    className="w-full flex items-center gap-3 p-3 text-rose-500 hover:bg-rose-500/10 rounded-2xl text-left font-medium text-sm transition-all cursor-pointer mt-1"
                   >
-                    <LogOut className="w-5 h-5" />
+                    <LogOut className="w-5 h-5 text-rose-500" />
                     <span>Logout</span>
                   </button>
                 </>
               ) : (
-                <div className="space-y-md">
+                <div className="p-2">
                   <Link to="/signup" onClick={() => setIsMenuOpen(false)} className="block">
-                    <Button variant="primary" className="w-full">Signup</Button>
+                    <Button variant="primary" className="w-full rounded-2xl">Signup</Button>
                   </Link>
                 </div>
               )}

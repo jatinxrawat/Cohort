@@ -195,7 +195,7 @@ export const UsernameModal = () => {
               <span className="absolute left-md top-1/2 -translate-y-1/2 text-neutral-400 font-bold text-sm">@</span>
               <input
                 type="text"
-                placeholder="e.g. jatin_rawat"
+                placeholder="e.g. alex_student"
                 value={usernameInput}
                 onChange={(e) => {
                   setUsernameInput(e.target.value);

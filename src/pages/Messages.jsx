@@ -7,7 +7,7 @@ import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { Input } from '@/components/Input';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Eye, Paperclip, Image, Video, Download, Maximize2 } from 'lucide-react';
+import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, CheckCheck, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Eye, Paperclip, Image, Video, Download, Maximize2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { formatRelativeTime } from '@/utils/helpers';
@@ -62,6 +62,13 @@ const SwipeableMessageRow = ({ children, onReply, isMe }) => {
   );
 };
 
+const formatMessageTime = (timeInput) => {
+  if (!timeInput) return '';
+  const date = timeInput?.toDate ? timeInput.toDate() : new Date(timeInput);
+  if (isNaN(date.getTime())) return '';
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
 export default function Messages() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -79,6 +86,21 @@ export default function Messages() {
   const [search, setSearch] = useState('');
   const [messageText, setMessageText] = useState('');
   const [mobileView, setMobileView] = useState('list'); // list, chat
+
+  // Hide mobile floating nav when inside active chat on mobile
+  useEffect(() => {
+    if (mobileView === 'chat') {
+      document.body.classList.add('in-active-chat');
+      document.documentElement.classList.add('in-active-chat');
+    } else {
+      document.body.classList.remove('in-active-chat');
+      document.documentElement.classList.remove('in-active-chat');
+    }
+    return () => {
+      document.body.classList.remove('in-active-chat');
+      document.documentElement.classList.remove('in-active-chat');
+    };
+  }, [mobileView]);
   const [allStarredCommunityMsgs, setAllStarredCommunityMsgs] = useState([]);
   const [isCommunityStarredModalOpen, setIsCommunityStarredModalOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState(null);
@@ -1306,44 +1328,44 @@ export default function Messages() {
         }`}>
           <Card className="flex-1 flex flex-col p-md overflow-hidden rounded-none md:rounded-xl border-none md:border">
             {/* Header & Search Bar */}
-            <div className="p-md space-y-md border-b border-neutral-100 dark:border-neutral-800/80 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm">
-              <div className="flex items-center justify-between gap-sm">
-                <div className="flex items-center gap-xs">
+            <div className="p-4 space-y-3.5 border-b border-neutral-200/60 dark:border-neutral-800/80 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={handleMessagesBack}
-                    className="p-xs text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer active:scale-95"
+                    className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-200/60 dark:border-neutral-700/60 flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:text-sky-500 dark:hover:text-sky-400 active:scale-95 transition-all cursor-pointer shadow-xs"
                     title="Go Back"
                   >
-                    <ChevronLeft className="w-6 h-6" />
+                    <ChevronLeft className="w-5 h-5" />
                   </button>
                   <h1 className="text-2xl font-heading font-extrabold text-neutral-900 dark:text-white tracking-tight">Messages</h1>
                 </div>
 
                 <button
                   onClick={() => setIsNewChatOpen(true)}
-                  className="px-lg py-xs bg-primary-500 hover:bg-primary-600 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-xs flex-shrink-0 whitespace-nowrap"
+                  className="px-4 py-2 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 text-white font-bold text-xs rounded-full shadow-md shadow-sky-500/25 transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer"
                 >
-                  <Plus className="w-4 h-4" /> New Chat
+                  <Plus className="w-4 h-4 stroke-[3]" /> New Chat
                 </button>
               </div>
 
               {/* Compact Side-by-Side Search Bar & Starred Button */}
-              <div className="flex items-center gap-xs">
+              <div className="flex items-center gap-2">
                 <div className="relative flex-1 group">
-                  <Search className="absolute left-md top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400 group-focus-within:text-primary-500 transition-colors pointer-events-none" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 group-focus-within:text-sky-500 transition-colors pointer-events-none" />
                   <input
                     type="text"
-                    placeholder="Search"
+                    placeholder="Search messages..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-2xl pr-xl py-xs text-xs font-medium bg-neutral-100 dark:bg-neutral-800/80 text-neutral-900 dark:text-white placeholder-neutral-400 border border-neutral-200 dark:border-neutral-700/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary-500 transition-all"
+                    className="w-full pl-9 pr-8 py-2 text-xs font-medium bg-neutral-100/90 dark:bg-neutral-950/80 text-neutral-900 dark:text-white placeholder-neutral-400 border border-neutral-200/80 dark:border-neutral-800/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500/50 transition-all shadow-inner"
                   />
                   {search && (
                     <button
                       onClick={() => setSearch('')}
-                      className="absolute right-md top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded-full"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
@@ -1356,26 +1378,26 @@ export default function Messages() {
                       setIsGlobalStarredModalOpen(true);
                     }
                   }}
-                  className="px-md py-xs bg-amber-500/10 hover:bg-amber-500/20 active:scale-95 border border-amber-500/30 text-amber-500 font-semibold text-xs rounded-xl transition-all flex items-center gap-xs flex-shrink-0 whitespace-nowrap"
+                  className="px-3.5 py-2 bg-amber-500/10 hover:bg-amber-500/20 active:scale-95 border border-amber-500/30 text-amber-500 font-bold text-xs rounded-2xl transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer shadow-xs"
                   title={messagesTab === 'community' ? 'View all starred community messages' : 'View all starred direct messages'}
                 >
                   <Star className="w-3.5 h-3.5 fill-amber-400" />
                   <span>Starred</span>
-                  <span className="px-1.5 py-[1px] text-[10px] bg-amber-500/20 rounded-full font-bold">
+                  <span className="px-1.5 py-[1px] text-[10px] bg-amber-500/25 rounded-full font-extrabold text-amber-400">
                     {messagesTab === 'community' ? allStarredCommunityMsgs.length : allStarredMessages.length}
                   </span>
                 </button>
               </div>
 
-              {/* Segmented Switcher for Messages vs Community */}
-              <div className="p-xs bg-neutral-100 dark:bg-neutral-800/90 rounded-xl flex items-center gap-xs border border-neutral-200 dark:border-neutral-700/60 shadow-inner">
+              {/* Glassmorphic Segmented Switcher for Direct Chats vs Community */}
+              <div className="p-1.5 bg-neutral-100/90 dark:bg-neutral-950/80 rounded-2xl flex items-center gap-1 border border-neutral-200/80 dark:border-neutral-800/80 shadow-inner">
                 <button
                   type="button"
                   onClick={() => setMessagesTab('direct')}
-                  className={`flex-1 py-xs px-md rounded-lg text-xs font-bold flex items-center justify-center gap-xs transition-all cursor-pointer ${
+                  className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-300 cursor-pointer ${
                     messagesTab === 'direct'
-                      ? 'bg-white dark:bg-neutral-900 text-primary-600 dark:text-primary-400 shadow-xs border border-neutral-200/50 dark:border-neutral-700/50'
-                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                      ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/20 font-extrabold scale-[1.02]'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'
                   }`}
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
@@ -1385,10 +1407,10 @@ export default function Messages() {
                 <button
                   type="button"
                   onClick={() => setMessagesTab('community')}
-                  className={`flex-1 py-xs px-md rounded-lg text-xs font-bold flex items-center justify-center gap-xs transition-all cursor-pointer ${
+                  className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-300 cursor-pointer ${
                     messagesTab === 'community'
-                      ? 'bg-indigo-600 text-white shadow-xs font-bold'
-                      : 'text-neutral-500 dark:text-neutral-400 hover:text-indigo-500 hover:bg-indigo-500/10'
+                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-500/20 font-extrabold scale-[1.02]'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-purple-500/10'
                   }`}
                 >
                   <Users className="w-3.5 h-3.5" />
@@ -2006,6 +2028,12 @@ export default function Messages() {
                       ? msg.senderUid === user?.uid
                       : (msg.senderName && myName ? msg.senderName === myName : (msg.sender === 'me' && activeConversation?.createdBy === user?.uid));
 
+                    const recipientUid = activeConversation?.recipientUid || (activeConversation?.participants || []).find(p => p !== myUid);
+                    const isSeen = Boolean(isMe && (
+                      msg.read === true ||
+                      (Array.isArray(msg.readBy) && recipientUid && msg.readBy.includes(recipientUid))
+                    ));
+
                     const msgKey = `${msg.text}_${new Date(msg.time).getTime()}`;
                     const isMsgSelected = selectedMsgKeys.includes(msgKey);
                     const isStarred = Array.isArray(msg.starredBy) && msg.starredBy.includes(myUid);
@@ -2060,10 +2088,12 @@ export default function Messages() {
                                 </div>
                               ) : (
                                 <div
-                                  className={`rounded-2xl text-sm shadow-sm relative overflow-hidden ${
+                                  className={`text-[13.5px] leading-relaxed relative overflow-hidden transition-all ${
                                     msg.mediaUrl && !msg.text
                                       ? 'p-0.5 bg-transparent'
-                                      : 'p-md ' + (isMe ? 'bg-primary-500 text-white rounded-br-xs' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700/80 rounded-bl-xs')
+                                      : (isMe
+                                          ? 'bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-500 dark:to-indigo-600 text-white rounded-2xl rounded-tr-xs shadow-xs px-3.5 py-1.5'
+                                          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border border-neutral-200/80 dark:border-neutral-700/60 rounded-2xl rounded-tl-xs px-3.5 py-1.5 shadow-xs')
                                   }`}
                                 >
                                   {/* Quoted Reply Box if replying to another message */}
@@ -2073,7 +2103,7 @@ export default function Messages() {
                                         e.stopPropagation();
                                         if (msg.replyTo.msgKey) handleJumpToMessage(msg.replyTo.msgKey);
                                       }}
-                                      className={`mb-xs p-xs px-sm rounded-lg border-l-4 text-xs cursor-pointer transition-all hover:opacity-90 ${
+                                      className={`mb-1 p-1 px-2 rounded-lg border-l-4 text-xs cursor-pointer transition-all hover:opacity-90 ${
                                         isMe
                                           ? 'bg-black/25 text-white border-white/90'
                                           : 'bg-primary-500/10 text-neutral-800 dark:text-neutral-100 border-primary-500'
@@ -2129,10 +2159,33 @@ export default function Messages() {
                                   </div>
                                 )}
 
-                                {msg.text && <span>{msg.text}</span>}
-                                {isStarred && (
-                                  <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 inline-block ml-xs" title="Starred message" />
-                                )}
+                                <div className="relative inline-block max-w-full">
+                                  {msg.text && (
+                                    <span className="text-[13.5px] leading-snug break-words font-normal">
+                                      {msg.text}
+                                    </span>
+                                  )}
+                                  {isStarred && (
+                                    <Star className="w-3 h-3 text-amber-400 fill-amber-400 inline-block ml-1" title="Starred message" />
+                                  )}
+
+                                  {/* WhatsApp / Instagram Style Inline Timestamp & Working Green Vector Tick */}
+                                  <span className="inline-flex items-center gap-1 float-right mt-1 ml-2.5 text-[10px] leading-none select-none">
+                                    <span className={isMe ? 'text-white/75' : 'text-neutral-500 dark:text-neutral-400 font-medium'}>
+                                      {formatMessageTime(msg.time)}
+                                    </span>
+                                    {isMe && (
+                                      <CheckCheck
+                                        className={`w-3.5 h-3.5 stroke-[2.8] transition-colors duration-300 ${
+                                          isSeen
+                                            ? 'text-emerald-300 dark:text-emerald-300 drop-shadow-[0_0_6px_rgba(16,185,129,0.7)]'
+                                            : 'text-white/50 dark:text-neutral-400'
+                                        }`}
+                                        title={isSeen ? "Seen (Green Tick)" : "Sent/Delivered"}
+                                      />
+                                    )}
+                                  </span>
+                                </div>
 
                                 {/* Vanish Mode Indicators & Per-User Keep Status */}
                                 {msg.isVanish && (() => {
@@ -2251,10 +2304,6 @@ export default function Messages() {
                               )}
                             </div>
                           </SwipeableMessageRow>
-
-                          <span className={`text-[10px] text-neutral-400 mt-xs px-xs font-medium ${isMe ? 'text-right' : 'text-left pl-8'}`}>
-                            {formatRelativeTime(msg.time)}
-                          </span>
                         </div>
                       </div>
                     );
@@ -2329,10 +2378,10 @@ export default function Messages() {
               {/* Input Area */}
               <form
                 onSubmit={handleSendMessage}
-                className={`flex-shrink-0 z-30 p-2 sm:p-3 border-t flex gap-2 sm:gap-3 items-center transition-all ${
+                className={`flex-shrink-0 z-30 p-2.5 sm:p-3.5 border-t flex gap-2 sm:gap-3 items-center transition-all ${
                   activeConversation.isVanishMode
-                    ? 'bg-neutral-900 border-amber-500/30 dark:border-amber-500/20 shadow-[0_-4px_20px_rgba(245,158,11,0.15)]'
-                    : 'bg-white dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800 shadow-lg'
+                    ? 'bg-neutral-950 border-amber-500/30 shadow-[0_-4px_20px_rgba(245,158,11,0.15)]'
+                    : 'bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border-neutral-200/80 dark:border-neutral-800 shadow-lg'
                 }`}
               >
                 <input
@@ -2346,7 +2395,7 @@ export default function Messages() {
                 <button
                   type="button"
                   onClick={() => mediaInputRef.current?.click()}
-                  className="p-md text-neutral-400 hover:text-primary-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors flex-shrink-0"
+                  className="p-2.5 text-neutral-400 hover:text-sky-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors flex-shrink-0 cursor-pointer"
                   title="Attach Photo or Video"
                 >
                   <Paperclip className="w-5 h-5" />
@@ -2356,7 +2405,7 @@ export default function Messages() {
                   <button
                     type="button"
                     onClick={() => setIsKeepForeverActive(!isKeepForeverActive)}
-                    className={`p-2 sm:px-md sm:py-xs rounded-xl border text-xs font-semibold flex items-center gap-xs transition-all flex-shrink-0 ${
+                    className={`p-2 sm:px-md sm:py-xs rounded-full border text-xs font-semibold flex items-center gap-xs transition-all flex-shrink-0 ${
                       isKeepForeverActive
                         ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-sm ring-1 ring-emerald-500/30'
                         : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 border-neutral-200 dark:border-neutral-700 hover:text-neutral-900 dark:hover:text-white'
@@ -2368,16 +2417,23 @@ export default function Messages() {
                   </button>
                 )}
 
-                <input
-                  type="text"
-                  placeholder={`Message ${activeConversation.name}...`}
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  className="input-base text-sm flex-1"
-                />
-                <Button type="submit" variant="primary" size="md" disabled={!messageText.trim() && !selectedMedia}>
+                <div className="flex-1 relative flex items-center">
+                  <input
+                    type="text"
+                    placeholder={`Message ${activeConversation.name}...`}
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    className="w-full bg-neutral-100 dark:bg-neutral-800/90 border border-neutral-200 dark:border-neutral-700/80 rounded-full px-4 py-2.5 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!messageText.trim() && !selectedMedia}
+                  className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 active:scale-95 text-white flex items-center justify-center shadow-md shadow-sky-500/30 disabled:opacity-40 disabled:scale-100 transition-all cursor-pointer flex-shrink-0"
+                >
                   <Send className="w-4 h-4" />
-                </Button>
+                </button>
               </form>
             </Card>
           ) : (
@@ -2514,6 +2570,13 @@ export default function Messages() {
                   <div className="inline-flex items-center gap-xs px-3.5 py-1 rounded-full bg-primary-500/10 dark:bg-primary-500/20 text-primary-600 dark:text-primary-400 font-semibold text-xs border border-primary-500/20 shadow-xs">
                     <span>{userCollege} Student</span>
                   </div>
+
+                  {/* Bio Display */}
+                  {(recipientProfile?.bio || activeConversation?.bio) && (
+                    <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 max-w-xs mx-auto leading-relaxed pt-2 italic font-normal">
+                      "{recipientProfile?.bio || activeConversation?.bio}"
+                    </p>
+                  )}
                 </div>
               </div>
 

@@ -123,7 +123,7 @@ export default function Search() {
           <SearchIcon className="w-5 h-5 text-neutral-400 ml-md flex-shrink-0" />
           <input
             type="text"
-            placeholder="Search by student name (e.g. Jatin), @username, or post content..."
+            placeholder="Search by student name, @username, or post content..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-transparent px-md py-sm text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none"
@@ -299,7 +299,7 @@ export default function Search() {
               <span className="text-xs font-bold text-neutral-400 mr-sm flex items-center gap-xs">
                 <TrendingUp className="w-3.5 h-3.5 text-primary-500" /> Popular Searches:
               </span>
-              {['@jatin', 'KIET', 'Computer Science', 'Campus Community'].map(chip => (
+              {['@student', 'KIET', 'Computer Science', 'Campus Community'].map(chip => (
                 <button
                   key={chip}
                   onClick={() => setSearchTerm(chip)}
