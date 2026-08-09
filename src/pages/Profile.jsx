@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { Mail, MapPin, Calendar, Award, Edit, MessageSquare, Share2, Heart, UserPlus, UserCheck, MessageCircleCode, AtSign, AlertCircle, User, GraduationCap, Gift, X, Search, Users, Edit2, Trash2, Repeat, EyeOff, Flame, Tag, ShoppingBag, ArrowRight, Image as ImageIcon, Loader2, Send } from 'lucide-react';
+import { Mail, MapPin, Calendar, Award, Edit, MessageSquare, Share2, Heart, UserPlus, UserCheck, MessageCircleCode, AtSign, AlertCircle, User, GraduationCap, Gift, X, Search, Users, Edit2, Trash2, Repeat, EyeOff, Flame, Tag, ShoppingBag, ArrowRight, Image as ImageIcon, Loader2, Send, Rss } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
@@ -781,6 +781,16 @@ export default function Profile() {
               <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 mt-xs">
                 {profileUser?.college || 'KIET'}
               </p>
+              {/* Bio Option Below Username & College Name */}
+              {(profileUser?.bio || isOwnProfile) && (
+                <p className="text-sm text-neutral-700 dark:text-neutral-300 mt-sm leading-relaxed max-w-xl font-normal">
+                  {profileUser?.bio ? profileUser.bio : (
+                    <span className="italic text-neutral-400 dark:text-neutral-500 text-xs">
+                      Add a bio in Edit Profile to tell others about yourself...
+                    </span>
+                  )}
+                </p>
+              )}
             </div>
 
             <div className="flex gap-md flex-wrap">
@@ -828,12 +838,6 @@ export default function Profile() {
           </div>
 
           <div className="space-y-md text-neutral-600 dark:text-neutral-400 mb-lg text-sm">
-            {profileUser?.email && (
-              <div className="flex items-center gap-md">
-                <Mail className="w-4 h-4 text-primary-500" />
-                <span>{profileUser.email}</span>
-              </div>
-            )}
             <div className="flex items-center gap-md">
               <MapPin className="w-4 h-4 text-primary-500" />
               <span>{profileUser?.college || 'KIET'}</span>
@@ -895,80 +899,58 @@ export default function Profile() {
           </div>
         </Card>
 
-        {/* Achievements Card */}
-        <Card className="mb-lg border-neutral-100 dark:border-neutral-800 shadow-sm">
-          <h2 className="text-xl font-heading font-bold mb-lg text-neutral-900 dark:text-white">Achievements</h2>
-          <div className="grid md:grid-cols-3 gap-lg">
-            {achievements.map((ach, i) => {
-              const Icon = ach.icon;
-              return (
-                <div
-                  key={i}
-                  className={`p-lg rounded-xl text-center border transition-all ${
-                    ach.earned
-                      ? 'bg-primary-50/50 dark:bg-primary-950/20 border-primary-100 dark:border-primary-900/30'
-                      : 'bg-neutral-50/50 dark:bg-neutral-800/10 border-neutral-100 dark:border-neutral-800/40 opacity-50'
-                  }`}
-                >
-                  <div className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center mb-md ${
-                    ach.earned ? 'bg-primary-500 text-white shadow-sm' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400'
-                  }`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <p className="font-bold text-xs text-neutral-900 dark:text-white">{ach.label}</p>
-                  <p className="text-[10px] text-neutral-400 mt-xs leading-normal">{ach.desc}</p>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-
         {/* Recent Activity Card */}
-        <Card className="border-neutral-100 dark:border-neutral-800 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-lg border-b border-neutral-100 dark:border-neutral-800 pb-md">
-            <h2 className="text-xl font-heading font-bold text-neutral-900 dark:text-white">
-              {isOwnProfile
-                ? (postsTab === 'feed' ? 'My Feed Posts' : postsTab === 'anonymous' ? 'My Anonymous Posts' : 'My Marketplace Listings')
-                : (postsTab === 'marketplace' ? `Listings by ${profileUser?.name?.split(' ')[0] || 'User'}` : `Posts by ${profileUser?.name?.split(' ')[0] || 'User'}`)}
+        <Card className="border-neutral-200/80 dark:border-neutral-800/80 shadow-md rounded-3xl p-5 sm:p-6 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-neutral-100 dark:border-neutral-800/80 pb-5">
+            <h2 className="text-xl font-heading font-extrabold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2">
+              <span>
+                {isOwnProfile
+                  ? (postsTab === 'feed' ? 'My Feed Posts' : postsTab === 'anonymous' ? 'My Anonymous Posts' : 'My Marketplace Listings')
+                  : (postsTab === 'marketplace' ? `Listings by ${profileUser?.name?.split(' ')[0] || 'User'}` : `Posts by ${profileUser?.name?.split(' ')[0] || 'User'}`)}
+              </span>
             </h2>
 
-            <div className="p-xs bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center gap-xs text-xs font-semibold overflow-x-auto">
+            {/* Glassmorphic Segmented Tab Bar */}
+            <div className="p-1.5 bg-neutral-100/90 dark:bg-neutral-950/80 border border-neutral-200/80 dark:border-neutral-800/80 rounded-2xl flex items-center gap-1 text-xs font-semibold overflow-x-auto scrollbar-none shadow-inner">
               <button
                 type="button"
                 onClick={() => setPostsTab('feed')}
-                className={`px-md py-xs rounded-full transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3.5 py-1.5 rounded-xl transition-all duration-300 cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                   postsTab === 'feed'
-                    ? 'bg-primary-500 text-white shadow-xs'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                    ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25 font-bold scale-[1.02]'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'
                 }`}
               >
-                Feed Posts ({userPosts.length})
+                <Rss className="w-3.5 h-3.5" />
+                <span>Post ({userPosts.length})</span>
               </button>
+
               {isOwnProfile && (
                 <button
                   type="button"
                   onClick={() => setPostsTab('anonymous')}
-                  className={`px-md py-xs rounded-full transition-all cursor-pointer flex items-center gap-xs whitespace-nowrap ${
+                  className={`px-3.5 py-1.5 rounded-xl transition-all duration-300 cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                     postsTab === 'anonymous'
-                      ? 'bg-violet-600 text-white shadow-xs'
-                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                      ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-500/25 font-bold scale-[1.02]'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'
                   }`}
                 >
                   <EyeOff className="w-3.5 h-3.5" />
-                  Anonymous ({userAnonPosts.length})
+                  <span>Anon. ({userAnonPosts.length})</span>
                 </button>
               )}
+
               <button
                 type="button"
                 onClick={() => setPostsTab('marketplace')}
-                className={`px-md py-xs rounded-full transition-all cursor-pointer flex items-center gap-xs whitespace-nowrap ${
+                className={`px-3.5 py-1.5 rounded-xl transition-all duration-300 cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                   postsTab === 'marketplace'
-                    ? 'bg-amber-500 text-white shadow-xs'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25 font-bold scale-[1.02]'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'
                 }`}
               >
                 <Tag className="w-3.5 h-3.5" />
-                Marketplace ({userMarketplaceItems.length})
+                <span>Market ({userMarketplaceItems.length})</span>
               </button>
             </div>
           </div>

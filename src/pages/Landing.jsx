@@ -255,16 +255,30 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <Logo isLanding={true} iconSize="w-9 h-9" />
 
-          {/* Desktop Navigation links */}
-          <nav className="hidden md:flex items-center gap-1 bg-white/5 rounded-xl p-1 border border-white/5">
-            <a href="#features-deck" className="px-4 py-2 rounded-lg text-xs font-bold text-neutral-400 hover:text-white hover:bg-white/5 transition-all">
-              What's Inside
+          {/* Desktop Navigation links - Separate Curved Corner Glass Boxes */}
+          <nav className="hidden md:flex items-center gap-2.5">
+            <a
+              href="#features-deck"
+              className="px-4 py-2.5 rounded-2xl bg-neutral-900/80 backdrop-blur-xl border border-white/10 hover:border-vandal-pink/50 hover:bg-neutral-800/90 text-neutral-300 hover:text-white text-xs font-extrabold shadow-md hover:shadow-[0_4px_20px_rgba(255,42,126,0.2)] hover:scale-[1.04] transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-vandal-pink" />
+              <span>What's Inside</span>
             </a>
-            <a href="#switchboard" className="px-4 py-2 rounded-lg text-xs font-bold text-neutral-400 hover:text-white hover:bg-white/5 transition-all">
-              Hubs
+
+            <a
+              href="#switchboard"
+              className="px-4 py-2.5 rounded-2xl bg-neutral-900/80 backdrop-blur-xl border border-white/10 hover:border-acid-cyan/50 hover:bg-neutral-800/90 text-neutral-300 hover:text-white text-xs font-extrabold shadow-md hover:shadow-[0_4px_20px_rgba(0,240,255,0.2)] hover:scale-[1.04] transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Compass className="w-3.5 h-3.5 text-acid-cyan" />
+              <span>Hubs</span>
             </a>
-            <a href="#dual-split" className="px-4 py-2 rounded-lg text-xs font-bold text-neutral-400 hover:text-white hover:bg-white/5 transition-all">
-              How It Works
+
+            <a
+              href="#dual-split"
+              className="px-4 py-2.5 rounded-2xl bg-neutral-900/80 backdrop-blur-xl border border-white/10 hover:border-topic-violet/50 hover:bg-neutral-800/90 text-neutral-300 hover:text-white text-xs font-extrabold shadow-md hover:shadow-[0_4px_20px_rgba(168,85,247,0.2)] hover:scale-[1.04] transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Zap className="w-3.5 h-3.5 text-topic-violet" />
+              <span>How It Works</span>
             </a>
           </nav>
 
@@ -342,70 +356,76 @@ export default function Landing() {
 
       <main className="relative z-10 flex-grow">
         
-        {/* --- HERO SECTION (Fits fully on load without scrolling) --- */}
-        <section className="relative z-10 pt-4 pb-6 md:pt-8 md:pb-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center animate-pulse-slow">
+        {/* --- HERO SECTION (Modern Glassmorphism & Vibrant Glowing Typography) --- */}
+        <section className="relative z-10 pt-6 pb-8 md:pt-12 md:pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
           
-          {/* Tagline */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-vandal-pink/15 text-vandal-pink border border-vandal-pink/20 text-[11px] font-semibold mb-3.5">
-            <Sparkles className="w-3 h-3 text-vandal-pink animate-pulse-slow" />
-            The private campus lounge you've been missing
+          {/* Tagline Badge */}
+          <div className="group inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-vandal-pink/15 via-purple-500/10 to-acid-cyan/15 border border-vandal-pink/30 hover:border-vandal-pink/60 text-vandal-pink text-xs font-mono font-bold tracking-wider uppercase shadow-[0_0_20px_rgba(255,42,126,0.2)] backdrop-blur-xl transition-all cursor-default mb-6">
+            <Sparkles className="w-3.5 h-3.5 text-vandal-pink animate-pulse" />
+            <span>The private campus lounge you've been missing</span>
           </div>
 
-          {/* Corrected header: Compact size, normal word spacing and applied cross-browser gradient */}
-          <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl leading-[1.1] mb-4 max-w-4xl select-none">
-            <span className="text-gradient-brand">
-              COLLEGE IS CHAOTIC<br />
-              DON'T SCROLL IT<br />
+          {/* Main Hero Headline */}
+          <h1 className="font-display font-black text-4xl sm:text-6xl lg:text-7xl leading-[1.08] mb-6 max-w-5xl select-none tracking-tight">
+            <span className="bg-gradient-to-r from-vandal-pink via-pink-400 to-topic-violet bg-clip-text text-transparent drop-shadow-[0_10px_35px_rgba(255,42,126,0.35)]">
+              COLLEGE IS CHAOTIC
+            </span>
+            <br />
+            <span className="bg-gradient-to-r from-purple-400 via-indigo-300 to-sky-400 bg-clip-text text-transparent drop-shadow-[0_10px_35px_rgba(129,140,248,0.35)]">
+              DON'T SCROLL IT
+            </span>
+            <br />
+            <span className="bg-gradient-to-r from-sky-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent drop-shadow-[0_10px_35px_rgba(0,240,255,0.35)]">
               ALL ALONE
             </span>
           </h1>
 
           {/* Explanation Box */}
-          <div className="max-w-xl mx-auto bg-white/[0.03] border border-white/10 rounded-3xl p-4 sm:p-5 mb-5 shadow-xl relative overflow-hidden text-center">
-            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-vandal-pink via-topic-violet to-acid-cyan" />
-            <p className="text-neutral-300 text-xs sm:text-sm leading-relaxed font-semibold">
+          <div className="relative max-w-2xl mx-auto bg-neutral-900/70 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-7 mb-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] text-center group hover:border-white/20 transition-all">
+            <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-vandal-pink via-topic-violet to-acid-cyan rounded-t-3xl" />
+            <p className="text-neutral-300 text-xs sm:text-sm lg:text-base leading-relaxed font-semibold">
               Cohort connects your college life. Lock in your verified student email to access your campus's secret confessions, local chat rooms, and student events—while chatting globally about career grind, gaming lobbies, and relationships with peers from any college.
             </p>
           </div>
 
           {/* Side-by-side high-contrast CTA buttons */}
-          <div className="flex flex-col sm:flex-row items-center gap-3.5 justify-center w-full max-w-sm mx-auto mb-6">
+          <div className="flex flex-col sm:flex-row items-center gap-4 justify-center w-full max-w-md mx-auto mb-8">
             <button
               onClick={() => navigate('/signup')}
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-vandal-pink via-topic-violet to-acid-cyan text-white text-sm font-black shadow-lg shadow-vandal-pink/25 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-vandal-pink via-topic-violet to-acid-cyan hover:from-vandal-pink hover:to-acid-cyan text-white text-sm font-black shadow-[0_4px_30px_rgba(255,42,126,0.4)] hover:shadow-[0_6px_40px_rgba(0,240,255,0.5)] hover:scale-[1.04] active:scale-95 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
             >
-              Sign Up Free
-              <ChevronRight className="w-4 h-4" />
+              <span>Sign Up Free</span>
+              <ChevronRight className="w-4 h-4 stroke-[3]" />
             </button>
             <a
               href="#switchboard"
-              className="w-full sm:w-auto px-6 py-3 rounded-xl border border-white/20 hover:border-acid-cyan/50 hover:bg-white/5 text-white text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-neutral-900/50 backdrop-blur-sm"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-neutral-900/80 backdrop-blur-xl border border-white/15 hover:border-white/40 hover:bg-neutral-800/90 text-white text-sm font-extrabold shadow-lg hover:shadow-[0_4px_20px_rgba(255,255,255,0.15)] hover:scale-[1.04] active:scale-95 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
             >
-              Explore Hubs
+              <span>Explore Hubs</span>
             </a>
           </div>
 
-          {/* Custom channel tag widgets SHIFTED BELOW CTAS */}
-          <div className="flex flex-wrap justify-center gap-3.5 max-w-3xl mx-auto select-none border-t border-white/5 pt-8 w-full">
-            <div className="px-4 py-2 rounded-2xl bg-white/5 border border-white/10 text-white/95 text-xs font-mono font-bold flex items-center gap-2 shadow-lg hover:border-vandal-pink/30 hover:bg-white/[0.08] transition-all">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-white/40 font-semibold">#</span>
-              <span>vanish-gossip</span>
-              <span className="px-1.5 py-0.5 rounded bg-vandal-pink/20 text-[9px] text-vandal-pink uppercase font-mono font-black">Vanish Mode</span>
+          {/* Modern channel tag widgets */}
+          <div className="flex flex-wrap justify-center gap-3.5 max-w-3xl mx-auto select-none border-t border-white/10 pt-8 w-full">
+            <div className="group px-5 py-2.5 rounded-full bg-gradient-to-r from-vandal-pink/15 via-neutral-900/80 to-purple-900/15 border border-vandal-pink/35 hover:border-vandal-pink/80 text-white text-xs font-mono font-bold flex items-center gap-2.5 shadow-[0_4px_20px_rgba(255,42,126,0.18)] hover:shadow-[0_4px_25px_rgba(255,42,126,0.4)] hover:scale-[1.03] transition-all cursor-pointer backdrop-blur-md">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
+              <span className="text-vandal-pink font-bold">#</span>
+              <span className="text-white/95">vanish-gossip</span>
+              <span className="px-2 py-0.5 rounded-full bg-vandal-pink/25 border border-vandal-pink/40 text-[10px] text-vandal-pink uppercase font-mono font-black tracking-wider shadow-xs">Vanish Mode</span>
             </div>
 
-            <div className="px-4 py-2 rounded-2xl bg-white/5 border border-white/10 text-white/95 text-xs font-mono font-bold flex items-center gap-2 shadow-lg hover:border-acid-cyan/30 hover:bg-white/[0.08] transition-all">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-white/40 font-semibold">#</span>
-              <span>internships-coping</span>
-              <span className="text-[10px] text-acid-cyan font-mono font-bold">84 active</span>
+            <div className="group px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500/15 via-neutral-900/80 to-sky-900/15 border border-cyan-400/35 hover:border-cyan-400/80 text-white text-xs font-mono font-bold flex items-center gap-2.5 shadow-[0_4px_20px_rgba(6,182,212,0.18)] hover:shadow-[0_4px_25px_rgba(6,182,212,0.4)] hover:scale-[1.03] transition-all cursor-pointer backdrop-blur-md">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
+              <span className="text-cyan-400 font-bold">#</span>
+              <span className="text-white/95">internships-coping</span>
+              <span className="px-2 py-0.5 rounded-full bg-cyan-400/20 border border-cyan-400/40 text-[10px] text-cyan-300 font-mono font-bold">84 active</span>
             </div>
 
-            <div className="px-4 py-2 rounded-2xl bg-white/5 border border-white/10 text-white/95 text-xs font-mono font-bold flex items-center gap-2 shadow-lg hover:border-topic-violet/30 hover:bg-white/[0.08] transition-all">
-              <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
-              <span className="text-white/40 font-semibold">#</span>
-              <span>relationships</span>
-              <span className="text-[10px] text-topic-violet font-mono font-bold">19 online</span>
+            <div className="group px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-500/15 via-neutral-900/80 to-purple-900/15 border border-amber-400/35 hover:border-amber-400/80 text-white text-xs font-mono font-bold flex items-center gap-2.5 shadow-[0_4px_20px_rgba(245,158,11,0.18)] hover:shadow-[0_4px_25px_rgba(245,158,11,0.4)] hover:scale-[1.03] transition-all cursor-pointer backdrop-blur-md">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] animate-pulse" />
+              <span className="text-amber-400 font-bold">#</span>
+              <span className="text-white/95">relationships</span>
+              <span className="px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/40 text-[10px] text-purple-300 font-mono font-bold">19 online</span>
             </div>
           </div>
 

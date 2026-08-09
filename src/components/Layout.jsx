@@ -19,8 +19,10 @@ export const Layout = ({ children }) => {
 
   useEffect(() => {
     if (!isChatRoute) {
-      document.documentElement.classList.remove('chat-active');
-      document.body.classList.remove('chat-active');
+      document.documentElement.classList.remove('chat-active', 'in-active-chat');
+      document.body.classList.remove('chat-active', 'in-active-chat');
+      document.body.style.overflow = 'auto';
+      document.body.style.position = '';
       return;
     }
 
@@ -35,15 +37,17 @@ export const Layout = ({ children }) => {
 
     window.addEventListener('scroll', handleScroll);
     return () => {
-      document.documentElement.classList.remove('chat-active');
-      document.body.classList.remove('chat-active');
+      document.documentElement.classList.remove('chat-active', 'in-active-chat');
+      document.body.classList.remove('chat-active', 'in-active-chat');
+      document.body.style.overflow = 'auto';
+      document.body.style.position = '';
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [isChatRoute]);
+  }, [isChatRoute, location.pathname]);
 
   if (isLandingPage) {
     return (
-      <div className="min-h-screen bg-[#edf4ed] dark:bg-neutral-950 font-sans">
+      <div className="min-h-screen bg-[#edf4ed] dark:bg-neutral-950 font-sans overflow-x-hidden">
         <main className="w-full">
           {children}
         </main>
@@ -55,28 +59,26 @@ export const Layout = ({ children }) => {
 
   return (
     <div
-      className={`flex flex-col bg-white dark:bg-neutral-900 overflow-hidden ${
+      className={`flex flex-col bg-white dark:bg-neutral-900 ${
         isChatRoute
-          ? 'fixed inset-0 w-full h-full h-[100dvh] max-h-[100dvh] max-w-[100vw] z-10'
-          : 'h-screen h-[100dvh]'
+          ? 'fixed inset-0 w-full h-full h-[100dvh] max-h-[100dvh] max-w-[100vw] z-10 overflow-hidden'
+          : 'min-h-screen'
       }`}
     >
       <div className={isChatRoute ? 'hidden md:block' : 'block'}>
         <Header />
       </div>
       
-      <div className="flex flex-1 overflow-hidden min-h-0 h-full w-full">
+      <div className={`flex flex-1 ${isChatRoute ? 'overflow-hidden min-h-0 h-full w-full' : 'w-full'}`}>
         {isAuthenticated && <Sidebar />}
         
-        <main className={`flex-1 ${isChatRoute ? 'overflow-hidden h-full w-full' : 'overflow-y-auto'} ${isAuthenticated ? 'lg:ml-20' : ''} ${isChatRoute ? 'pb-0' : 'pb-16 lg:pb-0'}`}>
+        <main className={`flex-1 ${isChatRoute ? 'overflow-hidden h-full w-full' : 'min-h-screen'} ${isAuthenticated ? 'lg:ml-20' : ''} ${isChatRoute ? 'pb-0' : 'pb-24 lg:pb-0'}`}>
           {children}
         </main>
       </div>
 
       {isAuthenticated && (
-        <div className={isChatRoute ? 'hidden lg:block' : 'block'}>
-          <MobileNav />
-        </div>
+        <MobileNav />
       )}
       <UsernameModal />
       <ToastContainer notifications={notifications} />

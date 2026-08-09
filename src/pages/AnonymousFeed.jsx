@@ -22,7 +22,9 @@ import {
   Zap,
   PenSquare,
   CornerDownRight,
-  X
+  X,
+  Image as ImageIcon,
+  Smile
 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
@@ -109,11 +111,112 @@ export default function AnonymousFeed({ defaultTab }) {
     }
   }, [location.pathname, defaultTab]);
 
-  // Modal State
+  // Modal & Inline Post Creation State
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [postType, setPostType] = useState('feed'); // 'feed' | 'confession'
   const [inputText, setInputText] = useState('');
+  const [modalSelectedImage, setModalSelectedImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const modalFileInputRef = useRef(null);
+
+  // Inline Create Post Card State (Batman avatar + textarea + image upload)
+  const [cardInputText, setCardInputText] = useState('');
+  const [cardSelectedImage, setCardSelectedImage] = useState(null);
+  const [isCardSubmitting, setIsCardSubmitting] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const cardFileInputRef = useRef(null);
+
+  // Lightbox Image Preview State
+  const [expandedImage, setExpandedImage] = useState(null);
+
+  const handleCardImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showWarning('Please select an image file');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showWarning('Image size should be less than 5MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setCardSelectedImage(event.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleModalImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showWarning('Please select an image file');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showWarning('Image size should be less than 5MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setModalSelectedImage(event.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCardSubmit = async (e) => {
+    if (e) e.preventDefault();
+    if (!cardInputText.trim() && !cardSelectedImage) return;
+
+    setIsCardSubmitting(true);
+    const randomIndex = Math.floor(Math.random() * ANONYMOUS_NAMES.length);
+    const chosenName = ANONYMOUS_NAMES[randomIndex];
+
+    try {
+      if (activeTab === 'confessions') {
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+        await addDoc(collection(db, 'confessions'), {
+          authorUid: user?.uid || 'anonymous_guest',
+          gender: user?.gender || 'Prefer not to say',
+          text: cardInputText.trim(),
+          imageUrl: cardSelectedImage || null,
+          createdAt: now,
+          expiresAt: expiresAt,
+          likes: 0,
+          likedUsers: [],
+          comments: 0,
+          reports: false
+        });
+        showSuccess('24-Hour Confession published!');
+      } else {
+        await addDoc(collection(db, 'anonymousPosts'), {
+          authorUid: user?.uid || 'anonymous_guest',
+          gender: user?.gender || 'Prefer not to say',
+          anonymousName: chosenName,
+          text: cardInputText.trim(),
+          imageUrl: cardSelectedImage || null,
+          likesCount: 0,
+          likedUsers: [],
+          commentsCount: 0,
+          reported: false,
+          createdAt: new Date()
+        });
+        showSuccess('Anonymous post published!');
+      }
+
+      setCardInputText('');
+      setCardSelectedImage(null);
+      setShowEmojiPicker(false);
+    } catch (err) {
+      console.error('Failed to create post:', err);
+      showWarning('Failed to publish post. Please try again.');
+    } finally {
+      setIsCardSubmitting(false);
+    }
+  };
 
   // Active Comment drawers
   const [activeCommentPostId, setActiveCommentPostId] = useState(null);
@@ -451,7 +554,7 @@ export default function AnonymousFeed({ defaultTab }) {
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
-    if (!inputText.trim()) return;
+    if (!inputText.trim() && !modalSelectedImage) return;
 
     setIsSubmitting(true);
     const randomIndex = Math.floor(Math.random() * ANONYMOUS_NAMES.length);
@@ -466,6 +569,7 @@ export default function AnonymousFeed({ defaultTab }) {
           authorUid: user?.uid || 'anonymous_guest',
           gender: user?.gender || 'Prefer not to say',
           text: inputText.trim(),
+          imageUrl: modalSelectedImage || null,
           createdAt: now,
           expiresAt: expiresAt,
           likes: 0,
@@ -480,6 +584,7 @@ export default function AnonymousFeed({ defaultTab }) {
           gender: user?.gender || 'Prefer not to say',
           anonymousName: chosenName,
           text: inputText.trim(),
+          imageUrl: modalSelectedImage || null,
           likesCount: 0,
           likedUsers: [],
           commentsCount: 0,
@@ -490,6 +595,7 @@ export default function AnonymousFeed({ defaultTab }) {
       }
 
       setInputText('');
+      setModalSelectedImage(null);
       setIsCreateOpen(false);
     } catch (err) {
       console.error('Failed to create post:', err);
@@ -645,56 +751,93 @@ export default function AnonymousFeed({ defaultTab }) {
             Share freely. Nobody knows it’s you.
           </p>
         </div>
-
-        <button
-          onClick={handleOpenCreateModal}
-          className="flex items-center gap-xs bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold text-xs px-lg py-md rounded-full shadow-[0_0_20px_rgba(139,92,246,0.35)] border border-violet-400/30 transition-all hover:scale-105 active:scale-95"
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>{activeTab === 'confessions' ? 'Post Confession' : 'Create Post'}</span>
-        </button>
-      </div>
-
-      {/* Segmented Switcher */}
-      <div className="max-w-xs mx-auto p-xs bg-neutral-200/80 dark:bg-zinc-900/90 border border-neutral-300 dark:border-zinc-800 rounded-full flex items-center relative shadow-inner">
-        <button
-          onClick={() => { setActiveTab('feed'); setActiveCommentPostId(null); navigate('/anonymous'); }}
-          className={`flex-1 py-xs rounded-full text-xs font-semibold flex items-center justify-center gap-xs transition-colors relative z-10 ${
-            activeTab === 'feed' ? 'text-white' : 'text-neutral-600 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-200'
-          }`}
-        >
-          <EyeOff className="w-3.5 h-3.5" />
-          <span>Feed</span>
-          {activeTab === 'feed' && (
-            <motion.div
-              layoutId="anonSegment"
-              className="absolute inset-0 bg-violet-600 shadow-[0_0_15px_rgba(139,92,246,0.5)] rounded-full -z-10"
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            />
-          )}
-        </button>
-
-        <button
-          onClick={() => { setActiveTab('confessions'); setActiveCommentPostId(null); navigate('/confessions'); }}
-          className={`flex-1 py-xs rounded-full text-xs font-semibold flex items-center justify-center gap-xs transition-colors relative z-10 ${
-            activeTab === 'confessions' ? 'text-white' : 'text-neutral-600 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-200'
-          }`}
-        >
-          <Flame className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" />
-          <span>Confessions</span>
-          <span className="text-[9px] font-mono px-xs py-[1px] rounded-full bg-neutral-300 dark:bg-zinc-800 text-neutral-700 dark:text-zinc-300 border border-neutral-400 dark:border-zinc-700">24h</span>
-          {activeTab === 'confessions' && (
-            <motion.div
-              layoutId="anonSegment"
-              className="absolute inset-0 bg-rose-600/90 shadow-[0_0_15px_rgba(244,63,94,0.5)] rounded-full -z-10"
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            />
-          )}
-        </button>
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Inline Create Post Card */}
+        <div className="border border-neutral-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl p-4 sm:p-5 shadow-lg shadow-black/5 dark:shadow-black/30 transition-all">
+          <div className="flex gap-3 sm:gap-4">
+            {/* Batman / Anonymous Avatar Badge */}
+            <div className="w-11 h-11 rounded-full bg-neutral-900 dark:bg-zinc-800 border border-neutral-700/60 dark:border-zinc-700/60 flex items-center justify-center flex-shrink-0 text-zinc-200 shadow-md">
+              <svg className="w-6 h-6 fill-current text-zinc-300 dark:text-zinc-200" viewBox="0 0 512 512">
+                <path d="M256,152c-15.1,0-28.7,6.8-38,17.4C203.4,158.8,187,152,168,152c-48.6,0-88,39.4-88,88c0,11.3,2.2,22.1,6.1,32c-31-8.2-56.1-30.8-66.1-60c-2.6-7.6-13.4-6.4-14,1.6C1,273.7,35,324.5,88.7,338.8C108.6,344.1,130,341,148,332c14.2-7.1,26.4-18,36-31.2c8,11.6,18.9,20.8,32,26.4c12.2,5.2,25.8,5.2,38,0c13.1-5.6,24-14.8,32-26.4c9.6,13.2,21.8,24.1,36,31.2c18,9,39.4,12.1,59.3,6.8C477,324.5,511,273.7,506,213.6c-0.6-8-11.4-9.2-14-1.6c-10,29.2-35.1,51.8-66.1,60c3.9-9.9,6.1-20.7,6.1-32c0-48.6-39.4-88-88-88c-19,0-35.4,6.8-50,17.4C284.7,158.8,271.1,152,256,152z"/>
+              </svg>
+            </div>
+
+            {/* Seamless Input Textarea */}
+            <div className="flex-1 min-w-0">
+              <textarea
+                rows={3}
+                value={cardInputText}
+                onChange={(e) => setCardInputText(e.target.value)}
+                placeholder={
+                  activeTab === 'confessions'
+                    ? "Share a secret confession..."
+                    : "What's happening in your campus?"
+                }
+                className="w-full bg-transparent text-sm sm:text-base text-neutral-900 dark:text-zinc-100 placeholder:text-neutral-400 dark:placeholder:text-zinc-500 resize-none outline-none border-none focus:ring-0 leading-relaxed p-1"
+              />
+
+              {/* Photo Attachment Preview */}
+              {cardSelectedImage && (
+                <div className="relative mt-3 rounded-2xl overflow-hidden border border-neutral-200 dark:border-zinc-800 max-h-56 shadow-md group">
+                  <img src={cardSelectedImage} alt="Attachment preview" className="w-full max-h-56 object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setCardSelectedImage(null)}
+                    className="absolute top-2.5 right-2.5 p-1.5 bg-black/75 hover:bg-rose-600 text-white rounded-full transition-colors cursor-pointer shadow-lg backdrop-blur-xs"
+                    title="Remove photo"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-neutral-100 dark:border-zinc-800/80 pt-3 mt-3 flex items-center justify-between">
+            {/* Left Action Tools */}
+            <div className="flex items-center gap-2 relative">
+              <input
+                type="file"
+                ref={cardFileInputRef}
+                accept="image/*"
+                onChange={handleCardImageSelect}
+                className="hidden"
+              />
+
+              {/* Cool Add Photos Toggle Button */}
+              <button
+                type="button"
+                onClick={() => cardFileInputRef.current?.click()}
+                className={`px-3.5 py-1.5 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 text-xs font-semibold ${
+                  cardSelectedImage
+                    ? 'bg-sky-500/15 text-sky-500 dark:text-sky-400 border border-sky-500/30 shadow-[0_0_12px_rgba(56,189,248,0.2)] scale-[1.02]'
+                    : 'bg-neutral-100 dark:bg-zinc-800/80 text-neutral-600 dark:text-zinc-300 hover:bg-sky-500/10 hover:text-sky-500 dark:hover:text-sky-400 border border-transparent hover:border-sky-500/20'
+                }`}
+                title="Add Photos"
+              >
+                <ImageIcon className={`w-4 h-4 transition-transform duration-300 ${cardSelectedImage ? 'scale-110 text-sky-500' : ''}`} />
+                <span>Add Photos</span>
+                {cardSelectedImage && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+                )}
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleCardSubmit}
+              disabled={(!cardInputText.trim() && !cardSelectedImage) || isCardSubmitting}
+              className="px-6 py-2 rounded-full bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 text-white font-bold text-sm shadow-md shadow-sky-500/25 hover:shadow-sky-500/40 disabled:opacity-40 disabled:scale-100 disabled:shadow-none transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <span>{isCardSubmitting ? 'Posting...' : 'Post'}</span>
+            </button>
+          </div>
+        </div>
+
         {loading ? (
           <div className="space-y-lg">
             {[1, 2, 3].map(i => (
@@ -804,6 +947,18 @@ export default function AnonymousFeed({ defaultTab }) {
                       <p className="text-neutral-800 dark:text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap">
                         {post.text}
                       </p>
+                    )}
+
+                    {/* Attached Photo Image Display */}
+                    {post.imageUrl && (
+                      <div className="my-sm rounded-2xl overflow-hidden border border-neutral-200 dark:border-zinc-800/80 max-h-96 w-full bg-zinc-950/40 flex items-center justify-center">
+                        <img
+                          src={post.imageUrl}
+                          alt="Post attachment"
+                          className="w-full max-h-96 object-cover hover:scale-[1.01] transition-transform duration-300 cursor-pointer"
+                          onClick={() => setExpandedImage(post.imageUrl)}
+                        />
+                      </div>
                     )}
 
                     {/* Action Bar */}
@@ -1150,6 +1305,16 @@ export default function AnonymousFeed({ defaultTab }) {
                       <p className="text-lg md:text-xl font-heading font-semibold text-neutral-900 dark:text-zinc-100 leading-relaxed px-sm">
                         "{confession.text}"
                       </p>
+                      {confession.imageUrl && (
+                        <div className="mt-md rounded-2xl overflow-hidden border border-neutral-200 dark:border-zinc-800/80 max-h-96 w-full bg-zinc-950/40 flex items-center justify-center">
+                          <img
+                            src={confession.imageUrl}
+                            alt="Confession attachment"
+                            className="w-full max-h-96 object-cover hover:scale-[1.01] transition-transform duration-300 cursor-pointer"
+                            onClick={() => setExpandedImage(confession.imageUrl)}
+                          />
+                        </div>
+                      )}
                     </div>
 
                     {/* Action Bar */}
@@ -1414,7 +1579,7 @@ export default function AnonymousFeed({ defaultTab }) {
             </p>
           )}
 
-          <div>
+          <div className="space-y-sm">
             <textarea
               rows={4}
               placeholder={
@@ -1426,6 +1591,41 @@ export default function AnonymousFeed({ defaultTab }) {
               onChange={(e) => setInputText(e.target.value)}
               className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-md text-sm text-white resize-none placeholder:text-zinc-500 focus:outline-none focus:border-violet-500"
             />
+
+            {/* Photo Attachment inside Modal */}
+            <div className="flex items-center justify-between pt-xs">
+              <input
+                type="file"
+                ref={modalFileInputRef}
+                accept="image/*"
+                onChange={handleModalImageSelect}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => modalFileInputRef.current?.click()}
+                className="flex items-center gap-2 text-xs font-semibold text-zinc-400 hover:text-zinc-200 p-2 hover:bg-zinc-800 rounded-xl transition-colors cursor-pointer"
+              >
+                <ImageIcon className="w-4 h-4 text-violet-400" />
+                <span>{modalSelectedImage ? 'Change Photo' : 'Attach Photo'}</span>
+              </button>
+
+              {modalSelectedImage && (
+                <button
+                  type="button"
+                  onClick={() => setModalSelectedImage(null)}
+                  className="text-xs text-rose-400 hover:text-rose-300 cursor-pointer font-medium"
+                >
+                  Remove Photo
+                </button>
+              )}
+            </div>
+
+            {modalSelectedImage && (
+              <div className="relative mt-2 rounded-xl overflow-hidden border border-zinc-800 max-h-48">
+                <img src={modalSelectedImage} alt="Modal attachment preview" className="w-full h-48 object-cover" />
+              </div>
+            )}
           </div>
 
           <div className="flex gap-md pt-md">
@@ -1435,7 +1635,7 @@ export default function AnonymousFeed({ defaultTab }) {
             <Button
               variant="primary"
               type="submit"
-              disabled={isSubmitting || !inputText.trim()}
+              disabled={isSubmitting || (!inputText.trim() && !modalSelectedImage)}
               className="flex-1 bg-violet-600 hover:bg-violet-500 text-white font-semibold text-xs"
             >
               {isSubmitting ? 'Publishing...' : activeTab === 'confessions' ? 'Publish Confession' : 'Publish Anonymously'}
@@ -1688,6 +1888,23 @@ export default function AnonymousFeed({ defaultTab }) {
               )}
             </div>
           )}
+        </Modal>
+      )}
+      {/* Lightbox Photo Preview Modal */}
+      {expandedImage && (
+        <Modal
+          isOpen={Boolean(expandedImage)}
+          onClose={() => setExpandedImage(null)}
+          title="Photo Preview"
+          size="lg"
+        >
+          <div className="relative flex items-center justify-center p-2">
+            <img
+              src={expandedImage}
+              alt="Expanded photo preview"
+              className="max-h-[75vh] w-auto rounded-xl object-contain shadow-2xl"
+            />
+          </div>
         </Modal>
       )}
     </div>

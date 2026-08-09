@@ -4,7 +4,7 @@ import {
   Users, ShieldCheck, Search, Image, Paperclip, Send, Smile, Reply,
   ArrowDown, Plus, FileText, Download, CheckCircle2, AlertCircle, BarChart2,
   Shield, UserMinus, Settings, Link2, Trash2, Lock, Globe, X, ChevronLeft,
-  Check, Copy, Crown, MessageSquare, Hash, Pin, PinOff, UserPlus2, Star, Info,
+  Check, CheckCheck, Copy, Crown, MessageSquare, Hash, Pin, PinOff, UserPlus2, Star, Info,
   Edit3, Mic, MicOff, CheckSquare, Square, CornerUpLeft, MoreVertical, Eraser, Volume2,
   EyeOff, Eye, Bell, BellOff, Camera, User, Ban
 } from 'lucide-react';
@@ -71,6 +71,21 @@ export default function Community() {
   // ── Layout state
   const [selectedRoom, setSelectedRoom] = useState({ roomType: 'college' }); // default to college room
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Hide mobile navbar when inside active community chat
+  useEffect(() => {
+    if (selectedRoom) {
+      document.body.classList.add('in-active-chat');
+      document.documentElement.classList.add('in-active-chat');
+    } else {
+      document.body.classList.remove('in-active-chat');
+      document.documentElement.classList.remove('in-active-chat');
+    }
+    return () => {
+      document.body.classList.remove('in-active-chat');
+      document.documentElement.classList.remove('in-active-chat');
+    };
+  }, [selectedRoom]);
 
   // ── College community data
   const [loading, setLoading] = useState(true);
@@ -1024,21 +1039,40 @@ export default function Community() {
   };
 
   // ── Shared chat bubble component
-  const ChatBubble = ({ msg, isMe, onReply, onReact, showEmojiFor, setShowEmoji }) => (
-    <div className={`flex gap-md max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : ''}`}>
-      <img
-        src={msg.sender?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(msg.sender?.name || 'u')}`}
-        alt={msg.sender?.name}
-        onClick={() => msg.sender?.uid && navigate(`/profile?uid=${msg.sender.uid}`)}
-        className="w-8 h-8 rounded-full flex-shrink-0 mt-xs object-cover cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all"
-      />
-      <div className="space-y-xs relative group">
-        {!isMe && <span className="text-[10px] font-bold text-neutral-500 ml-sm">{msg.sender?.name}{msg.sender?.role && ` · ${msg.sender.role}`}</span>}
-        <div className={`p-lg rounded-2xl border text-sm shadow-sm ${isMe ? 'bg-primary-500 text-white border-primary-600 rounded-tr-none' : 'bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 border-neutral-100 dark:border-neutral-800 rounded-tl-none'}`}>
-          {msg.replyTo && <div className={`p-md rounded-lg border text-xs mb-md ${isMe ? 'bg-primary-600/50 border-primary-400/40 text-primary-100' : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
-          <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-          <p className={`text-[10px] mt-xs opacity-70 text-right ${isMe ? 'text-primary-100' : 'text-neutral-400'}`}>{formatTime(msg.timestamp)}</p>
-        </div>
+  const ChatBubble = ({ msg, isMe, onReply, onReact, showEmojiFor, setShowEmoji }) => {
+    const isSeen = Boolean(isMe && ((msg.readBy && msg.readBy.length > 0) || (msg.readByUsers && msg.readByUsers.length > 0) || msg.read === true));
+
+    return (
+      <div className={`flex gap-md max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : ''}`}>
+        <img
+          src={msg.sender?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(msg.sender?.name || 'u')}`}
+          alt={msg.sender?.name}
+          onClick={() => msg.sender?.uid && navigate(`/profile?uid=${msg.sender.uid}`)}
+          className="w-8 h-8 rounded-full flex-shrink-0 mt-xs object-cover cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all"
+        />
+        <div className="space-y-xs relative group">
+          {!isMe && <span className="text-[10px] font-bold text-neutral-500 ml-sm">{msg.sender?.name}{msg.sender?.role && ` · ${msg.sender.role}`}</span>}
+          <div className={`text-[13.5px] leading-relaxed relative overflow-hidden transition-all ${isMe ? 'bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-500 dark:to-indigo-600 text-white rounded-2xl rounded-tr-xs shadow-xs px-3.5 py-1.5' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border border-neutral-200/80 dark:border-neutral-700/60 rounded-2xl rounded-tl-xs px-3.5 py-1.5 shadow-xs'}`}>
+            {msg.replyTo && <div className={`p-1 px-2 rounded-lg border text-xs mb-1 ${isMe ? 'bg-black/25 text-white border-white/90' : 'bg-primary-500/10 text-neutral-800 dark:text-neutral-100 border-primary-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
+            <div className="relative inline-block max-w-full">
+              <span className="text-[13.5px] leading-snug break-words font-normal">{msg.content}</span>
+              <span className="inline-flex items-center gap-1 float-right mt-1 ml-2.5 text-[10px] leading-none select-none">
+                <span className={isMe ? 'text-white/75' : 'text-neutral-500 dark:text-neutral-400 font-medium'}>
+                  {formatTime(msg.timestamp)}
+                </span>
+                {isMe && (
+                  <CheckCheck
+                    className={`w-3.5 h-3.5 stroke-[2.8] transition-colors duration-300 ${
+                      isSeen
+                        ? 'text-emerald-300 dark:text-emerald-300 drop-shadow-[0_0_6px_rgba(16,185,129,0.7)]'
+                        : 'text-white/50 dark:text-neutral-400'
+                    }`}
+                    title={isSeen ? "Seen (Green Tick)" : "Sent to group"}
+                  />
+                )}
+              </span>
+            </div>
+          </div>
         {msg.reactions && msg.reactions.length > 0 && (
           <div className="flex flex-wrap gap-xs pt-xs pl-sm">
             {msg.reactions.map((react, rIdx) => (
@@ -1062,6 +1096,7 @@ export default function Community() {
       </div>
     </div>
   );
+};
 
   return (
     <div className="section-container p-0 flex h-full w-full overflow-hidden">
@@ -1670,6 +1705,7 @@ export default function Community() {
                           const isMe = msg.sender?.uid === user?.uid || msg.sender?.name === user?.name;
                           const isStarred = (msg.starredBy || []).includes(user?.uid);
                           const isSelected = selectedMsgIds.includes(msg.id);
+                          const isSeen = Boolean(isMe && ((msg.readBy && msg.readBy.length > 0) || (msg.readByUsers && msg.readByUsers.length > 0) || msg.read === true));
 
                           return (
                             <div key={msg.id} id={`msg-${msg.id}`} className={`transition-all duration-300 ${highlightedMsgId === msg.id ? 'ring-4 ring-amber-400 rounded-2xl p-1 bg-amber-500/20 shadow-2xl animate-pulse z-20' : ''}`}>
@@ -1693,19 +1729,35 @@ export default function Community() {
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className={`p-lg rounded-2xl border text-sm shadow-sm ${isMe ? 'bg-primary-500 text-white border-primary-600 rounded-tr-none' : 'bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 border-neutral-100 dark:border-neutral-800 rounded-tl-none'}`}>
-                                      {msg.replyTo && <div className={`p-md rounded-lg border text-xs mb-md ${isMe ? 'bg-primary-600/50 border-primary-400/40 text-primary-100' : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
+                                    <div className={`text-[13.5px] leading-relaxed relative overflow-hidden transition-all ${isMe ? 'bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-500 dark:to-indigo-600 text-white rounded-2xl rounded-tr-xs shadow-xs px-3.5 py-1.5' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border border-neutral-200/80 dark:border-neutral-700/60 rounded-2xl rounded-tl-xs px-3.5 py-1.5 shadow-xs'}`}>
+                                      {msg.replyTo && <div className={`p-1 px-2 rounded-lg border text-xs mb-1 ${isMe ? 'bg-black/25 text-white border-white/90' : 'bg-primary-500/10 text-neutral-800 dark:text-neutral-100 border-primary-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
                                       {msg.fileUrl && (
                                         <div className="mb-md p-md rounded-xl bg-black/10 flex items-center justify-between gap-md">
                                           <div className="flex items-center gap-sm text-xs font-semibold truncate"><FileText className="w-4 h-4 flex-shrink-0" /> {msg.fileName || 'Attachment'}</div>
                                           <a href={msg.fileUrl} download={msg.fileName || 'file'} target="_blank" rel="noreferrer" className="p-xs hover:bg-black/10 rounded"><Download className="w-3.5 h-3.5" /></a>
                                         </div>
                                       )}
-                                      <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                                      {msg.edited && <span className="text-[9px] opacity-60 ml-xs italic">(edited)</span>}
-                                      <div className="flex items-center justify-end gap-xs mt-xs">
-                                        {isStarred && <Star className="w-3 h-3 text-amber-400 fill-amber-400" />}
-                                        <p className={`text-[10px] opacity-70 ${isMe ? 'text-primary-100' : 'text-neutral-400'}`}>{formatTime(msg.timestamp)}</p>
+                                      <div className="relative inline-block max-w-full">
+                                        <span className="text-[13.5px] leading-snug break-words font-normal">{msg.content}</span>
+                                        {msg.edited && <span className="text-[9px] opacity-60 ml-xs italic">(edited)</span>}
+                                        {isStarred && <Star className="w-3 h-3 text-amber-400 fill-amber-400 inline-block ml-1" title="Starred message" />}
+
+                                        {/* WhatsApp / Instagram Style Inline Timestamp & Working Green Vector Tick */}
+                                        <span className="inline-flex items-center gap-1 float-right mt-1 ml-2.5 text-[10px] leading-none select-none">
+                                          <span className={isMe ? 'text-white/75' : 'text-neutral-500 dark:text-neutral-400 font-medium'}>
+                                            {formatTime(msg.timestamp)}
+                                          </span>
+                                          {isMe && (
+                                            <CheckCheck
+                                              className={`w-3.5 h-3.5 stroke-[2.8] transition-colors duration-300 ${
+                                                isSeen
+                                                  ? 'text-emerald-300 dark:text-emerald-300 drop-shadow-[0_0_6px_rgba(16,185,129,0.7)]'
+                                                  : 'text-white/50 dark:text-neutral-400'
+                                              }`}
+                                              title={isSeen ? "Seen (Green Tick)" : "Sent to group"}
+                                            />
+                                          )}
+                                        </span>
                                       </div>
                                     </div>
                                   )}
@@ -1768,7 +1820,7 @@ export default function Community() {
                         </div>
                       )}
 
-                      <button onClick={handleSendMessage} className="w-10 h-10 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center flex-shrink-0 transition-transform active:scale-95 shadow-md"><Send className="w-4 h-4" /></button>
+                      <button onClick={handleSendMessage} className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white flex items-center justify-center flex-shrink-0 transition-all active:scale-95 shadow-md shadow-sky-500/30 cursor-pointer"><Send className="w-4 h-4" /></button>
                     </div>
                   </div>
                 </div>
@@ -1776,27 +1828,28 @@ export default function Community() {
 
               {collegeTab === 'Feed' && (
                 <div className="flex-1 overflow-y-auto px-lg py-md space-y-lg scrollbar-thin">
-                  <Card className="mb-lg">
-                    <div className="flex gap-md mb-lg">
+                  <div className="mb-lg p-4 sm:p-5 rounded-3xl bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200/80 dark:border-neutral-800/80 shadow-lg shadow-black/5 dark:shadow-black/30 transition-all">
+                    <div className="flex gap-3 sm:gap-4">
                       <img
                         src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || 'user')}`}
                         alt="You"
-                        className="w-12 h-12 rounded-full object-cover"
+                        className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shadow-sm ring-2 ring-neutral-200/50 dark:ring-neutral-700/50 flex-shrink-0"
                       />
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <textarea
                           placeholder="Post a campus announcement or community update..."
                           value={newPostText}
                           onChange={(e) => setNewPostText(e.target.value)}
                           rows={3}
-                          className="w-full bg-neutral-50/50 dark:bg-neutral-900/60 border border-neutral-200 dark:border-neutral-800 rounded-xl px-lg py-md text-sm outline-none resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          className="w-full bg-transparent text-sm sm:text-base text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 resize-none outline-none border-none focus:ring-0 leading-relaxed p-1"
                         />
                         {feedImagePreviewUrl && (
-                          <div className="relative mt-md rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 max-h-60 flex items-center justify-center">
+                          <div className="relative mt-3 rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-700 max-h-60 shadow-md group">
                             <img src={feedImagePreviewUrl} alt="Preview" className="object-contain max-h-60 w-full" />
                             <button
+                              type="button"
                               onClick={handleRemoveFeedImage}
-                              className="absolute top-2 right-2 bg-neutral-900/80 hover:bg-neutral-900 text-white rounded-full p-1.5 transition-colors shadow-md"
+                              className="absolute top-2.5 right-2.5 bg-black/75 hover:bg-rose-600 text-white rounded-full p-1.5 transition-all shadow-lg backdrop-blur-xs cursor-pointer"
                               title="Remove image"
                             >
                               <X className="w-4 h-4" />
@@ -1805,8 +1858,8 @@ export default function Community() {
                         )}
                       </div>
                     </div>
-                    <div className="flex justify-between items-center pt-lg border-t border-neutral-100 dark:border-neutral-800">
-                      <div className="flex gap-md">
+                    <div className="flex justify-between items-center pt-3 mt-3 border-t border-neutral-100 dark:border-neutral-800/80">
+                      <div className="flex items-center gap-2">
                         <input
                           type="file"
                           ref={feedImageInputRef}
@@ -1817,25 +1870,30 @@ export default function Community() {
                         <button
                           type="button"
                           onClick={() => feedImageInputRef.current?.click()}
-                          className="p-md text-neutral-400 hover:text-primary-500 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800"
-                          title="Add Image"
+                          className={`px-3.5 py-1.5 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 text-xs font-semibold ${
+                            feedImageFile
+                              ? 'bg-sky-500/15 text-sky-500 dark:text-sky-400 border border-sky-500/30 shadow-[0_0_12px_rgba(56,189,248,0.2)] scale-[1.02]'
+                              : 'bg-neutral-100 dark:bg-neutral-800/80 text-neutral-600 dark:text-neutral-300 hover:bg-sky-500/10 hover:text-sky-500 dark:hover:text-sky-400 border border-transparent hover:border-sky-500/20'
+                          }`}
+                          title="Add Photos"
                         >
-                          <Image className="w-5 h-5" />
-                        </button>
-                        <button className="p-md text-neutral-400 hover:text-primary-500 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800">
-                          <Smile className="w-5 h-5" />
+                          <Image className={`w-4 h-4 transition-transform duration-300 ${feedImageFile ? 'scale-110 text-sky-500' : ''}`} />
+                          <span>Add Photos</span>
+                          {feedImageFile && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+                          )}
                         </button>
                       </div>
-                      <Button
-                        variant="primary"
-                        size="sm"
+                      <button
+                        type="button"
                         disabled={(!newPostText.trim() && !feedImageFile) || isUploadingFeedImage}
                         onClick={handleCreateFeedPost}
+                        className="px-6 py-2 rounded-full bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 text-white font-bold text-sm shadow-md shadow-sky-500/25 hover:shadow-sky-500/40 disabled:opacity-40 disabled:scale-100 disabled:shadow-none transition-all cursor-pointer flex items-center gap-1.5"
                       >
-                        {isUploadingFeedImage ? 'Sharing...' : 'Share Announcement'}
-                      </Button>
+                        <span>{isUploadingFeedImage ? 'Sharing...' : 'Share Announcement'}</span>
+                      </button>
                     </div>
-                  </Card>
+                  </div>
 
                   {feedPosts.length > 0 ? (
                     <div className="max-w-2xl mx-auto space-y-lg">
@@ -2075,6 +2133,7 @@ export default function Community() {
                       const isMe = msg.sender?.uid === user?.uid;
                       const isStarred = (msg.starredBy || []).includes(user?.uid);
                       const isSelected = selectedMsgIds.includes(msg.id);
+                      const isSeen = Boolean(isMe && ((msg.readBy && msg.readBy.length > 0) || (msg.readByUsers && msg.readByUsers.length > 0) || msg.read === true));
 
                       return (
                         <div key={msg.id} id={`msg-${msg.id}`} className={`transition-all duration-300 ${highlightedMsgId === msg.id ? 'ring-4 ring-amber-400 rounded-2xl p-1 bg-amber-500/20 shadow-2xl animate-pulse z-20' : ''}`}>
@@ -2088,19 +2147,35 @@ export default function Community() {
                               <img src={msg.sender?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(msg.sender?.name || 'u')}`} alt={msg.sender?.name} className="w-8 h-8 rounded-full flex-shrink-0 mt-xs object-cover" />
                               <div className="space-y-xs relative group">
                                 {!isMe && <span className="text-[10px] font-bold text-neutral-500 ml-sm">{msg.sender?.name}</span>}
-                                <div className={`p-lg rounded-2xl border text-sm shadow-sm ${isMe ? 'bg-primary-500 text-white border-primary-600 rounded-tr-none' : 'bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 border-neutral-100 dark:border-neutral-800 rounded-tl-none'}`}>
-                                  {msg.replyTo && <div className={`p-md rounded-lg border text-xs mb-md ${isMe ? 'bg-primary-600/50 border-primary-400/40 text-primary-100' : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
+                                <div className={`text-[13.5px] leading-relaxed relative overflow-hidden transition-all ${isMe ? 'bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-500 dark:to-indigo-600 text-white rounded-2xl rounded-tr-xs shadow-xs px-3.5 py-1.5' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border border-neutral-200/80 dark:border-neutral-700/60 rounded-2xl rounded-tl-xs px-3.5 py-1.5 shadow-xs'}`}>
+                                  {msg.replyTo && <div className={`p-1 px-2 rounded-lg border text-xs mb-1 ${isMe ? 'bg-black/25 text-white border-white/90' : 'bg-primary-500/10 text-neutral-800 dark:text-neutral-100 border-primary-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
                                   {msg.fileUrl && (
                                     <div className="mb-md p-md rounded-xl bg-black/10 flex items-center justify-between gap-md">
                                       <div className="flex items-center gap-sm text-xs font-semibold truncate"><FileText className="w-4 h-4 flex-shrink-0" /> {msg.fileName || 'Attachment'}</div>
                                       <a href={msg.fileUrl} download={msg.fileName || 'file'} target="_blank" rel="noreferrer" className="p-xs hover:bg-black/10 rounded"><Download className="w-3.5 h-3.5" /></a>
                                     </div>
                                   )}
-                                  <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                                  {msg.edited && <span className="text-[9px] opacity-60 ml-xs italic">(edited)</span>}
-                                  <div className="flex items-center justify-end gap-xs mt-xs">
-                                    {isStarred && <Star className="w-3 h-3 text-amber-400 fill-amber-400" />}
-                                    <p className={`text-[10px] opacity-70 ${isMe ? 'text-primary-100' : 'text-neutral-400'}`}>{formatTime(msg.timestamp)}</p>
+                                  <div className="relative inline-block max-w-full">
+                                    <span className="text-[13.5px] leading-snug break-words font-normal">{msg.content}</span>
+                                    {msg.edited && <span className="text-[9px] opacity-60 ml-xs italic">(edited)</span>}
+                                    {isStarred && <Star className="w-3 h-3 text-amber-400 fill-amber-400 inline-block ml-1" title="Starred message" />}
+
+                                    {/* WhatsApp / Instagram Style Inline Timestamp & Working Green Vector Tick */}
+                                    <span className="inline-flex items-center gap-1 float-right mt-1 ml-2.5 text-[10px] leading-none select-none">
+                                      <span className={isMe ? 'text-white/75' : 'text-neutral-500 dark:text-neutral-400 font-medium'}>
+                                        {formatTime(msg.timestamp)}
+                                      </span>
+                                      {isMe && (
+                                        <CheckCheck
+                                          className={`w-3.5 h-3.5 stroke-[2.8] transition-colors duration-300 ${
+                                            isSeen
+                                              ? 'text-emerald-300 dark:text-emerald-300 drop-shadow-[0_0_6px_rgba(16,185,129,0.7)]'
+                                              : 'text-white/50 dark:text-neutral-400'
+                                          }`}
+                                          title={isSeen ? "Seen (Green Tick)" : "Sent to group"}
+                                        />
+                                      )}
+                                    </span>
                                   </div>
                                 </div>
 
@@ -2165,7 +2240,7 @@ export default function Community() {
                     </div>
                   )}
 
-                  <button onClick={handleSendGroupMessage} className="w-10 h-10 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center flex-shrink-0 transition-transform active:scale-95 shadow-md"><Send className="w-4 h-4" /></button>
+                  <button onClick={handleSendGroupMessage} className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white flex items-center justify-center flex-shrink-0 transition-all active:scale-95 shadow-md shadow-sky-500/30 cursor-pointer"><Send className="w-4 h-4" /></button>
                 </div>
               </div>
             </div>

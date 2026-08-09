@@ -2,13 +2,11 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Home,
-  Search,
   EyeOff,
   MessageSquare,
   User,
-  Users,
-  ShoppingBag,
   Bookmark,
+  ShoppingBag,
   Flame,
   Sparkles
 } from 'lucide-react';
@@ -16,14 +14,15 @@ import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/contexts/AuthContext';
 
-const mobileNavItems = [
+const mainNavItems = [
   { path: '/home', icon: Home, label: 'Home' },
   { path: '/anonymous', icon: EyeOff, label: 'Anonymous', special: true },
   { path: '/confessions', icon: Flame, label: 'Confessions', specialConfession: true },
   { path: '/make-friend', icon: Sparkles, label: 'Make Friend', specialFriend: true },
   { path: '/messages', icon: MessageSquare, label: 'Messages', badge: true },
-  { path: '/profile', icon: User, label: 'Profile' },
 ];
+
+const profileNavItem = { path: '/profile', icon: User, label: 'Profile' };
 
 export const MobileNav = () => {
   const location = useLocation();
@@ -42,52 +41,103 @@ export const MobileNav = () => {
     { label: 'Sell on Market', desc: 'List old books or devices', link: '/marketplace', icon: ShoppingBag, color: 'bg-emerald-500' },
   ];
 
+  const isProfileActive = isActive('/profile');
+
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 lg:hidden bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-t border-neutral-200/80 dark:border-neutral-800 z-40 shadow-2xl px-0.5">
-        <div className="flex items-center justify-around h-16 w-full max-w-md mx-auto">
-          {mobileNavItems.map(({ path, icon: Icon, label, special, specialConfession, specialFriend, badge }) => (
-            <Link
-              key={path}
-              to={path}
-              className={`flex-1 flex flex-col items-center justify-center gap-[2px] py-xs px-0.5 rounded-xl transition-all relative min-w-0 ${
-                isActive(path)
-                  ? special
-                    ? 'text-purple-500 font-bold scale-105'
-                    : specialConfession
-                    ? 'text-rose-500 font-bold scale-105'
-                    : specialFriend
-                    ? 'text-vandal-pink font-bold scale-105'
-                    : 'text-primary-500 dark:text-primary-400 font-bold'
-                  : special
-                  ? 'text-purple-400/80 hover:text-purple-400'
-                  : specialConfession
-                  ? 'text-rose-400/80 hover:text-rose-400'
-                  : specialFriend
-                  ? 'text-vandal-pink/80 hover:text-vandal-pink font-semibold'
-                  : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-              }`}
-              aria-label={label}
-            >
-              <div className="relative flex items-center justify-center flex-shrink-0 min-w-[26px] min-h-[26px]">
-                {path === '/profile' && user?.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.name || 'Profile'}
-                    className="w-[26px] h-[26px] rounded-full object-cover border-2 border-primary-500/80 shadow-xs flex-shrink-0"
-                  />
-                ) : (
-                  <Icon className="w-5 h-5 flex-shrink-0" />
-                )}
-                {badge && unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2 min-w-[15px] h-3.5 px-0.5 bg-primary-500 text-white font-extrabold text-[8px] rounded-full flex items-center justify-center ring-1 ring-white dark:ring-neutral-900 shadow-md shadow-primary-500/30 animate-pulse">
-                    {unreadCount > 99 ? '99+' : unreadCount}
+      <nav id="mobile-nav" className="fixed bottom-3.5 left-3 right-3 sm:bottom-5 sm:left-6 sm:right-6 lg:hidden z-40 max-w-lg mx-auto pointer-events-none">
+        <div className="flex items-center gap-2.5 pointer-events-auto">
+          {/* Main Floating Island */}
+          <div className="flex-1 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200/80 dark:border-neutral-800/80 rounded-full px-2 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] flex items-center justify-around transition-all">
+            {mainNavItems.map(({ path, icon: Icon, label, special, specialConfession, specialFriend, badge }) => {
+              const active = isActive(path);
+              return (
+                <Link
+                  key={path}
+                  to={path}
+                  className={`flex-1 flex flex-col items-center justify-center gap-[2px] py-1 px-1 rounded-full transition-all duration-200 relative min-w-0 ${
+                    active
+                      ? special
+                        ? 'text-purple-600 dark:text-purple-400 font-bold scale-105'
+                        : specialConfession
+                        ? 'text-rose-600 dark:text-rose-400 font-bold scale-105'
+                        : specialFriend
+                        ? 'text-vandal-pink font-bold scale-105'
+                        : 'text-primary-600 dark:text-primary-400 font-bold scale-105'
+                      : special
+                      ? 'text-purple-400/80 dark:text-purple-400/80 hover:text-purple-500'
+                      : specialConfession
+                      ? 'text-rose-400/80 dark:text-rose-400/80 hover:text-rose-500'
+                      : specialFriend
+                      ? 'text-vandal-pink/80 hover:text-vandal-pink font-semibold'
+                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                  }`}
+                  aria-label={label}
+                >
+                  {/* Subtle active background glow */}
+                  {active && (
+                    <span
+                      className={`absolute inset-0 rounded-full -z-10 opacity-15 dark:opacity-25 transition-all ${
+                        special
+                          ? 'bg-purple-500'
+                          : specialConfession
+                          ? 'bg-rose-500'
+                          : specialFriend
+                          ? 'bg-vandal-pink'
+                          : 'bg-primary-500'
+                      }`}
+                    />
+                  )}
+
+                  <div className="relative flex items-center justify-center flex-shrink-0 min-w-[24px] min-h-[24px]">
+                    <Icon className="w-5 h-5 flex-shrink-0 transition-transform duration-200" />
+                    {badge && unreadCount > 0 && (
+                      <span className="absolute -top-1.5 -right-2 min-w-[15px] h-3.5 px-0.5 bg-primary-500 text-white font-extrabold text-[8px] rounded-full flex items-center justify-center ring-1 ring-white dark:ring-neutral-900 shadow-md shadow-primary-500/30 animate-pulse">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[9px] tracking-tight truncate w-full text-center font-medium leading-none mt-[1px]">
+                    {label}
                   </span>
-                )}
-              </div>
-              <span className="text-[9px] tracking-tight truncate w-full text-center font-medium leading-none mt-[1px]">{label}</span>
-            </Link>
-          ))}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Profile Floating Island (Separate Block) */}
+          <Link
+            to={profileNavItem.path}
+            className={`flex-shrink-0 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200/80 dark:border-neutral-800/80 rounded-full px-3.5 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] flex flex-col items-center justify-center transition-all duration-200 relative ${
+              isProfileActive
+                ? 'ring-2 ring-primary-500/80 dark:ring-primary-400/80 scale-105 text-primary-600 dark:text-primary-400 font-bold'
+                : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+            }`}
+            aria-label="Profile"
+          >
+            {isProfileActive && (
+              <span className="absolute inset-0 rounded-full -z-10 bg-primary-500 opacity-15 dark:opacity-25 transition-all" />
+            )}
+
+            <div className="relative flex items-center justify-center flex-shrink-0 min-w-[24px] min-h-[24px]">
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name || 'Profile'}
+                  className={`w-6 h-6 rounded-full object-cover border-2 transition-all ${
+                    isProfileActive
+                      ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/40'
+                      : 'border-neutral-300 dark:border-neutral-700'
+                  } shadow-xs flex-shrink-0`}
+                />
+              ) : (
+                <User className="w-5 h-5 flex-shrink-0 transition-transform duration-200" />
+              )}
+            </div>
+            <span className="text-[9px] tracking-tight truncate text-center font-medium leading-none mt-[1px]">
+              Profile
+            </span>
+          </Link>
         </div>
       </nav>
 
