@@ -20,13 +20,12 @@ const mainNavItems = [
   { path: '/confessions', icon: Flame, label: 'Confessions', specialConfession: true },
   { path: '/make-friend', icon: Sparkles, label: 'Make Friend', specialFriend: true },
   { path: '/messages', icon: MessageSquare, label: 'Messages', badge: true },
+  { path: '/profile', icon: User, label: 'Profile', isProfile: true },
 ];
-
-const profileNavItem = { path: '/profile', icon: User, label: 'Profile' };
 
 export const MobileNav = () => {
   const location = useLocation();
-  const { user, hasUnreadMessages, unreadCount } = useAuth();
+  const { user, unreadCount } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const isActive = (itemPath) => {
@@ -41,15 +40,13 @@ export const MobileNav = () => {
     { label: 'Sell on Market', desc: 'List old books or devices', link: '/marketplace', icon: ShoppingBag, color: 'bg-emerald-500' },
   ];
 
-  const isProfileActive = isActive('/profile');
-
   return (
     <>
-      <nav id="mobile-nav" className="fixed bottom-3.5 left-3 right-3 sm:bottom-5 sm:left-6 sm:right-6 lg:hidden z-40 max-w-lg mx-auto pointer-events-none">
-        <div className="flex items-center gap-2.5 pointer-events-auto">
-          {/* Main Floating Island */}
-          <div className="flex-1 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200/80 dark:border-neutral-800/80 rounded-full px-2 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] flex items-center justify-around transition-all">
-            {mainNavItems.map(({ path, icon: Icon, label, special, specialConfession, specialFriend, badge }) => {
+      <nav id="mobile-nav" className="fixed bottom-3.5 left-3 right-3 sm:bottom-5 sm:left-6 sm:right-6 lg:hidden z-40 max-w-xl mx-auto pointer-events-none">
+        <div className="flex items-center pointer-events-auto w-full">
+          {/* Merged Single Floating Glass Bar */}
+          <div className="w-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200/80 dark:border-neutral-800/80 rounded-full px-2 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] flex items-center justify-between transition-all">
+            {mainNavItems.map(({ path, icon: Icon, label, special, specialConfession, specialFriend, badge, isProfile }) => {
               const active = isActive(path);
               return (
                 <Link
@@ -74,7 +71,7 @@ export const MobileNav = () => {
                   }`}
                   aria-label={label}
                 >
-                  {/* Subtle active background glow */}
+                  {/* Active background glow */}
                   {active && (
                     <span
                       className={`absolute inset-0 rounded-full -z-10 opacity-15 dark:opacity-25 transition-all ${
@@ -90,13 +87,27 @@ export const MobileNav = () => {
                   )}
 
                   <div className="relative flex items-center justify-center flex-shrink-0 min-w-[24px] min-h-[24px]">
-                    <Icon className="w-5 h-5 flex-shrink-0 transition-transform duration-200" />
+                    {isProfile && user?.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.name || 'Profile'}
+                        className={`w-5 h-5 rounded-full object-cover border transition-all ${
+                          active
+                            ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/40'
+                            : 'border-neutral-300 dark:border-neutral-700'
+                        } flex-shrink-0`}
+                      />
+                    ) : (
+                      <Icon className="w-5 h-5 flex-shrink-0 transition-transform duration-200" />
+                    )}
+
                     {badge && unreadCount > 0 && (
                       <span className="absolute -top-1.5 -right-2 min-w-[15px] h-3.5 px-0.5 bg-primary-500 text-white font-extrabold text-[8px] rounded-full flex items-center justify-center ring-1 ring-white dark:ring-neutral-900 shadow-md shadow-primary-500/30 animate-pulse">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
                   </div>
+
                   <span className="text-[9px] tracking-tight truncate w-full text-center font-medium leading-none mt-[1px]">
                     {label}
                   </span>
@@ -104,40 +115,6 @@ export const MobileNav = () => {
               );
             })}
           </div>
-
-          {/* Profile Floating Island (Separate Block) */}
-          <Link
-            to={profileNavItem.path}
-            className={`flex-shrink-0 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200/80 dark:border-neutral-800/80 rounded-full px-3.5 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] flex flex-col items-center justify-center transition-all duration-200 relative ${
-              isProfileActive
-                ? 'ring-2 ring-primary-500/80 dark:ring-primary-400/80 scale-105 text-primary-600 dark:text-primary-400 font-bold'
-                : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-            }`}
-            aria-label="Profile"
-          >
-            {isProfileActive && (
-              <span className="absolute inset-0 rounded-full -z-10 bg-primary-500 opacity-15 dark:opacity-25 transition-all" />
-            )}
-
-            <div className="relative flex items-center justify-center flex-shrink-0 min-w-[24px] min-h-[24px]">
-              {user?.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user.name || 'Profile'}
-                  className={`w-6 h-6 rounded-full object-cover border-2 transition-all ${
-                    isProfileActive
-                      ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/40'
-                      : 'border-neutral-300 dark:border-neutral-700'
-                  } shadow-xs flex-shrink-0`}
-                />
-              ) : (
-                <User className="w-5 h-5 flex-shrink-0 transition-transform duration-200" />
-              )}
-            </div>
-            <span className="text-[9px] tracking-tight truncate text-center font-medium leading-none mt-[1px]">
-              Profile
-            </span>
-          </Link>
         </div>
       </nav>
 

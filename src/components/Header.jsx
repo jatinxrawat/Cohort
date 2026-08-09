@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon, Sparkles, Users, Bookmark } from 'lucide-react';
+import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon, Sparkles, Users, Bookmark, Settings as SettingsIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/Button';
@@ -83,14 +83,29 @@ export const Header = () => {
         {/* Right Actions (Theme toggle, Search, Profile, Mobile Menu) */}
         <div className="flex items-center gap-2">
           {isAuthenticated && (
-            <Link
-              to="/search"
-              className="md:hidden p-2 text-neutral-600 dark:text-neutral-300 hover:text-sky-500 dark:hover:text-sky-400 hover:bg-sky-500/10 rounded-full transition-all cursor-pointer"
-              aria-label="Search"
-              title="Search"
-            >
-              <Search className="w-5 h-5" />
-            </Link>
+            <>
+              <Link
+                to="/search"
+                className="md:hidden p-2 text-neutral-600 dark:text-neutral-300 hover:text-sky-500 dark:hover:text-sky-400 hover:bg-sky-500/10 rounded-full transition-all cursor-pointer"
+                aria-label="Search"
+                title="Search"
+              >
+                <Search className="w-5 h-5" />
+              </Link>
+              <Link
+                to="/notifications"
+                className="md:hidden p-2 text-neutral-600 dark:text-neutral-300 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/10 rounded-full transition-all relative cursor-pointer"
+                aria-label="Notifications"
+                title="Notifications"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadNotifs > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 bg-rose-500 text-white font-extrabold text-[9px] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-950 animate-pulse">
+                    {unreadNotifs > 99 ? '99+' : unreadNotifs}
+                  </span>
+                )}
+              </Link>
+            </>
           )}
 
           {/* Glowing Theme Toggle Button */}
@@ -160,33 +175,6 @@ export const Header = () => {
               {isAuthenticated ? (
                 <>
                   <Link
-                    to="/search"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-3 p-3 text-neutral-700 dark:text-neutral-200 hover:bg-sky-500/10 hover:text-sky-500 dark:hover:text-sky-400 rounded-2xl transition-all font-medium text-sm"
-                  >
-                    <Search className="w-5 h-5 text-sky-500" />
-                    <span>Search</span>
-                  </Link>
-                  <Link
-                    to="/notifications"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-3 p-3 text-neutral-700 dark:text-neutral-200 hover:bg-indigo-500/10 hover:text-indigo-500 dark:hover:text-indigo-400 rounded-2xl transition-all font-medium text-sm"
-                  >
-                    <Bell className="w-5 h-5 text-indigo-500" />
-                    <span>Notifications</span>
-                  </Link>
-                  <Link
-                    to="/messages"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-3 p-3 text-neutral-700 dark:text-neutral-200 hover:bg-blue-500/10 hover:text-blue-500 dark:hover:text-blue-400 rounded-2xl transition-all font-medium text-sm relative"
-                  >
-                    <MessageSquare className="w-5 h-5 text-blue-500" />
-                    <span>Messages</span>
-                    {hasUnreadMessages && (
-                      <span className="ml-auto w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white dark:ring-neutral-900 animate-pulse" />
-                    )}
-                  </Link>
-                  <Link
                     to="/messages?tab=community"
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center gap-3 p-3 text-neutral-700 dark:text-neutral-200 hover:bg-purple-500/10 hover:text-purple-500 dark:hover:text-purple-400 rounded-2xl transition-all font-medium text-sm"
@@ -211,6 +199,14 @@ export const Header = () => {
                       {user?.name?.charAt(0) || 'U'}
                     </div>
                     <span>My Profile</span>
+                  </Link>
+                  <Link
+                    to="/settings"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-3 p-3 text-neutral-700 dark:text-neutral-200 hover:bg-sky-500/10 hover:text-sky-500 dark:hover:text-sky-400 rounded-2xl transition-all font-medium text-sm"
+                  >
+                    <SettingsIcon className="w-5 h-5 text-sky-500" />
+                    <span>Settings</span>
                   </Link>
                   <button
                     type="button"
