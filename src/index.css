@@ -526,3 +526,12 @@ body.chat-active {
   overscroll-behavior: none !important;
   touch-action: manipulation !important;
 }
+
+/* Hide scrollbars globally for elements with scrollbar-none */
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+}
+.scrollbar-none {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}

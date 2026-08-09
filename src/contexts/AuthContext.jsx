@@ -46,11 +46,13 @@ export const AuthProvider = ({ children }) => {
           const docRef = doc(db, 'users', firebaseUser.uid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            setUser({
+            const profileData = {
               id: firebaseUser.uid,
               uid: firebaseUser.uid,
               ...docSnap.data()
-            });
+            };
+            setUser(profileData);
+            localStorage.setItem(`user_profile_${firebaseUser.uid}`, JSON.stringify(profileData));
             setIsAuthenticated(true);
           } else {
             // New Google user or profile missing in Firestore
@@ -63,24 +65,31 @@ export const AuthProvider = ({ children }) => {
               joinedDate: new Date().toISOString()
             };
             await setDoc(docRef, newProfile);
-            setUser({
+            const profileData = {
               id: firebaseUser.uid,
               uid: firebaseUser.uid,
               ...newProfile
-            });
+            };
+            setUser(profileData);
+            localStorage.setItem(`user_profile_${firebaseUser.uid}`, JSON.stringify(profileData));
             setIsAuthenticated(true);
           }
         } catch (error) {
           console.error('Failed to retrieve user profile from Firestore:', error);
-          const displayName = firebaseUser.displayName || firebaseUser.email.split('@')[0];
-          setUser({
-            id: firebaseUser.uid,
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            name: displayName,
-            college: 'KIET',
-            avatar: firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0ea5e9&color=fff&bold=true&size=128`
-          });
+          const cached = localStorage.getItem(`user_profile_${firebaseUser.uid}`);
+          if (cached) {
+            setUser(JSON.parse(cached));
+          } else {
+            const displayName = firebaseUser.displayName || firebaseUser.email.split('@')[0];
+            setUser({
+              id: firebaseUser.uid,
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              name: displayName,
+              college: 'KIET',
+              avatar: firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0ea5e9&color=fff&bold=true&size=128`
+            });
+          }
           setIsAuthenticated(true);
         }
       } else {
@@ -132,6 +141,43 @@ export const AuthProvider = ({ children }) => {
 
     return () => unsub();
   }, [user?.uid, user?.name, user?.email]);
+
+  // Register for push notifications on native mobile when logged in
+  useEffect(() => {
+    if (!user?.uid || !Capacitor.isNativePlatform()) return;
+
+    const registerPush = async () => {
+      try {
+        const { PushNotifications } = await import('@capacitor/push-notifications');
+        
+        let permStatus = await PushNotifications.checkPermissions();
+        if (permStatus.receive === 'prompt') {
+          permStatus = await PushNotifications.requestPermissions();
+        }
+        
+        if (permStatus.receive === 'granted') {
+          await PushNotifications.register();
+          
+          await PushNotifications.addListener('registration', async (token) => {
+            if (token?.value && user?.uid) {
+              const userRef = doc(db, 'users', user.uid);
+              await updateDoc(userRef, { fcmToken: token.value }).catch(err => {
+                console.warn('Failed to save FCM token to Firestore:', err);
+              });
+            }
+          });
+
+          await PushNotifications.addListener('registrationError', (err) => {
+            console.error('FCM registration error:', err);
+          });
+        }
+      } catch (err) {
+        console.warn('Push registration hook error:', err);
+      }
+    };
+
+    registerPush();
+  }, [user?.uid]);
 
   const loginWithGoogle = async () => {
     if (Capacitor.isNativePlatform()) {
@@ -218,6 +264,9 @@ export const AuthProvider = ({ children }) => {
 
   const confirmLogout = async () => {
     setIsLogoutModalOpen(false);
+    if (user?.uid) {
+      localStorage.removeItem(`user_profile_${user.uid}`);
+    }
     setUser(null);
     setIsAuthenticated(false);
     setHasUnreadMessages(false);
@@ -230,6 +279,9 @@ export const AuthProvider = ({ children }) => {
 
   const forceLogout = async () => {
     setIsLogoutModalOpen(false);
+    if (auth.currentUser?.uid) {
+      localStorage.removeItem(`user_profile_${auth.currentUser.uid}`);
+    }
     setUser(null);
     setIsAuthenticated(false);
     setHasUnreadMessages(false);
@@ -409,7 +461,11 @@ export const AuthProvider = ({ children }) => {
     const newAvatar = updates.avatar;
     const newUsername = updates.username;
 
-    setUser(prev => ({ ...prev, ...updates }));
+    setUser(prev => {
+      const updated = { ...prev, ...updates };
+      localStorage.setItem(`user_profile_${uid}`, JSON.stringify(updated));
+      return updated;
+    });
 
     if (newName || newAvatar || newUsername) {
       syncUserProfileAcrossFirestore(uid, newName, newAvatar, newUsername);
