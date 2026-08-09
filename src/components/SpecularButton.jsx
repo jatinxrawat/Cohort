@@ -184,20 +184,27 @@ const SpecularButton = ({
     const lineC = new Color();
     const baseC = new Color();
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
     const update = now => {
-      raf = requestAnimationFrame(update);
+      const p = propsRef.current;
+      const effectiveAutoAnimate = p.autoAnimate && !isMobile;
+      
+      if (!isMobile || proximityT > 0) {
+        raf = requestAnimationFrame(update);
+      }
+
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
-      const p = propsRef.current;
 
       idleAngle += p.speed * dt;
-      const steer = p.followMouse && pointerAngle != null && (!p.autoAnimate || proximityT > 0);
+      const steer = p.followMouse && pointerAngle != null && (!effectiveAutoAnimate || proximityT > 0);
       const target = steer ? pointerAngle : idleAngle;
       const diff = ((target - angle + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
       angle += diff * (1 - Math.exp(-dt * 7));
 
       // Shine fades in with pointer proximity unless autoAnimate keeps it on
-      const brightTarget = p.autoAnimate ? 1 : proximityT;
+      const brightTarget = effectiveAutoAnimate ? 1 : proximityT;
       bright += (brightTarget - bright) * (1 - Math.exp(-dt * 8));
 
       lineC.set(p.lineColor);

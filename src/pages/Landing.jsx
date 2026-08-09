@@ -190,8 +190,11 @@ export default function Landing() {
       {/* --- FIZZ-STYLE HERO BANNER CONTAINER (AURORA EFFECT) --- */}
       <div className="relative rounded-[32px] sm:rounded-[40px] bg-neutral-950 border border-neutral-800 p-5 sm:p-10 lg:p-14 text-white shadow-2xl overflow-hidden">
         
-        {/* React Bits Aurora WebGL Background Effect Layer */}
-        <div className="absolute inset-0 pointer-events-none opacity-65 z-0 overflow-hidden">
+        {/* Mobile Static Glow (Ultra Fast, Zero GPU Shader Overhead) */}
+        <div className="md:hidden absolute inset-0 pointer-events-none opacity-60 z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/50 via-neutral-950 to-neutral-950" />
+
+        {/* Desktop WebGL Aurora Background Layer (Hidden on Mobile) */}
+        <div className="hidden md:block absolute inset-0 pointer-events-none opacity-65 z-0 overflow-hidden">
           <Aurora
             colorStops={["#7c3aed", "#c084fc", "#ec4899"]}
             blend={0.6}
@@ -318,8 +321,8 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Right Column: Floating 3D Interactive Mockup Cards */}
-          <div className="lg:col-span-5 relative space-y-4">
+          {/* Right Column: Floating 3D Interactive Mockup Cards (Hidden on Mobile) */}
+          <div className="hidden lg:block lg:col-span-5 relative space-y-4">
             
             {/* Live Confession Card Preview */}
             <div className="bg-neutral-900/90 backdrop-blur-xl border border-white/20 rounded-3xl p-5 shadow-2xl text-left transform -rotate-1 hover:rotate-0 transition-transform duration-300">
@@ -500,79 +503,81 @@ export default function Landing() {
           </div>
         </BorderGlow>
 
-        {/* RIGHT CARD: 3D FEATURE OPTION WHEEL */}
-        <BorderGlow
-          borderRadius={36}
-          backgroundColor="#120F17"
-          glowColor="310 85 75"
-          glowRadius={50}
-          glowIntensity={1.2}
-          coneSpread={30}
-          animated={true}
-          colors={['#f472b6', '#c084fc', '#eab308']}
-          className="h-full"
-        >
-          <div className="p-6 sm:p-8 flex flex-col justify-between space-y-4 text-left min-h-[420px] sm:min-h-[460px] relative overflow-hidden h-full" id="feature-wheel-section">
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-bold mb-2.5">
-                ✦ FEATURE WHEEL
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-display font-black text-white tracking-tight">
-                Explore Cohort Features
-              </h2>
-              <p className="text-xs sm:text-sm text-neutral-400 font-medium mt-0.5">
-                Use controls or scroll to discover features
-              </p>
-            </div>
-
-            {/* Full Card 3D OptionWheel Container */}
-            <div className="relative h-72 sm:h-80 bg-neutral-950/90 border border-neutral-800 rounded-3xl overflow-hidden shadow-inner flex items-center justify-center p-2">
-              <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-neutral-950 via-neutral-950/80 to-transparent pointer-events-none z-10" />
-              <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-neutral-950 via-neutral-950/80 to-transparent pointer-events-none z-10" />
-              
-              {/* Step Controls (Up / Down Arrows) */}
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => optionWheelRef.current?.stepPrev()}
-                  className="w-9 h-9 rounded-full bg-neutral-900/90 hover:bg-purple-600 border border-neutral-700 hover:border-purple-400 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-lg active:scale-90"
-                  aria-label="Previous feature"
-                  title="Previous feature"
-                >
-                  <ChevronUp className="w-5 h-5 stroke-[2.5]" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => optionWheelRef.current?.stepNext()}
-                  className="w-9 h-9 rounded-full bg-neutral-900/90 hover:bg-purple-600 border border-neutral-700 hover:border-purple-400 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-lg active:scale-90"
-                  aria-label="Next feature"
-                  title="Next feature"
-                >
-                  <ChevronDown className="w-5 h-5 stroke-[2.5]" />
-                </button>
+        {/* RIGHT CARD: 3D FEATURE OPTION WHEEL (Hidden on Mobile) */}
+        <div className="hidden lg:block h-full">
+          <BorderGlow
+            borderRadius={36}
+            backgroundColor="#120F17"
+            glowColor="310 85 75"
+            glowRadius={50}
+            glowIntensity={1.2}
+            coneSpread={30}
+            animated={true}
+            colors={['#f472b6', '#c084fc', '#eab308']}
+            className="h-full"
+          >
+            <div className="p-6 sm:p-8 flex flex-col justify-between space-y-4 text-left min-h-[420px] sm:min-h-[460px] relative overflow-hidden h-full" id="feature-wheel-section">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-bold mb-2.5">
+                  ✦ FEATURE WHEEL
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-display font-black text-white tracking-tight">
+                  Explore Cohort Features
+                </h2>
+                <p className="text-xs sm:text-sm text-neutral-400 font-medium mt-0.5">
+                  Use controls or scroll to discover features
+                </p>
               </div>
 
-              <OptionWheel
-                ref={optionWheelRef}
-                items={FEATURE_ITEMS}
-                defaultSelected={0}
-                textColor="#737373"
-                activeColor="#c084fc"
-                side="left"
-                fontSize={1.75}
-                spacing={1.65}
-                curve={1.1}
-                tilt={9}
-                blur={0}
-                fade={0.35}
-                smoothing={200}
-                inset={32}
-                loop={true}
-                draggable={true}
-              />
+              {/* Full Card 3D OptionWheel Container */}
+              <div className="relative h-72 sm:h-80 bg-neutral-950/90 border border-neutral-800 rounded-3xl overflow-hidden shadow-inner flex items-center justify-center p-2">
+                <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-neutral-950 via-neutral-950/80 to-transparent pointer-events-none z-10" />
+                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-neutral-950 via-neutral-950/80 to-transparent pointer-events-none z-10" />
+                
+                {/* Step Controls (Up / Down Arrows) */}
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => optionWheelRef.current?.stepPrev()}
+                    className="w-9 h-9 rounded-full bg-neutral-900/90 hover:bg-purple-600 border border-neutral-700 hover:border-purple-400 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-lg active:scale-90"
+                    aria-label="Previous feature"
+                    title="Previous feature"
+                  >
+                    <ChevronUp className="w-5 h-5 stroke-[2.5]" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => optionWheelRef.current?.stepNext()}
+                    className="w-9 h-9 rounded-full bg-neutral-900/90 hover:bg-purple-600 border border-neutral-700 hover:border-purple-400 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-lg active:scale-90"
+                    aria-label="Next feature"
+                    title="Next feature"
+                  >
+                    <ChevronDown className="w-5 h-5 stroke-[2.5]" />
+                  </button>
+                </div>
+
+                <OptionWheel
+                  ref={optionWheelRef}
+                  items={FEATURE_ITEMS}
+                  defaultSelected={0}
+                  textColor="#737373"
+                  activeColor="#c084fc"
+                  side="left"
+                  fontSize={1.75}
+                  spacing={1.65}
+                  curve={1.1}
+                  tilt={9}
+                  blur={0}
+                  fade={0.35}
+                  smoothing={200}
+                  inset={32}
+                  loop={true}
+                  draggable={true}
+                />
+              </div>
             </div>
-          </div>
-        </BorderGlow>
+          </BorderGlow>
+        </div>
 
       </div>
 
