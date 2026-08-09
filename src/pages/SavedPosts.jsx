@@ -82,7 +82,7 @@ export default function SavedPosts() {
                   </div>
 
                   {/* Content */}
-                  <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed mb-lg">
+                  <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed mb-lg whitespace-pre-wrap break-words">
                     {post.content}
                   </p>
 

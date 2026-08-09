@@ -988,13 +988,13 @@ export default function Profile() {
                                 {post.originalPost?.author?.name || 'Student'}
                               </span>
                             </div>
-                            <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed line-clamp-2">
+                            <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed line-clamp-2 whitespace-pre-wrap break-words">
                               {post.originalPost?.content || post.content}
                             </p>
                           </div>
                         ) : (
                           <>
-                            <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed">
+                            <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed whitespace-pre-wrap break-words">
                               {post.content}
                             </p>
                             {post.imageUrl && (

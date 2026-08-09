@@ -305,7 +305,7 @@ export default function Search() {
                             <span className="text-[10px] text-neutral-400 block font-medium">Campus Post</span>
                           </div>
                         </div>
-                        <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed mb-md">
+                        <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed mb-md whitespace-pre-wrap break-words">
                           {post.content}
                         </p>
                         {post.imageUrl && (
