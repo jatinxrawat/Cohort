@@ -4,12 +4,8 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { Layout } from '@/components/Layout';
-<<<<<<< HEAD
-import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { AnimatePresence, motion } from 'framer-motion';
-=======
 import { ProtectedRoute, PublicOnlyRoute } from '@/components/ProtectedRoute';
->>>>>>> 5e64ca5c39c10dcbd8451392b70c38470f1fecd9
+import { AnimatePresence, motion } from 'framer-motion';
 
 // Lazy load pages
 const Landing = lazy(() => import('@/pages/Landing'));

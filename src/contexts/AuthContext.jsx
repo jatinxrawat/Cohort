@@ -8,11 +8,8 @@ import {
   sendPasswordResetEmail,
   GoogleAuthProvider,
   signInWithPopup,
-<<<<<<< HEAD
-  signInWithCredential
-=======
+  signInWithCredential,
   updatePassword
->>>>>>> 5e64ca5c39c10dcbd8451392b70c38470f1fecd9
 } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
