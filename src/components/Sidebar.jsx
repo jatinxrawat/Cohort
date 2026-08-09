@@ -15,6 +15,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserAvatar } from '@/components/UserAvatar';
 
 const navItems = [
   { path: '/home', label: 'Home', icon: Home },
@@ -104,17 +105,11 @@ export const Sidebar = () => {
               : 'text-neutral-700 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
           } ${!isExpanded ? 'justify-center' : ''}`}
         >
-          {user?.avatar ? (
-            <img
-              src={user.avatar}
-              alt={user.name || 'Profile'}
-              className="w-6 h-6 rounded-full object-cover border border-primary-500/50 flex-shrink-0"
-            />
-          ) : (
-            <div className="w-6 h-6 rounded-full bg-primary-500 text-white font-bold text-xs flex items-center justify-center flex-shrink-0">
-              {user?.name?.charAt(0) || 'U'}
-            </div>
-          )}
+          <UserAvatar
+            src={user?.avatar}
+            name={user?.name || 'Profile'}
+            className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+          />
           <span
             className={`text-sm font-medium whitespace-nowrap transition-all duration-300 ${
               isExpanded ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0 hidden'

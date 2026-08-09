@@ -71,7 +71,7 @@ function App() {
                 <Routes>
                   {/* Public Routes (Auto-redirects to /home if logged in) */}
                   <Route path="/" element={<PublicOnlyRoute><Landing /></PublicOnlyRoute>} />
-                  <Route path="/login" element={<Navigate to="/signup" replace />} />
+                  <Route path="/login" element={<PublicOnlyRoute><Signup /></PublicOnlyRoute>} />
                   <Route path="/signup" element={<PublicOnlyRoute><Signup /></PublicOnlyRoute>} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
 

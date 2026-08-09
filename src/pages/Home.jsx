@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { collection, addDoc, doc, deleteDoc, updateDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 import { PostCard } from '@/components/PostCard';
-import { Image, Smile, AlertCircle, X } from 'lucide-react';
+import { Image, Smile, AlertCircle, X, Pin, BarChart3, Check } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
+import { UserAvatar } from '@/components/UserAvatar';
 import { uploadImageToCloudinary } from '@/utils/cloudinary';
 
 const FAKE_NAMES = [
@@ -39,6 +40,65 @@ export default function Home() {
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const imageInputRef = useRef(null);
+
+  // Pinned Daily Poll State
+  const [selectedHomePollIndex, setSelectedHomePollIndex] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cohort_home_poll_selected');
+      return saved !== null ? Number(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const [homePollVotes, setHomePollVotes] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cohort_home_poll_votes');
+      return saved ? JSON.parse(saved) : [
+        { label: 'Only if there is free double shot espresso', count: 84 },
+        { label: 'Yes, sleep is for the weak', count: 36 },
+        { label: 'I study CS. The sun is a myth.', count: 80 }
+      ];
+    } catch (e) {
+      return [
+        { label: 'Only if there is free double shot espresso', count: 84 },
+        { label: 'Yes, sleep is for the weak', count: 36 },
+        { label: 'I study CS. The sun is a myth.', count: 80 }
+      ];
+    }
+  });
+
+  const handleToggleHomePollVote = (index) => {
+    setHomePollVotes(prev => {
+      const updated = prev.map((opt, i) => {
+        if (i === index) {
+          const isRemoving = selectedHomePollIndex === index;
+          return { ...opt, count: isRemoving ? Math.max(0, opt.count - 1) : opt.count + 1 };
+        } else if (selectedHomePollIndex === i) {
+          return { ...opt, count: Math.max(0, opt.count - 1) };
+        }
+        return opt;
+      });
+      try {
+        localStorage.setItem('cohort_home_poll_votes', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    setSelectedHomePollIndex(prev => {
+      const next = (prev === index ? null : index);
+      try {
+        if (next !== null) {
+          localStorage.setItem('cohort_home_poll_selected', String(next));
+        } else {
+          localStorage.removeItem('cohort_home_poll_selected');
+        }
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  const totalHomePollVotes = homePollVotes.reduce((acc, curr) => acc + curr.count, 0);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -165,6 +225,22 @@ export default function Home() {
     const newUpvotesCount = upvoted.length;
     const newDownvotesCount = downvoted.length;
 
+    // 1. Optimistic local state update (0ms UI latency)
+    setPosts(prevPosts =>
+      prevPosts.map(p =>
+        p.id === postId
+          ? {
+              ...p,
+              upvotes: newUpvotesCount,
+              downvotes: newDownvotesCount,
+              upvotedUsers: upvoted,
+              downvotedUsers: downvoted
+            }
+          : p
+      )
+    );
+
+    // 2. Firestore async persistence
     try {
       const docRef = doc(db, 'posts', targetPost.docId);
       await updateDoc(docRef, {
@@ -220,9 +296,9 @@ export default function Home() {
         {/* Create Post */}
         <div className="mb-lg p-4 sm:p-5 rounded-3xl bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200/80 dark:border-neutral-800/80 shadow-lg shadow-black/5 dark:shadow-black/30 transition-all">
           <div className="flex gap-3 sm:gap-4">
-            <img
-              src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || 'user')}`}
-              alt={user?.name || 'User'}
+            <UserAvatar
+              src={user?.avatar}
+              name={user?.name || 'User'}
               className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shadow-sm ring-2 ring-neutral-200/50 dark:ring-neutral-700/50 flex-shrink-0"
             />
             <div className="flex-1 min-w-0">

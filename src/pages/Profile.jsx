@@ -7,7 +7,8 @@ import { Modal } from '@/components/Modal';
 import { Input } from '@/components/Input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
-import { formatRelativeTime, compressImage } from '@/utils/helpers';
+import { formatRelativeTime, compressImage, getAvatarUrl } from '@/utils/helpers';
+import { UserAvatar } from '@/components/UserAvatar';
 import { uploadImageToCloudinary } from '@/utils/cloudinary';
 import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, query, where, deleteDoc, increment, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
@@ -758,9 +759,9 @@ export default function Profile() {
             </div>
           </div>
           <div className="absolute -bottom-6 left-lg">
-            <img
-              src={profileUser?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(profileUser?.email || 'user')}`}
-              alt={profileUser?.name || 'User'}
+            <UserAvatar
+              src={profileUser?.avatar}
+              name={profileUser?.name || 'User'}
               className="w-24 h-24 rounded-full border-4 border-white dark:border-neutral-900 shadow-md object-cover"
             />
           </div>
@@ -978,9 +979,9 @@ export default function Profile() {
                         {post.isReshare ? (
                           <div className="border border-neutral-200 dark:border-neutral-700/80 rounded-xl p-md bg-neutral-50/50 dark:bg-neutral-800/40 space-y-xs">
                             <div className="flex items-center gap-sm">
-                              <img
-                                src={post.originalPost?.author?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'}
-                                alt="Author"
+                              <UserAvatar
+                                src={post.originalPost?.author?.avatar}
+                                name={post.originalPost?.author?.name || 'Student'}
                                 className="w-6 h-6 rounded-full object-cover"
                               />
                               <span className="font-bold text-xs text-neutral-900 dark:text-white">
@@ -1749,9 +1750,9 @@ export default function Profile() {
                   <div key={c.id} className="p-md rounded-xl bg-neutral-100/70 dark:bg-neutral-800/50 border border-neutral-200/40 dark:border-neutral-700/40 space-y-xs">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-sm">
-                        <img
-                          src={c.authorAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c.authorName || 'u')}`}
-                          alt={c.authorName}
+                        <UserAvatar
+                          src={c.authorAvatar}
+                          name={c.authorName || 'Student'}
                           className="w-6 h-6 rounded-full object-cover border border-neutral-700"
                         />
                         <span className="font-bold text-xs text-neutral-900 dark:text-white">

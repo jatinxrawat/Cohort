@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 export const LogoIcon = ({ className = "w-8 h-8", size, glow = true, variant = "badge" }) => {
   const style = size ? { width: size, height: size } : {};
   return (
-    <div className={`relative flex items-center justify-center flex-shrink-0 ${glow && variant === 'badge' ? 'brand-logo-icon' : ''}`}>
+    <div className={`relative flex items-center justify-center flex-shrink-0 ${variant === 'badge' ? 'rounded-[30%] overflow-hidden' : ''} ${glow && variant === 'badge' ? 'brand-logo-icon' : ''}`}>
       <svg
         viewBox="0 0 32 32"
         fill="none"

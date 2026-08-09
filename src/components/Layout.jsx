@@ -13,6 +13,7 @@ export const Layout = ({ children }) => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
   const isLandingPage = location.pathname === '/';
+  const isAuthPage = location.pathname === '/signup' || location.pathname === '/login' || location.pathname === '/forgot-password';
   const isMessagesPage = location.pathname === '/messages';
   const isCommunityPage = location.pathname === '/community';
   const isChatRoute = isMessagesPage || isCommunityPage;
@@ -57,6 +58,18 @@ export const Layout = ({ children }) => {
     );
   }
 
+  if (isAuthPage) {
+    return (
+      <div className="h-screen w-screen overflow-hidden bg-black font-sans">
+        <main className="w-full h-full overflow-hidden">
+          {children}
+        </main>
+        <UsernameModal />
+        <ToastContainer notifications={notifications} />
+      </div>
+    );
+  }
+
   return (
     <div
       className={`flex flex-col bg-white dark:bg-neutral-900 ${
@@ -65,7 +78,7 @@ export const Layout = ({ children }) => {
           : 'min-h-screen'
       }`}
     >
-      <div className={isChatRoute ? 'hidden md:block' : 'block'}>
+      <div className={isChatRoute ? 'hidden md:block sticky top-0 z-50' : 'block sticky top-0 z-50'}>
         <Header />
       </div>
       

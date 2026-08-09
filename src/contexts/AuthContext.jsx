@@ -22,7 +22,8 @@ import {
   onSnapshot,
   query,
   where,
-  getDocs
+  getDocs,
+  writeBatch
 } from 'firebase/firestore';
 import { auth, db } from '@/utils/firebase';
 
@@ -53,11 +54,12 @@ export const AuthProvider = ({ children }) => {
             setIsAuthenticated(true);
           } else {
             // New Google user or profile missing in Firestore
+            const displayName = firebaseUser.displayName || firebaseUser.email.split('@')[0];
             const newProfile = {
-              name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+              name: displayName,
               email: firebaseUser.email,
               college: 'KIET',
-              avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(firebaseUser.email)}`,
+              avatar: firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0ea5e9&color=fff&bold=true&size=128`,
               joinedDate: new Date().toISOString()
             };
             await setDoc(docRef, newProfile);
@@ -70,13 +72,14 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (error) {
           console.error('Failed to retrieve user profile from Firestore:', error);
+          const displayName = firebaseUser.displayName || firebaseUser.email.split('@')[0];
           setUser({
             id: firebaseUser.uid,
             uid: firebaseUser.uid,
             email: firebaseUser.email,
-            name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+            name: displayName,
             college: 'KIET',
-            avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(firebaseUser.email)}`
+            avatar: firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0ea5e9&color=fff&bold=true&size=128`
           });
           setIsAuthenticated(true);
         }
@@ -233,12 +236,184 @@ export const AuthProvider = ({ children }) => {
     return await signOut(auth);
   };
 
+  const syncUserProfileAcrossFirestore = async (uid, newName, newAvatar, newUsername) => {
+    if (!uid) return;
+
+    try {
+      const batch = writeBatch(db);
+      let batchCount = 0;
+
+      // 1. Sync Posts where user is author or has comments
+      const postsRef = collection(db, 'posts');
+      const postsSnap = await getDocs(postsRef);
+      
+      postsSnap.forEach((docSnap) => {
+        const post = docSnap.data();
+        let postUpdated = false;
+        const postRef = doc(db, 'posts', docSnap.id);
+        const updatePayload = {};
+
+        // Author sync
+        if (post.author?.uid === uid || post.authorUid === uid) {
+          if (newName) updatePayload['author.name'] = newName;
+          if (newAvatar) updatePayload['author.avatar'] = newAvatar;
+          if (newUsername) updatePayload['author.username'] = newUsername;
+          postUpdated = true;
+        }
+
+        // Comments array sync
+        if (Array.isArray(post.comments) && post.comments.length > 0) {
+          let commentsUpdated = false;
+          const updatedComments = post.comments.map(c => {
+            if (c.authorUid === uid || c.author?.uid === uid || c.uid === uid) {
+              commentsUpdated = true;
+              return {
+                ...c,
+                authorName: newName || c.authorName,
+                authorAvatar: newAvatar || c.authorAvatar,
+                author: {
+                  ...(c.author || {}),
+                  name: newName || c.author?.name,
+                  avatar: newAvatar || c.author?.avatar
+                }
+              };
+            }
+            return c;
+          });
+
+          if (commentsUpdated) {
+            updatePayload.comments = updatedComments;
+            postUpdated = true;
+          }
+        }
+
+        if (postUpdated) {
+          batch.update(postRef, updatePayload);
+          batchCount++;
+        }
+      });
+
+      // 2. Sync Messages / Conversations collection
+      const messagesRef = collection(db, 'messages');
+      const messagesSnap = await getDocs(messagesRef);
+
+      messagesSnap.forEach((docSnap) => {
+        const chat = docSnap.data();
+        const chatRef = doc(db, 'messages', docSnap.id);
+        let chatUpdated = false;
+        const updatePayload = {};
+
+        // Sync participant maps
+        if (Array.isArray(chat.participants) && chat.participants.includes(uid)) {
+          if (chat.participantNames) {
+            updatePayload[`participantNames.${uid}`] = newName;
+            chatUpdated = true;
+          }
+          if (chat.participantAvatars) {
+            updatePayload[`participantAvatars.${uid}`] = newAvatar;
+            chatUpdated = true;
+          }
+          if (chat.lastSenderUid === uid) {
+            if (newName) updatePayload.lastSenderName = newName;
+            if (newAvatar) updatePayload.lastSenderAvatar = newAvatar;
+            chatUpdated = true;
+          }
+        }
+
+        // Sync message array inside thread
+        if (Array.isArray(chat.messages) && chat.messages.length > 0) {
+          let msgsUpdated = false;
+          const updatedMsgs = chat.messages.map(m => {
+            if (m.senderUid === uid || m.sender?.uid === uid) {
+              msgsUpdated = true;
+              return {
+                ...m,
+                senderName: newName || m.senderName,
+                senderAvatar: newAvatar || m.senderAvatar,
+                sender: m.sender ? {
+                  ...m.sender,
+                  name: newName || m.sender.name,
+                  avatar: newAvatar || m.sender.avatar
+                } : undefined
+              };
+            }
+            return m;
+          });
+
+          if (msgsUpdated) {
+            updatePayload.messages = updatedMsgs;
+            chatUpdated = true;
+          }
+        }
+
+        if (chatUpdated) {
+          batch.update(chatRef, updatePayload);
+          batchCount++;
+        }
+      });
+
+      // 3. Sync Community Messages collection
+      const commMsgsRef = collection(db, 'community-messages');
+      const commMsgsSnap = await getDocs(commMsgsRef);
+
+      commMsgsSnap.forEach((docSnap) => {
+        const msg = docSnap.data();
+        if (msg.senderUid === uid || msg.sender?.uid === uid) {
+          const msgRef = doc(db, 'community-messages', docSnap.id);
+          const msgUpdate = {};
+          if (newName) {
+            msgUpdate.senderName = newName;
+            msgUpdate['sender.name'] = newName;
+          }
+          if (newAvatar) {
+            msgUpdate.senderAvatar = newAvatar;
+            msgUpdate['sender.avatar'] = newAvatar;
+          }
+          batch.update(msgRef, msgUpdate);
+          batchCount++;
+        }
+      });
+
+      // 4. Sync Notifications
+      const notifsRef = collection(db, 'notifications');
+      const notifsSnap = await getDocs(notifsRef);
+
+      notifsSnap.forEach((docSnap) => {
+        const notif = docSnap.data();
+        if (notif.senderUid === uid) {
+          const notifRef = doc(db, 'notifications', docSnap.id);
+          const notifUpdate = {};
+          if (newName) notifUpdate.senderName = newName;
+          if (newAvatar) notifUpdate.senderAvatar = newAvatar;
+          batch.update(notifRef, notifUpdate);
+          batchCount++;
+        }
+      });
+
+      if (batchCount > 0) {
+        await batch.commit();
+        console.log(`Synced user profile across ${batchCount} Firestore documents.`);
+      }
+    } catch (err) {
+      console.error('Error syncing profile across Firestore:', err);
+    }
+  };
+
   const updateUser = async (updates) => {
     if (!auth.currentUser) return;
     const uid = auth.currentUser.uid;
     const docRef = doc(db, 'users', uid);
     await updateDoc(docRef, updates);
+
+    const newName = updates.name;
+    const newAvatar = updates.avatar;
+    const newUsername = updates.username;
+
     setUser(prev => ({ ...prev, ...updates }));
+
+    if (newName || newAvatar || newUsername) {
+      syncUserProfileAcrossFirestore(uid, newName, newAvatar, newUsername);
+    }
   };
 
   const requestPasswordReset = (email) => {

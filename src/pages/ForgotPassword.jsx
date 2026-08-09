@@ -3,11 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Lock, ArrowRight, Eye, EyeOff, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { useNotification } from '@/contexts/NotificationContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Logo } from '@/components/Logo';
+import { LogoIcon } from '@/components/Logo';
+import Scanner from '@/components/Scanner';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
-  const { showSuccess, showError } = useNotification();
+  const { showSuccess } = useNotification();
   const { loginWithGoogle, setPasswordForUser } = useAuth();
   
   const [step, setStep] = useState(1);
@@ -50,7 +51,7 @@ export default function ForgotPassword() {
     setIsLoading(true);
     try {
       await setPasswordForUser(newPassword);
-      showSuccess('Password updated successfully! You can now log in using your new password.');
+      showSuccess('Password updated successfully!');
       navigate('/signup');
     } catch (err) {
       console.error(err);
@@ -61,162 +62,169 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-12 bg-neutral-950 text-white relative overflow-hidden selection:bg-sky-500 selection:text-white">
-      {/* Ambient Background Glowing Orbs */}
-      <div className="absolute top-1/4 -left-28 w-96 h-96 bg-sky-500/20 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-28 w-96 h-96 bg-indigo-500/20 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-purple-600/10 rounded-full blur-[160px] pointer-events-none" />
+    <div className="h-screen overflow-hidden bg-black text-white relative flex flex-col justify-between selection:bg-purple-500 selection:text-white font-sans">
+      
+      {/* Full-Screen React Bits <Scanner /> WebGL Component Background */}
+      <div className="absolute inset-0 z-0 opacity-65 pointer-events-none">
+        <Scanner
+          color1="#963BFF"
+          color2="#FF2A85"
+          color3="#00F0FF"
+          speed={0.4}
+          sweepSpeed={0.3}
+          sweepWidth={1.4}
+          sweepFalloff={5}
+          scale={1.4}
+          frequency={2.2}
+          ripple={0.25}
+          bandDensity={10}
+          lineSharpness={5.0}
+          glow={0.3}
+          scanDirection="diagonal"
+          colorSpread={0.8}
+          brightness={1.1}
+          contrast={1.2}
+          softness={1.3}
+          vignette={0.4}
+          scanline={true}
+          grain={true}
+          grainIntensity={0.04}
+          opacity={0.85}
+          mouseInteraction={true}
+          mouseRadius={0.6}
+          mouseStrength={0.6}
+        />
+      </div>
 
-      <div className="w-full max-w-md relative z-10">
-        {/* Header Logo & Title */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <Logo isLanding={false} iconSize="w-12 h-12" textSize="text-3xl" className="flex items-center gap-3 hover:scale-105 transition-transform" />
+      {/* Background ambient lighting */}
+      <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute bottom-10 right-1/3 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[180px] pointer-events-none" />
+
+      {/* --- TOP NAVBAR --- */}
+      <header className="relative z-30 px-6 sm:px-12 py-3 flex items-center justify-end flex-shrink-0">
+        <Link
+          to="/signup"
+          className="text-xs sm:text-sm font-extrabold px-5 py-2 rounded-full bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-neutral-200 transition-all cursor-pointer"
+        >
+          Sign In
+        </Link>
+      </header>
+
+      {/* --- MAIN HERO 2-COLUMN SPLIT GRID --- */}
+      <main className="relative z-20 max-w-7xl w-full mx-auto px-6 sm:px-12 py-2 grid grid-cols-1 lg:grid-cols-12 items-center gap-8 lg:gap-12 flex-1 overflow-y-auto lg:overflow-visible">
+        
+        {/* LEFT COLUMN: TYPOGRAPHY + VERIFICATION FORM */}
+        <div className="lg:col-span-6 space-y-5 text-left max-w-xl">
+          
+          <div>
+            <h1 className="font-unbounded font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight text-white leading-[1.05] mb-3">
+              Reset <br />
+              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-300 bg-clip-text text-transparent">password.</span>
+            </h1>
+            <p className="font-jakarta text-base sm:text-lg text-neutral-300 font-bold tracking-tight">
+              {step === 1
+                ? 'Verify your identity using Google to create a new password.'
+                : 'Set a new password for your username and email login.'}
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-display font-black tracking-tight mb-1 text-white">
-            {step === 1 ? 'Reset Password' : 'Create New Password'}
-          </h1>
-          <p className="text-xs sm:text-sm text-neutral-400 font-medium">
-            {step === 1
-              ? 'Verify your identity using Google to create a new password'
-              : 'Set a new password for your username and email login'}
-          </p>
-        </div>
 
-        {/* Progress Bar */}
-        <div className="flex gap-2 mb-6">
-          <div className={`h-1 flex-1 rounded-full transition-colors ${step >= 1 ? 'bg-sky-500 shadow-sm shadow-sky-500/50' : 'bg-neutral-800'}`} />
-          <div className={`h-1 flex-1 rounded-full transition-colors ${step >= 2 ? 'bg-sky-500 shadow-sm shadow-sky-500/50' : 'bg-neutral-800'}`} />
-        </div>
+          {/* Form Card */}
+          <div className="max-w-sm space-y-4 pt-1">
+            
+            {step === 1 ? (
+              /* Step 1: Google Verification */
+              <div className="space-y-4">
+                {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
 
-        {/* Elevated Glassmorphism Card */}
-        <div className="relative bg-neutral-900/75 backdrop-blur-2xl border border-white/10 dark:border-neutral-800/90 rounded-3xl p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.6)] space-y-6">
-          {step === 1 ? (
-            /* Step 1: Google Verification */
-            <div className="text-center space-y-5">
-              <div className="w-16 h-16 rounded-3xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center mx-auto text-sky-400 shadow-lg">
-                <ShieldCheck className="w-8 h-8 animate-pulse" />
+                {/* White Pill Google Button */}
+                <button
+                  type="button"
+                  onClick={handleGoogleVerify}
+                  disabled={isGoogleLoading}
+                  className="w-full py-3.5 px-6 bg-white hover:bg-neutral-100 text-neutral-900 font-extrabold text-sm rounded-full shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 cursor-pointer border border-white"
+                >
+                  <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span>{isGoogleLoading ? 'Verifying...' : 'Verify with Google'}</span>
+                </button>
               </div>
+            ) : (
+              /* Step 2: Create New Password */
+              <form onSubmit={handleResetPassword} className="space-y-3">
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-2">
+                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                  <span>Identity verified! Enter your new password.</span>
+                </div>
 
-              <div>
-                <h3 className="text-lg font-heading font-extrabold text-white mb-1">
-                  Google Verification
-                </h3>
-                <p className="text-xs text-neutral-400 leading-relaxed max-w-xs mx-auto">
-                  To protect your account, verify your identity with Google before creating a new password.
-                </p>
-              </div>
-
-              {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
-
-              {/* Glowing Google Verification Button */}
-              <button
-                type="button"
-                onClick={handleGoogleVerify}
-                disabled={isGoogleLoading}
-                className="w-full py-4 px-4 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-extrabold rounded-2xl transition-all flex items-center justify-center gap-3 shadow-[0_4px_25px_rgba(14,165,233,0.35)] active:scale-[0.99] text-sm cursor-pointer"
-              >
-                <svg className="w-5 h-5 flex-shrink-0 bg-white rounded-full p-0.5" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                  />
-                </svg>
-                <span>{isGoogleLoading ? 'Verifying...' : 'Verify with Google'}</span>
-              </button>
-            </div>
-          ) : (
-            /* Step 2: Create New Password */
-            <form onSubmit={handleResetPassword} className="space-y-4">
-              <div className="flex items-center gap-2 p-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-2 shadow-xs">
-                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                <span>Identity verified! Enter your new password below.</span>
-              </div>
-
-              {/* New Password */}
-              <div>
-                <label className="block text-[11px] font-bold text-neutral-400 mb-1.5 uppercase tracking-wider">
-                  NEW PASSWORD
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500 group-focus-within:text-sky-400 transition-colors">
-                    <Lock className="w-4 h-4" />
-                  </div>
+                <div>
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="At least 6 characters"
+                    placeholder="New password (min 6 chars)"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full bg-neutral-950/80 border border-neutral-800 rounded-2xl pl-10 pr-10 py-3 text-sm text-white placeholder-neutral-500 font-medium focus:outline-none focus:border-sky-500/80 focus:ring-4 focus:ring-sky-500/15 transition-all shadow-inner"
+                    className="w-full bg-black border border-neutral-800 focus:border-purple-500 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-500 font-medium focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-500 hover:text-neutral-300"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
                 </div>
-              </div>
 
-              {/* Confirm Password */}
-              <div>
-                <label className="block text-[11px] font-bold text-neutral-400 mb-1.5 uppercase tracking-wider">
-                  CONFIRM PASSWORD
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500 group-focus-within:text-sky-400 transition-colors">
-                    <Lock className="w-4 h-4" />
-                  </div>
+                <div>
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Re-enter your new password"
+                    placeholder="Confirm new password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full bg-neutral-950/80 border border-neutral-800 rounded-2xl pl-10 pr-10 py-3 text-sm text-white placeholder-neutral-500 font-medium focus:outline-none focus:border-sky-500/80 focus:ring-4 focus:ring-sky-500/15 transition-all shadow-inner"
+                    className="w-full bg-black border border-neutral-800 focus:border-purple-500 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-500 font-medium focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all"
                   />
                 </div>
-              </div>
 
-              {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
+                {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3.5 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-extrabold text-sm rounded-2xl shadow-[0_4px_25px_rgba(14,165,233,0.35)] active:scale-[0.99] transition-all flex items-center justify-center gap-2 mt-5 cursor-pointer"
-              >
-                {isLoading ? (
-                  <span>Updating Password...</span>
-                ) : (
-                  <>
-                    <span>Update Password</span>
-                    <ArrowRight className="w-4 h-4 stroke-[3]" />
-                  </>
-                )}
-              </button>
-            </form>
-          )}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white font-extrabold text-sm rounded-full transition-all cursor-pointer border border-neutral-700 active:scale-[0.99] flex items-center justify-center gap-2"
+                >
+                  {isLoading ? 'Updating Password...' : 'Save New Password'}
+                </button>
+              </form>
+            )}
+
+            <div className="pt-3 border-t border-neutral-900">
+              <Link to="/signup" className="text-xs text-purple-400 hover:text-purple-300 font-bold transition-colors hover:underline">
+                Back to Sign In
+              </Link>
+            </div>
+
+          </div>
+
         </div>
 
-        {/* Back to Sign In */}
-        <div className="text-center mt-6">
-          <Link to="/signup" className="text-sky-400 hover:text-sky-300 font-bold text-xs transition-colors underline">
-            Back to Sign In
-          </Link>
+        {/* RIGHT COLUMN: REAL BRAND LOGO */}
+        <div className="lg:col-span-6 hidden lg:flex items-center justify-center relative">
+          <div className="flex flex-col items-center justify-center text-center space-y-6 relative z-10 p-6">
+            {/* Glowing Backdrop & Real Badge LogoIcon */}
+            <div className="relative group flex items-center justify-center">
+              <div className="absolute -inset-6 bg-gradient-to-tr from-pink-500/40 via-purple-500/50 to-cyan-500/40 rounded-[35%] blur-3xl opacity-80 group-hover:opacity-100 transition-all duration-500 pointer-events-none" />
+              <LogoIcon 
+                className="w-56 h-56 sm:w-64 sm:h-64 drop-shadow-[0_20px_60px_rgba(150,59,255,0.6)] transform group-hover:scale-105 transition-transform duration-300 relative z-10" 
+                variant="badge" 
+                glow={true} 
+              />
+            </div>
+
+            {/* Cool Brand Font Typography */}
+            <div className="flex items-center justify-center gap-3 relative z-10">
+              <span className="font-display font-black text-4xl sm:text-5xl tracking-tight text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
+                Cohort<span className="text-pink-500">.</span>
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
+
+      </main>
     </div>
   );
 }

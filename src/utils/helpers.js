@@ -74,3 +74,21 @@ export const compressImage = (file, maxWidth = 800, maxHeight = 800, quality = 0
   });
 };
 
+export const getAvatarUrl = (avatarOrUser, fallbackName = 'Student') => {
+  let url = '';
+  let name = fallbackName;
+
+  if (typeof avatarOrUser === 'string') {
+    url = avatarOrUser;
+  } else if (avatarOrUser && typeof avatarOrUser === 'object') {
+    url = avatarOrUser.avatar || avatarOrUser.photoURL || avatarOrUser.imageUrl || '';
+    name = avatarOrUser.name || avatarOrUser.displayName || fallbackName;
+  }
+
+  if (!url || url.includes('dicebear.com')) {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0ea5e9&color=fff&bold=true&size=128`;
+  }
+
+  return url;
+};
+

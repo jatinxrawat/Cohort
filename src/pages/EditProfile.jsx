@@ -10,6 +10,7 @@ import { deleteDoc, doc } from 'firebase/firestore';
 import { db, auth } from '@/utils/firebase';
 import { Camera, AlertTriangle } from 'lucide-react';
 import { ImageCropper } from '@/components/ImageCropper';
+import { UserAvatar } from '@/components/UserAvatar';
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -117,9 +118,9 @@ export default function EditProfile() {
             </label>
             <div className="flex items-center gap-lg">
               <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                <img
-                  src={avatarPreviewUrl || user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || 'user')}`}
-                  alt={user?.name || 'User'}
+                <UserAvatar
+                  src={avatarPreviewUrl || user?.avatar}
+                  name={user?.name || 'User'}
                   className="w-20 h-20 rounded-full border-2 border-primary-500 object-cover shadow-sm group-hover:opacity-85 transition-opacity"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/45 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">

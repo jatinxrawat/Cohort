@@ -86,17 +86,19 @@ export const MobileNav = () => {
                     />
                   )}
 
-                  <div className="relative flex items-center justify-center flex-shrink-0 min-w-[24px] min-h-[24px]">
+                  <div className="relative flex items-center justify-center flex-shrink-0">
                     {isProfile && user?.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt={user.name || 'Profile'}
-                        className={`w-5 h-5 rounded-full object-cover border transition-all ${
-                          active
-                            ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/40'
-                            : 'border-neutral-300 dark:border-neutral-700'
-                        } flex-shrink-0`}
-                      />
+                      <div className={`p-[1.5px] rounded-full transition-all duration-300 ${
+                        active
+                          ? 'bg-gradient-to-tr from-sky-400 via-indigo-500 to-purple-500 shadow-md shadow-sky-500/30 scale-105'
+                          : 'bg-transparent'
+                      }`}>
+                        <img
+                          src={user.avatar}
+                          alt={user.name || 'Profile'}
+                          className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+                        />
+                      </div>
                     ) : (
                       <Icon className="w-5 h-5 flex-shrink-0 transition-transform duration-200" />
                     )}

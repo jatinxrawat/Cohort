@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { UserAvatar } from '@/components/UserAvatar';
 import {
   Sparkles,
   Heart,
@@ -1146,13 +1147,13 @@ export default function MakeAFriend() {
               {/* Match Double Avatar Bubble */}
               <div className="flex items-center justify-center gap-xl mb-3xl relative">
                 <div className="w-24 h-24 rounded-full border-4 border-vandal-pink overflow-hidden shadow-[0_0_30px_rgba(255,42,133,0.5)] hover:scale-105 transition-transform bg-neutral-800">
-                  <img src={user.avatar} alt="You" className="w-full h-full object-cover" />
+                  <UserAvatar src={user.avatar} name={user.name || 'You'} className="w-full h-full object-cover" />
                 </div>
                 <div className="absolute bg-neutral-900 text-vandal-pink rounded-full p-sm shadow-md z-25 border border-neutral-800">
                   <Sparkles className="w-5 h-5 text-vandal-pink" />
                 </div>
                 <div className="w-24 h-24 rounded-full border-4 border-topic-violet overflow-hidden shadow-[0_0_30px_rgba(150,59,255,0.5)] hover:scale-105 transition-transform bg-neutral-800">
-                  <img src={matchedProfile.avatar} alt={matchedProfile.name} className="w-full h-full object-cover" />
+                  <UserAvatar src={matchedProfile.avatar} name={matchedProfile.name || 'Friend'} className="w-full h-full object-cover" />
                 </div>
               </div>
 

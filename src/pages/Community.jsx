@@ -632,11 +632,41 @@ export default function Community() {
   const handleVote = async (pollId, optIndex) => {
     const targetPoll = polls.find(p => p.id === pollId);
     if (!targetPoll) return;
-    if (targetPoll.options?.some(o => o.selected)) { showWarning('Already voted!'); return; }
-    const updatedOptions = targetPoll.options.map((o, idx) => idx === optIndex ? { ...o, votes: o.votes + 1, selected: true } : o);
-    setPolls(prev => prev.map(p => p.id === pollId ? { ...p, options: updatedOptions, totalVotes: p.totalVotes + 1 } : p));
-    showSuccess('Vote recorded!');
-    if (targetPoll.docId) { try { await updateDoc(doc(db, 'community-polls', targetPoll.docId), { options: updatedOptions, totalVotes: targetPoll.totalVotes + 1 }); } catch (e) { console.error(e); } }
+
+    const currentSelectedIndex = targetPoll.options?.findIndex(o => o.selected);
+    const isRemoving = currentSelectedIndex === optIndex;
+
+    let deltaVotes = 0;
+    const updatedOptions = targetPoll.options.map((o, idx) => {
+      if (idx === optIndex) {
+        if (isRemoving) {
+          deltaVotes -= 1;
+          return { ...o, votes: Math.max(0, o.votes - 1), selected: false };
+        } else {
+          deltaVotes += (o.selected ? 0 : 1);
+          return { ...o, votes: o.votes + 1, selected: true };
+        }
+      } else if (idx === currentSelectedIndex) {
+        deltaVotes -= 1;
+        return { ...o, votes: Math.max(0, o.votes - 1), selected: false };
+      }
+      return o;
+    });
+
+    const newTotalVotes = Math.max(0, (targetPoll.totalVotes || 0) + deltaVotes);
+    setPolls(prev => prev.map(p => p.id === pollId ? { ...p, options: updatedOptions, totalVotes: newTotalVotes } : p));
+    showSuccess(isRemoving ? 'Vote removed' : 'Vote updated!');
+
+    if (targetPoll.docId) {
+      try {
+        await updateDoc(doc(db, 'community-polls', targetPoll.docId), {
+          options: updatedOptions,
+          totalVotes: newTotalVotes
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
   };
 
   const handleCreatePoll = async (e) => {
@@ -1123,7 +1153,7 @@ export default function Community() {
       </AnimatePresence>
 
       {/* ──────── LEFT SIDEBAR ──────── */}
-      <div className={`flex-shrink-0 w-full md:w-80 lg:w-96 border-r border-neutral-100 dark:border-neutral-800 flex flex-col bg-white dark:bg-neutral-950 ${selectedRoom ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`flex-shrink-0 w-full md:w-80 lg:w-96 border-r border-neutral-100 dark:border-neutral-800 flex flex-col bg-white dark:bg-neutral-900 ${selectedRoom ? 'hidden md:flex' : 'flex'}`}>
 
         {/* Sidebar Header */}
         <div className="px-lg pt-lg pb-md flex-shrink-0">
@@ -1531,7 +1561,7 @@ export default function Community() {
       </div>
 
       {/* ──────── MAIN CHAT AREA ──────── */}
-      <div className={`flex-1 flex flex-col min-w-0 bg-neutral-50 dark:bg-neutral-950 ${selectedRoom ? 'flex' : 'hidden md:flex'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 bg-neutral-50 dark:bg-neutral-900 ${selectedRoom ? 'flex' : 'hidden md:flex'}`}>
 
         {!selectedRoom ? (
           /* Welcome screen */
@@ -1928,7 +1958,7 @@ export default function Community() {
                           <h3 className="font-semibold mb-lg leading-relaxed">{poll.question}</h3>
                           <div className="space-y-md">
                             {poll.options?.map((opt, oIdx) => { const percent = poll.totalVotes > 0 ? Math.round((opt.votes / poll.totalVotes) * 100) : 0; return (
-                              <button key={oIdx} disabled={hasVoted} onClick={() => handleVote(poll.id, oIdx)} className={`w-full text-left relative overflow-hidden rounded-xl border p-lg transition-all ${opt.selected ? 'border-primary-500 bg-primary-50/20 dark:bg-primary-950/10' : 'border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-800'}`}>
+                              <button key={oIdx} onClick={() => handleVote(poll.id, oIdx)} className={`w-full text-left relative overflow-hidden rounded-xl border p-lg transition-all ${opt.selected ? 'border-primary-500 bg-primary-50/20 dark:bg-primary-950/10' : 'border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-800'}`}>
                                 <div className={`absolute left-0 top-0 bottom-0 transition-all duration-500 ${opt.selected ? 'bg-primary-500/10' : 'bg-neutral-200/20'}`} style={{ width: `${percent}%` }} />
                                 <div className="relative flex justify-between items-center z-10 text-sm font-semibold"><span className="flex items-center gap-md">{opt.text}{opt.selected && <CheckCircle2 className="w-4 h-4 text-primary-500" />}</span><span className="text-neutral-400">{percent}% ({opt.votes})</span></div>
                               </button>
