@@ -1052,7 +1052,7 @@ export default function AnonymousFeed({ defaultTab }) {
                                           )}
                                           <span className="text-[10px] text-zinc-500">{formatRelativeTime(c.createdAt)}</span>
                                         </div>
-                                        <p className="text-zinc-200 leading-relaxed">{renderTaggedCommentText(c.text)}</p>
+                                        <p className="text-zinc-200 leading-relaxed whitespace-pre-wrap break-words">{renderTaggedCommentText(c.text)}</p>
 
                                         {/* Action row: Reply, Likes, Delete */}
                                         <div className="flex items-center gap-md mt-2 text-[10px] text-zinc-400 font-semibold">
@@ -1302,7 +1302,7 @@ export default function AnonymousFeed({ defaultTab }) {
 
                     {/* Centered Confession Text */}
                     <div className="py-md text-center">
-                      <p className="text-lg md:text-xl font-heading font-semibold text-neutral-900 dark:text-zinc-100 leading-relaxed px-sm">
+                      <p className="text-lg md:text-xl font-heading font-semibold text-neutral-900 dark:text-zinc-100 leading-relaxed px-sm whitespace-pre-wrap break-words">
                         "{confession.text}"
                       </p>
                       {confession.imageUrl && (
@@ -1381,7 +1381,7 @@ export default function AnonymousFeed({ defaultTab }) {
                                           <span className="font-semibold text-violet-400">{c.anonymousName || 'Anonymous'}</span>
                                           <span className="text-[10px] text-zinc-500">{formatRelativeTime(c.createdAt)}</span>
                                         </div>
-                                        <p className="text-zinc-200 leading-relaxed">{renderTaggedCommentText(c.text)}</p>
+                                        <p className="text-zinc-200 leading-relaxed whitespace-pre-wrap break-words">{renderTaggedCommentText(c.text)}</p>
 
                                         {/* Action row: Reply, Likes, Delete */}
                                         <div className="flex items-center gap-md mt-2 text-[10px] text-zinc-400 font-semibold">

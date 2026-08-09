@@ -762,12 +762,12 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
                   </p>
                 </div>
               </div>
-              <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed pt-xs">
+              <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed pt-xs whitespace-pre-wrap break-words">
                 {post.originalPost?.content || post.content}
               </p>
             </div>
           ) : (
-            <p className="text-neutral-800 dark:text-neutral-200 mb-xl leading-relaxed text-base">
+            <p className="text-neutral-800 dark:text-neutral-200 mb-xl leading-relaxed text-base whitespace-pre-wrap break-words">
               {post.content}
             </p>
           )}
@@ -931,7 +931,7 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
                             >
                               {c.author}
                             </strong>
-                            <span className="text-neutral-800 dark:text-neutral-200">
+                            <span className="text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap break-words block mt-0.5">
                               {renderTaggedCommentText(c.text)}
                             </span>
                           </div>
@@ -1027,7 +1027,7 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
                                           >
                                             {r.author}
                                           </strong>
-                                          <span className="text-neutral-800 dark:text-neutral-200">
+                                          <span className="text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap break-words block mt-0.5">
                                             {renderTaggedCommentText(r.text)}
                                           </span>
                                         </div>
