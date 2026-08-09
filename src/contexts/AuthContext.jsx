@@ -45,11 +45,13 @@ export const AuthProvider = ({ children }) => {
           const docRef = doc(db, 'users', firebaseUser.uid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            setUser({
+            const profileData = {
               id: firebaseUser.uid,
               uid: firebaseUser.uid,
               ...docSnap.data()
-            });
+            };
+            setUser(profileData);
+            localStorage.setItem(`user_profile_${firebaseUser.uid}`, JSON.stringify(profileData));
             setIsAuthenticated(true);
           } else {
             // New Google user or profile missing in Firestore
@@ -61,23 +63,30 @@ export const AuthProvider = ({ children }) => {
               joinedDate: new Date().toISOString()
             };
             await setDoc(docRef, newProfile);
-            setUser({
+            const profileData = {
               id: firebaseUser.uid,
               uid: firebaseUser.uid,
               ...newProfile
-            });
+            };
+            setUser(profileData);
+            localStorage.setItem(`user_profile_${firebaseUser.uid}`, JSON.stringify(profileData));
             setIsAuthenticated(true);
           }
         } catch (error) {
           console.error('Failed to retrieve user profile from Firestore:', error);
-          setUser({
-            id: firebaseUser.uid,
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-            college: 'KIET',
-            avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(firebaseUser.email)}`
-          });
+          const cached = localStorage.getItem(`user_profile_${firebaseUser.uid}`);
+          if (cached) {
+            setUser(JSON.parse(cached));
+          } else {
+            setUser({
+              id: firebaseUser.uid,
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+              college: 'KIET',
+              avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(firebaseUser.email)}`
+            });
+          }
           setIsAuthenticated(true);
         }
       } else {
@@ -129,6 +138,57 @@ export const AuthProvider = ({ children }) => {
 
     return () => unsub();
   }, [user?.uid, user?.name, user?.email]);
+
+  // Handle Mobile Push Notification registration and permissions
+  useEffect(() => {
+    if (user?.uid && Capacitor.isNativePlatform()) {
+      const setupPushNotifications = async () => {
+        try {
+          const { PushNotifications } = await import('@capacitor/push-notifications');
+
+          let permStatus = await PushNotifications.checkPermissions();
+
+          if (permStatus.receive === 'prompt') {
+            permStatus = await PushNotifications.requestPermissions();
+          }
+
+          if (permStatus.receive === 'granted') {
+            await PushNotifications.register();
+
+            // Clear listeners to avoid duplicated event registrations
+            await PushNotifications.removeAllListeners();
+
+            // Store FCM token to Firestore
+            await PushNotifications.addListener('registration', async (token) => {
+              console.log('Mobile Push Registration success, token:', token.value);
+              const userRef = doc(db, 'users', user.uid);
+              await updateDoc(userRef, { fcmToken: token.value }).catch(err => {
+                console.error('Failed to update FCM token in user document:', err);
+              });
+            });
+
+            await PushNotifications.addListener('registrationError', (error) => {
+              console.error('FCM registration error:', error);
+            });
+
+            await PushNotifications.addListener('pushNotificationReceived', (notification) => {
+              console.log('Foreground push notification received:', notification);
+            });
+
+            await PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+              console.log('Push notification action tapped:', action);
+            });
+          } else {
+            console.warn('Push notification permissions denied by user');
+          }
+        } catch (error) {
+          console.error('Failed to register push notifications:', error);
+        }
+      };
+
+      setupPushNotifications();
+    }
+  }, [user?.uid]);
 
   const loginWithGoogle = async () => {
     if (Capacitor.isNativePlatform()) {
@@ -215,6 +275,9 @@ export const AuthProvider = ({ children }) => {
 
   const confirmLogout = async () => {
     setIsLogoutModalOpen(false);
+    if (user?.uid) {
+      localStorage.removeItem(`user_profile_${user.uid}`);
+    }
     setUser(null);
     setIsAuthenticated(false);
     setHasUnreadMessages(false);
@@ -227,6 +290,9 @@ export const AuthProvider = ({ children }) => {
 
   const forceLogout = async () => {
     setIsLogoutModalOpen(false);
+    if (auth.currentUser?.uid) {
+      localStorage.removeItem(`user_profile_${auth.currentUser.uid}`);
+    }
     setUser(null);
     setIsAuthenticated(false);
     setHasUnreadMessages(false);
@@ -238,7 +304,11 @@ export const AuthProvider = ({ children }) => {
     const uid = auth.currentUser.uid;
     const docRef = doc(db, 'users', uid);
     await updateDoc(docRef, updates);
-    setUser(prev => ({ ...prev, ...updates }));
+    setUser(prev => {
+      const updated = { ...prev, ...updates };
+      localStorage.setItem(`user_profile_${uid}`, JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const requestPasswordReset = (email) => {

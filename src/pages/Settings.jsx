@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Bell,
@@ -24,7 +24,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotification } from '@/contexts/NotificationContext';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 
 export default function Settings() {
@@ -66,6 +66,15 @@ export default function Settings() {
     privateProfile: false,
     showOnlineStatus: true,
   });
+
+  useEffect(() => {
+    if (user?.settings) {
+      setSettings(prev => ({
+        ...prev,
+        ...user.settings
+      }));
+    }
+  }, [user]);
 
   const faqs = [
     {
@@ -119,6 +128,12 @@ export default function Settings() {
   const handleToggle = (key) => {
     setSettings(prev => {
       const updated = { ...prev, [key]: !prev[key] };
+      if (user?.uid) {
+        const userRef = doc(db, 'users', user.uid);
+        updateDoc(userRef, { settings: updated }).catch(err => {
+          console.error('Failed to save settings:', err);
+        });
+      }
       showSuccess('Setting preference saved');
       return updated;
     });

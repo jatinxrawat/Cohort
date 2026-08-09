@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAIhE-0LYEJFHHPDiCzjXkt9Etj5il2Cbo",
@@ -16,5 +16,12 @@ const app = initializeApp(firebaseConfig);
 
 // Export instances
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// Enable offline Firestore persistent caching
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager()
+  })
+});
+
 export default app;

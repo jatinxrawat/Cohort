@@ -6,6 +6,7 @@ import { NotificationProvider } from '@/contexts/NotificationContext';
 import { Layout } from '@/components/Layout';
 import { ProtectedRoute, PublicOnlyRoute } from '@/components/ProtectedRoute';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Capacitor } from '@capacitor/core';
 
 // Lazy load pages
 const Landing = lazy(() => import('@/pages/Landing'));
@@ -43,6 +44,38 @@ function App() {
       console.warn('Native splash hide failed:', err);
     });
 
+    // Request push notification permissions on first launch
+    if (Capacitor.isNativePlatform()) {
+      const requestNotificationPermission = async () => {
+        try {
+          const { PushNotifications } = await import('@capacitor/push-notifications');
+          let permStatus = await PushNotifications.checkPermissions();
+          if (permStatus.receive === 'prompt') {
+            await PushNotifications.requestPermissions();
+          }
+        } catch (e) {
+          console.warn('FCM startup permissions request error:', e);
+        }
+      };
+      requestNotificationPermission();
+
+      const setupBackButton = async () => {
+        try {
+          const { App: CapacitorApp } = await import('@capacitor/app');
+          CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+            if (canGoBack) {
+              window.history.back();
+            } else {
+              CapacitorApp.exitApp();
+            }
+          });
+        } catch (e) {
+          console.warn('Android back button registration error:', e);
+        }
+      };
+      setupBackButton();
+    }
+
     const timer = setTimeout(() => {
       setShowSplash(false);
     }, 2500); // Keep custom splash screen visible for 2.5 seconds
@@ -70,7 +103,7 @@ function App() {
               <Suspense fallback={null}>
                 <Routes>
                   {/* Public Routes (Auto-redirects to /home if logged in) */}
-                  <Route path="/" element={<PublicOnlyRoute><Landing /></PublicOnlyRoute>} />
+                  <Route path="/" element={<PublicOnlyRoute>{Capacitor.isNativePlatform() ? <Navigate to="/signup" replace /> : <Landing />}</PublicOnlyRoute>} />
                   <Route path="/login" element={<Navigate to="/signup" replace />} />
                   <Route path="/signup" element={<PublicOnlyRoute><Signup /></PublicOnlyRoute>} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -205,7 +205,7 @@ export default function Notifications() {
   const unreadCount = list.filter(n => !n.read).length;
 
   return (
-    <div className="section-container max-w-3xl">
+    <div className="section-container max-w-3xl w-full overflow-x-hidden">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-3xl">
         <div>
@@ -236,20 +236,22 @@ export default function Notifications() {
       </div>
 
       {/* Filter tab bar */}
-      <Card className="mb-2xl flex items-center gap-sm overflow-x-auto pb-sm scrollbar-none py-md px-lg">
-        {categories.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setFilter(tab)}
-            className={`px-lg py-md rounded-full text-xs font-semibold whitespace-nowrap transition-colors capitalize ${
-              filter === tab
-                ? 'bg-primary-500 text-white'
-                : 'bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700'
-            }`}
-          >
-            {tab === 'replies' ? 'Comments' : tab}
-          </button>
-        ))}
+      <Card className="mb-2xl py-md px-lg w-full max-w-full overflow-hidden">
+        <div className="flex items-center gap-sm overflow-x-auto scrollbar-none pb-xs">
+          {categories.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setFilter(tab)}
+              className={`px-lg py-md rounded-full text-xs font-semibold whitespace-nowrap transition-colors capitalize ${
+                filter === tab
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+              }`}
+            >
+              {tab === 'replies' ? 'Comments' : tab}
+            </button>
+          ))}
+        </div>
       </Card>
 
       {/* Loading Skeletons */}
@@ -284,45 +286,48 @@ export default function Notifications() {
                     transition={{ duration: 0.2 }}
                   >
                     <Card
-                      className={`flex items-start gap-lg hover:shadow-md cursor-pointer transition-all border-neutral-100 dark:border-neutral-800 relative group ${
+                      className={`w-full max-w-full overflow-hidden flex flex-col sm:flex-row sm:items-center gap-md sm:gap-lg hover:shadow-md cursor-pointer transition-all border-neutral-100 dark:border-neutral-800 relative group pb-12 sm:pb-md ${
                         !notif.read ? 'border-l-4 border-l-primary-500 bg-primary-50/20 dark:bg-primary-950/20' : ''
                       }`}
                       onClick={() => handleMarkAsRead(notif.id)}
                     >
-                      {/* Avatar with type badge overlay */}
-                      <div className="relative flex-shrink-0">
-                        <img
-                          src={notif.senderAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(notif.senderName || 'user')}`}
-                          alt={notif.senderName || 'Student'}
-                          className="w-11 h-11 rounded-full object-cover"
-                        />
-                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ${style.bg} ${style.color} ring-2 ring-white dark:ring-neutral-900`}>
-                          <Icon className="w-3 h-3" />
+                      {/* Avatar & Text content wrapper */}
+                      <div className="flex items-start gap-md sm:gap-lg flex-1 min-w-0 pr-xl">
+                        {/* Avatar with type badge overlay */}
+                        <div className="relative flex-shrink-0">
+                          <img
+                            src={notif.senderAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(notif.senderName || 'user')}`}
+                            alt={notif.senderName || 'Student'}
+                            className="w-11 h-11 rounded-full object-cover"
+                          />
+                          <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ${style.bg} ${style.color} ring-2 ring-white dark:ring-neutral-900`}>
+                            <Icon className="w-3 h-3" />
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Content text */}
-                      <div className="flex-1 min-w-0 pr-xl">
-                        <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-normal">
-                          <strong
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (notif.senderUid) navigate(`/profile?uid=${notif.senderUid}`);
-                            }}
-                            className="text-neutral-900 dark:text-white font-bold hover:text-primary-500 transition-colors mr-xs"
-                          >
-                            {notif.senderName || notif.user || 'A Student'}
-                          </strong>
-                          {notif.text}
-                        </p>
-                        <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-semibold block mt-xs">
-                          {formatRelativeTime(notif.time)}
-                        </span>
+                        {/* Content text */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-normal">
+                            <strong
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (notif.senderUid) navigate(`/profile?uid=${notif.senderUid}`);
+                              }}
+                              className="text-neutral-900 dark:text-white font-bold hover:text-primary-500 transition-colors mr-xs"
+                            >
+                              {notif.senderName || notif.user || 'A Student'}
+                            </strong>
+                            {notif.text}
+                          </p>
+                          <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-semibold block mt-xs">
+                            {formatRelativeTime(notif.time)}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Action buttons */}
                       {notif.type === 'community_invite' && notif.communityId && notif.status === 'pending' && (
-                        <div className="flex gap-xs flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex gap-xs flex-shrink-0 self-end sm:self-center mt-xs sm:mt-0" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={(e) => handleAcceptInvite(e, notif)}
                             className="flex items-center gap-xs px-md py-xs bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold rounded-xl transition-all hover:scale-105 active:scale-95"
@@ -338,12 +343,12 @@ export default function Notifications() {
                         </div>
                       )}
                       {notif.type === 'community_invite' && notif.status === 'accepted' && (
-                        <span className="text-xs font-semibold text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 px-md py-xs rounded-xl flex-shrink-0 flex items-center gap-xs">
+                        <span className="text-xs font-semibold text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 px-md py-xs rounded-xl flex-shrink-0 self-end sm:self-center mt-xs sm:mt-0">
                           <Check className="w-3.5 h-3.5" /> Joined
                         </span>
                       )}
                       {notif.type === 'community_invite' && notif.status === 'rejected' && (
-                        <span className="text-xs font-semibold text-neutral-400 px-md py-xs flex-shrink-0">Declined</span>
+                        <span className="text-xs font-semibold text-neutral-400 px-md py-xs flex-shrink-0 self-end sm:self-center mt-xs sm:mt-0">Declined</span>
                       )}
                       {notif.type === 'follow' && notif.senderUid && (
                         <Button
@@ -353,7 +358,7 @@ export default function Notifications() {
                             e.stopPropagation();
                             navigate(`/profile?uid=${notif.senderUid}`);
                           }}
-                          className="text-xs flex-shrink-0"
+                          className="text-xs flex-shrink-0 self-end sm:self-center mt-xs sm:mt-0"
                         >
                           View Profile
                         </Button>
@@ -362,7 +367,7 @@ export default function Notifications() {
                       {/* Trash Delete button */}
                       <button
                         onClick={(e) => handleDelete(e, notif.id)}
-                        className="opacity-0 group-hover:opacity-100 absolute right-lg top-1/2 -translate-y-1/2 p-md rounded-lg text-neutral-400 hover:text-danger hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all"
+                        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 absolute right-lg top-lg sm:top-1/2 sm:-translate-y-1/2 p-md rounded-lg text-neutral-400 hover:text-danger hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all"
                         title="Delete notification"
                       >
                         <Trash2 className="w-4 h-4" />
