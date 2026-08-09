@@ -11,6 +11,7 @@ import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, M
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { formatRelativeTime } from '@/utils/helpers';
+import { UserAvatar } from '@/components/UserAvatar';
 
 const FAKE_CHAT_NAMES = [
   'priya sharma',
@@ -148,6 +149,37 @@ export default function Messages() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [recipientProfile, setRecipientProfile] = useState(null);
   const [highlightedMsgKey, setHighlightedMsgKey] = useState(null);
+
+  // Real-time Users Map for live avatar & profile sync across chats & modals
+  const [usersMap, setUsersMap] = useState({});
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'users'), (snap) => {
+      const map = {};
+      snap.forEach(d => {
+        map[d.id] = { id: d.id, uid: d.id, ...d.data() };
+      });
+      setUsersMap(map);
+    }, (err) => console.error('Users map snapshot error:', err));
+    return () => unsub();
+  }, []);
+
+  const getLiveRecipientProfile = (conv) => {
+    if (!conv) return { avatar: '', name: 'Student', username: '', college: 'KIET' };
+    const otherUid = conv.recipientUid ||
+                     (conv.participants || []).find(p => p !== myUid) ||
+                     conv.createdBy;
+
+    const liveUser = usersMap[otherUid] || recipientProfile;
+    return {
+      avatar: liveUser?.avatar || conv.participantAvatars?.[otherUid] || conv.avatar,
+      name: liveUser?.name || conv.participantNames?.[otherUid] || conv.name,
+      username: liveUser?.username || conv.username || '',
+      college: liveUser?.college || conv.college || 'KIET',
+      bio: liveUser?.bio || conv.bio,
+      uid: otherUid
+    };
+  };
 
   // Optional Vanish Mode States
   const [isVanishModalOpen, setIsVanishModalOpen] = useState(false);
@@ -464,22 +496,26 @@ export default function Messages() {
   // Find currently active conversation
   const activeConversation = conversations.find(c => c.id === selectedId);
 
-  // Fetch real recipient user profile from Firestore when profile modal is open
+  // Fetch real-time recipient user profile from Firestore whenever active conversation changes
   useEffect(() => {
-    if (!isProfileModalOpen || !activeConversation) return;
+    if (!activeConversation) {
+      setRecipientProfile(null);
+      return;
+    }
 
     const recipientUid = activeConversation.recipientUid ||
                          (activeConversation.participants || []).find(p => p !== myUid) ||
                          activeConversation.createdBy;
 
     if (recipientUid) {
-      getDoc(doc(db, 'users', recipientUid)).then(snap => {
+      const unsub = onSnapshot(doc(db, 'users', recipientUid), (snap) => {
         if (snap.exists()) {
           setRecipientProfile(snap.data());
         }
-      }).catch(err => console.error('Error fetching recipient profile:', err));
+      }, (err) => console.error('Error fetching recipient profile:', err));
+      return () => unsub();
     }
-  }, [isProfileModalOpen, activeConversation?.id, myUid]);
+  }, [activeConversation?.id, myUid]);
 
   // Filter messages visible to current user (WhatsApp 1-side delete/clear model)
   const clearedTimeMs = activeConversation?.clearedFor?.[myUid]
@@ -1358,7 +1394,7 @@ export default function Messages() {
                     placeholder="Search messages..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-9 pr-8 py-2 text-xs font-medium bg-neutral-100/90 dark:bg-neutral-950/80 text-neutral-900 dark:text-white placeholder-neutral-400 border border-neutral-200/80 dark:border-neutral-800/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500/50 transition-all shadow-inner"
+                    className="w-full pl-9 pr-8 py-2 text-xs font-medium bg-neutral-100/90 dark:bg-neutral-900/80 text-neutral-900 dark:text-white placeholder-neutral-400 border border-neutral-200/80 dark:border-neutral-800/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500/50 transition-all shadow-inner"
                   />
                   {search && (
                     <button
@@ -1390,7 +1426,7 @@ export default function Messages() {
               </div>
 
               {/* Glassmorphic Segmented Switcher for Direct Chats vs Community */}
-              <div className="p-1.5 bg-neutral-100/90 dark:bg-neutral-950/80 rounded-2xl flex items-center gap-1 border border-neutral-200/80 dark:border-neutral-800/80 shadow-inner">
+              <div className="p-1.5 bg-neutral-100/90 dark:bg-neutral-900/80 rounded-2xl flex items-center gap-1 border border-neutral-200/80 dark:border-neutral-800/80 shadow-inner">
                 <button
                   type="button"
                   onClick={() => setMessagesTab('direct')}
@@ -1521,6 +1557,7 @@ export default function Messages() {
                     </div>
                   ) : filteredConversations.length > 0 ? (
                 filteredConversations.map(conv => {
+                  const liveConv = getLiveRecipientProfile(conv);
                   const isSelected = selectedId === conv.id;
                   const isPinned = conv.pinnedFor?.[myUid] === true;
                   const isMuted = conv.mutedFor?.[myUid] === true;
@@ -1549,9 +1586,9 @@ export default function Messages() {
                         }`}
                       >
                         <div className="relative flex-shrink-0">
-                          <img
-                            src={conv.avatar}
-                            alt={conv.name}
+                          <UserAvatar
+                            src={liveConv.avatar}
+                            name={liveConv.name}
                             className="w-10 h-10 rounded-full object-cover"
                           />
                           {isBlocked && (
@@ -1570,7 +1607,7 @@ export default function Messages() {
                                   ? 'text-neutral-900 dark:text-white font-extrabold'
                                   : 'text-neutral-900 dark:text-neutral-200'
                             }`}>
-                              {conv.name}
+                              {liveConv.name}
                               {isPinned && (
                                 <Pin className="w-3 h-3 text-primary-500 fill-primary-500/20 flex-shrink-0" title="Pinned" />
                               )}
@@ -1805,15 +1842,15 @@ export default function Messages() {
                       </button>
 
                       <div className="relative">
-                        <img
-                          src={activeConversation.avatar}
-                          alt={activeConversation.name}
+                        <UserAvatar
+                          src={getLiveRecipientProfile(activeConversation).avatar}
+                          name={getLiveRecipientProfile(activeConversation).name}
                           className="w-10 h-10 rounded-full object-cover group-hover:ring-2 group-hover:ring-primary-500 transition-all"
                         />
                       </div>
                       <div className="min-w-0 flex-1">
                         <h2 className="font-bold text-sm sm:text-base text-neutral-900 dark:text-white group-hover:text-primary-500 transition-colors flex items-center gap-xs truncate">
-                          <span className="truncate">{activeConversation.name}</span>
+                          <span className="truncate">{getLiveRecipientProfile(activeConversation).name}</span>
                           {activeConversation.mutedFor?.[myUid] && (
                             <BellOff className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" title="Muted" />
                           )}
@@ -2069,9 +2106,9 @@ export default function Messages() {
                             <div className={`flex items-end gap-xs ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                         {/* Avatar for recipient (left side) */}
                               {!isMe && (
-                                <img
-                                  src={activeConversation.avatar}
-                                  alt={activeConversation.name}
+                                <UserAvatar
+                                  src={getLiveRecipientProfile(activeConversation).avatar}
+                                  name={getLiveRecipientProfile(activeConversation).name}
                                   className="w-7 h-7 rounded-full object-cover flex-shrink-0 mb-0.5"
                                 />
                               )}
@@ -2540,7 +2577,8 @@ export default function Messages() {
 
       {/* Recipient User Profile Modal */}
       {activeConversation && (() => {
-        const userCollege = recipientProfile?.college || activeConversation?.college || 'KIET';
+        const liveProfile = getLiveRecipientProfile(activeConversation);
+        const userCollege = liveProfile.college || 'KIET';
 
         return (
           <Modal
@@ -2554,9 +2592,9 @@ export default function Messages() {
               <div className="text-center">
                 <div className="relative inline-block group">
                   <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-primary-500 via-indigo-500 to-purple-600 blur-md opacity-40 group-hover:opacity-75 transition duration-500" />
-                  <img
-                    src={activeConversation.avatar}
-                    alt={activeConversation.name}
+                  <UserAvatar
+                    src={liveProfile.avatar}
+                    name={liveProfile.name}
                     className="relative w-28 h-28 rounded-full mx-auto object-cover border-4 border-white dark:border-neutral-900 shadow-2xl transition-transform duration-300 group-hover:scale-105"
                   />
                   <div className="w-5 h-5 rounded-full bg-emerald-500 border-4 border-white dark:border-neutral-900 absolute bottom-1 right-2 shadow-md" title="Active now" />
@@ -2564,7 +2602,7 @@ export default function Messages() {
 
                 <div className="mt-md space-y-xs">
                   <h3 className="text-2xl font-heading font-extrabold text-neutral-900 dark:text-white flex items-center justify-center gap-xs">
-                    {activeConversation.name}
+                    {liveProfile.name}
                     <ShieldCheck className="w-5 h-5 text-emerald-500 fill-emerald-500/10" title="Cohort Verified Student" />
                   </h3>
                   <div className="inline-flex items-center gap-xs px-3.5 py-1 rounded-full bg-primary-500/10 dark:bg-primary-500/20 text-primary-600 dark:text-primary-400 font-semibold text-xs border border-primary-500/20 shadow-xs">
@@ -2572,9 +2610,9 @@ export default function Messages() {
                   </div>
 
                   {/* Bio Display */}
-                  {(recipientProfile?.bio || activeConversation?.bio) && (
+                  {liveProfile.bio && (
                     <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 max-w-xs mx-auto leading-relaxed pt-2 italic font-normal">
-                      "{recipientProfile?.bio || activeConversation?.bio}"
+                      "{liveProfile.bio}"
                     </p>
                   )}
                 </div>

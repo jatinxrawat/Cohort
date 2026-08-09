@@ -22,6 +22,7 @@ import {
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
+import { UserAvatar } from '@/components/UserAvatar';
 import { formatRelativeTime } from '@/utils/helpers';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
@@ -65,6 +66,25 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
   const isPostOwner = (post.author?.uid && post.author.uid === user?.uid) ||
                       (post.authorUid && post.authorUid === user?.uid) ||
                       (user?.name && post.author?.name === user?.name);
+
+  // Real-time resolution of post author profile from Firestore
+  const [liveAuthorProfile, setLiveAuthorProfile] = useState(null);
+  const authorUid = post.author?.uid || post.authorUid || post.uid;
+
+  useEffect(() => {
+    if (!authorUid) return;
+
+    const unsub = onSnapshot(doc(db, 'users', authorUid), (snap) => {
+      if (snap.exists()) {
+        setLiveAuthorProfile(snap.data());
+      }
+    }, (err) => console.error('Error listening to post author profile:', err));
+
+    return () => unsub();
+  }, [authorUid]);
+
+  const authorAvatar = (isPostOwner && user?.avatar) || liveAuthorProfile?.avatar || post.author?.avatar;
+  const authorName = (isPostOwner && user?.name) || liveAuthorProfile?.name || post.author?.name || 'Student';
 
   const handleSaveInlineEdit = async () => {
     if (!editPostContent.trim()) return;
@@ -583,13 +603,19 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
   };
 
   const myUid = user?.uid || 'guest';
-  const userVote = post.upvotedUsers?.includes(myUid)
+  const userVote = Array.isArray(post.upvotedUsers) && post.upvotedUsers.includes(myUid)
     ? 'up'
-    : post.downvotedUsers?.includes(myUid)
+    : Array.isArray(post.downvotedUsers) && post.downvotedUsers.includes(myUid)
     ? 'down'
     : null;
 
-  const voteScore = (post.upvotes || 0) - (post.downvotes || 0);
+  const upvotesCount = Array.isArray(post.upvotedUsers)
+    ? post.upvotedUsers.length
+    : (typeof post.upvotes === 'number' ? post.upvotes : 0);
+
+  const downvotesCount = Array.isArray(post.downvotedUsers)
+    ? post.downvotedUsers.length
+    : (typeof post.downvotes === 'number' ? post.downvotes : 0);
 
   const topLevelComments = comments.filter(c => !c.parentId);
 
@@ -601,14 +627,14 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
           onClick={() => handleOpenAuthorProfile(post.author?.uid, post.author?.name)}
           className="flex items-center gap-md cursor-pointer group"
         >
-          <img
-            src={post.author?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'}
-            alt={post.author?.name || 'Student'}
+          <UserAvatar
+            src={authorAvatar}
+            name={authorName}
             className="w-12 h-12 rounded-full ring-2 ring-transparent group-hover:ring-primary-500 transition-all object-cover"
           />
           <div>
             <h3 className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-500 transition-colors">
-              {post.author?.name || 'Student'}
+              {authorName}
             </h3>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {(post.author?.role && post.author.role !== 'Student' && post.author.role !== 'Delhi University')
@@ -760,15 +786,11 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
 
       {/* Modern Pill Action Bar */}
       <div className="flex items-center gap-sm flex-wrap pt-xs">
-        {/* Upvote / Downvote Pill */}
-        <div className={`flex items-center gap-xs px-md py-xs rounded-full border transition-all ${
-          userVote === 'up'
-            ? 'bg-orange-500/10 border-orange-500/30 text-orange-500'
-            : userVote === 'down'
-            ? 'bg-blue-500/10 border-blue-500/30 text-blue-500'
-            : 'bg-neutral-100 dark:bg-neutral-800/80 border-transparent text-neutral-700 dark:text-neutral-300'
-        }`}>
+        {/* Upvote / Downvote Pill showing separate Like & Dislike counts */}
+        <div className="flex items-center rounded-full bg-neutral-100 dark:bg-neutral-800/90 border border-neutral-200/60 dark:border-neutral-700/60 p-1 text-xs font-bold shadow-xs">
+          {/* Like / Upvote Button */}
           <button
+            type="button"
             onClick={() => {
               onVote(post.id, 'up');
               const postAuthorUid = post.author?.uid || post.authorUid || post.uid;
@@ -784,26 +806,33 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
                 });
               }
             }}
-            className={`p-xs rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors ${
-              userVote === 'up' ? 'text-orange-500 font-bold' : ''
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-all cursor-pointer ${
+              userVote === 'up'
+                ? 'bg-orange-500 text-white font-extrabold shadow-sm'
+                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200/70 dark:hover:bg-neutral-700/70 hover:text-orange-500'
             }`}
-            title="Upvote"
+            title="Like / Upvote"
           >
-            <ArrowUp className="w-4 h-4" />
+            <ArrowUp className={`w-4 h-4 ${userVote === 'up' ? 'stroke-[2.5]' : ''}`} />
+            <span>{upvotesCount}</span>
           </button>
 
-          <span className="font-bold text-xs px-xs min-w-[20px] text-center">
-            {voteScore}
-          </span>
+          {/* Vertical Divider */}
+          <div className="w-px h-3.5 bg-neutral-300 dark:bg-neutral-700 mx-1" />
 
+          {/* Dislike / Downvote Button */}
           <button
+            type="button"
             onClick={() => onVote(post.id, 'down')}
-            className={`p-xs rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors ${
-              userVote === 'down' ? 'text-blue-500 font-bold' : ''
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-all cursor-pointer ${
+              userVote === 'down'
+                ? 'bg-rose-500 text-white font-extrabold shadow-sm'
+                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200/70 dark:hover:bg-neutral-700/70 hover:text-rose-500'
             }`}
-            title="Downvote"
+            title="Dislike / Downvote"
           >
-            <ArrowDown className="w-4 h-4" />
+            <ArrowDown className={`w-4 h-4 ${userVote === 'down' ? 'stroke-[2.5]' : ''}`} />
+            <span>{downvotesCount}</span>
           </button>
         </div>
 
@@ -889,10 +918,9 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
                     {/* Top Level Comment Item */}
                     <div className="flex items-start justify-between gap-md">
                       <div className="flex items-start gap-md flex-1 min-w-0">
-                        <img
-                          src={c.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c.author)}`}
-                          alt={c.author}
-                          onClick={() => handleOpenAuthorProfile(c.authorUid, c.author)}
+                        <UserAvatar
+                          src={c.avatar}
+                          name={c.author || 'Student'}
                           className="w-8 h-8 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all object-cover mt-0.5"
                         />
                         <div className="flex-1 min-w-0">
@@ -986,10 +1014,9 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
                                     className="flex items-start justify-between gap-md group/reply"
                                   >
                                     <div className="flex items-start gap-sm flex-1 min-w-0">
-                                      <img
-                                        src={r.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(r.author)}`}
-                                        alt={r.author}
-                                        onClick={() => handleOpenAuthorProfile(r.authorUid, r.author)}
+                                      <UserAvatar
+                                        src={r.avatar}
+                                        name={r.author || 'Student'}
                                         className="w-6 h-6 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all object-cover mt-0.5"
                                       />
                                       <div className="flex-1 min-w-0">
@@ -1084,9 +1111,9 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
 
           {/* Single Bottom Input Bar */}
           <div className="flex gap-md items-center sticky bottom-0 z-10 bg-white dark:bg-neutral-900 py-xs">
-            <img
-              src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || 'user')}`}
-              alt="You"
+            <UserAvatar
+              src={user?.avatar}
+              name={user?.name || 'You'}
               className="w-8 h-8 rounded-full flex-shrink-0 object-cover"
             />
             <div className="flex-1 bg-neutral-50 dark:bg-neutral-800/80 rounded-full px-md py-sm flex items-center gap-md border border-neutral-200 dark:border-neutral-700 transition-all focus-within:border-primary-500/50 focus-within:ring-2 focus-within:ring-primary-500/20">

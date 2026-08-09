@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/Button';
 import { Logo } from '@/components/Logo';
+import { UserAvatar } from '@/components/UserAvatar';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 
@@ -35,7 +36,7 @@ export const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 dark:bg-neutral-950/85 backdrop-blur-xl border-b border-neutral-200/60 dark:border-neutral-800/60 shadow-sm transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-2xl border-b border-neutral-200/80 dark:border-neutral-800/80 shadow-md transition-all duration-300">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between">
         {/* Brand Logo - Cohort */}
         <Logo isLanding={false} iconSize="w-9 h-9" textSize="text-2xl" />
@@ -129,17 +130,11 @@ export const Header = () => {
                 to="/profile"
                 className="flex items-center gap-2 px-3 py-1.5 bg-neutral-100/80 dark:bg-neutral-900/80 hover:bg-neutral-200/80 dark:hover:bg-neutral-800/80 border border-neutral-200/60 dark:border-neutral-800/80 rounded-full transition-all cursor-pointer shadow-xs group"
               >
-                {user?.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.name || 'User'}
-                    className="w-7 h-7 rounded-full object-cover ring-2 ring-primary-500/40 group-hover:scale-105 transition-transform"
-                  />
-                ) : (
-                  <div className="w-7 h-7 bg-gradient-to-r from-sky-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-xs">
-                    {user?.name?.charAt(0) || 'U'}
-                  </div>
-                )}
+                <UserAvatar
+                  src={user?.avatar}
+                  name={user?.name || 'User'}
+                  className="w-7 h-7 rounded-full object-cover group-hover:scale-105 transition-transform"
+                />
                 <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-primary-500 transition-colors">
                   {user?.name?.split(' ')[0] || 'User'}
                 </span>
@@ -170,7 +165,7 @@ export const Header = () => {
 
         {/* Translucent Glass Mobile Dropdown Overlay */}
         {isMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-2xl border-b border-neutral-200/80 dark:border-neutral-800/80 shadow-2xl md:hidden animate-in fade-in slide-in-from-top-3 duration-200 rounded-b-3xl">
+          <div className="absolute top-full left-0 right-0 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl border-b border-neutral-200/80 dark:border-neutral-800/80 shadow-2xl md:hidden animate-in fade-in slide-in-from-top-3 duration-200 rounded-b-3xl">
             <div className="p-4 space-y-1.5">
               {isAuthenticated ? (
                 <>

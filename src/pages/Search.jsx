@@ -3,18 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
+import { UserAvatar } from '@/components/UserAvatar';
 import {
   Search as SearchIcon,
   Users,
   MessageCircleCode,
-  User,
   Sparkles,
   X,
-  ArrowRight,
-  ShieldCheck,
   FileText,
-  AtSign,
-  TrendingUp
+  TrendingUp,
+  Clock,
+  History,
+  Trash2
 } from 'lucide-react';
 import { useDebounce } from '@/hooks';
 import { collection, getDocs } from 'firebase/firestore';
@@ -28,27 +28,60 @@ export default function Search() {
   
   const [peopleResults, setPeopleResults] = useState([]);
   const [postsResults, setPostsResults] = useState([]);
-  const [featuredStudents, setFeaturedStudents] = useState([]);
+
+  // Search History State (persisted in localStorage)
+  const [searchHistory, setSearchHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cohort_search_history');
+      return saved ? JSON.parse(saved) : ['@student', 'KIET', 'Computer Science'];
+    } catch (e) {
+      return ['@student', 'KIET', 'Computer Science'];
+    }
+  });
 
   const debouncedQuery = useDebounce(searchTerm, 300);
   const tabs = ['All', 'Students', 'Posts'];
 
-  // Load initial featured students from Firestore for quick discovery
-  useEffect(() => {
-    const loadInitialStudents = async () => {
+  // Add query to search history
+  const addToHistory = (term) => {
+    if (!term || !term.trim()) return;
+    const clean = term.trim();
+    setSearchHistory(prev => {
+      const filtered = prev.filter(item => item.toLowerCase() !== clean.toLowerCase());
+      const updated = [clean, ...filtered].slice(0, 10);
       try {
-        const usersSnap = await getDocs(collection(db, 'users'));
-        const loaded = [];
-        usersSnap.forEach(d => {
-          loaded.push({ id: d.id, uid: d.id, ...d.data() });
-        });
-        setFeaturedStudents(loaded.slice(0, 6));
-      } catch (err) {
-        console.error('Failed to load initial students:', err);
-      }
-    };
-    loadInitialStudents();
-  }, []);
+        localStorage.setItem('cohort_search_history', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
+
+  // Remove single item from history
+  const removeHistoryItem = (termToRemove, e) => {
+    if (e) e.stopPropagation();
+    setSearchHistory(prev => {
+      const updated = prev.filter(item => item !== termToRemove);
+      try {
+        localStorage.setItem('cohort_search_history', JSON.stringify(updated));
+      } catch (err) {}
+      return updated;
+    });
+  };
+
+  // Clear all search history
+  const clearAllHistory = () => {
+    setSearchHistory([]);
+    try {
+      localStorage.removeItem('cohort_search_history');
+    } catch (e) {}
+  };
+
+  // Save term to history when debounced query executes
+  useEffect(() => {
+    if (debouncedQuery.trim().length >= 2) {
+      addToHistory(debouncedQuery.trim());
+    }
+  }, [debouncedQuery]);
 
   // Perform search across Firestore users & posts
   useEffect(() => {
@@ -104,6 +137,11 @@ export default function Search() {
   const hasResults = (activeTab === 'All' || activeTab === 'Students' ? peopleResults.length : 0) +
                      (activeTab === 'All' || activeTab === 'Posts' ? postsResults.length : 0) > 0;
 
+  const handleSelectChip = (chipText) => {
+    setSearchTerm(chipText);
+    addToHistory(chipText);
+  };
+
   return (
     <div className="section-container max-w-4xl mx-auto space-y-xl">
       {/* Search Header */}
@@ -126,6 +164,11 @@ export default function Search() {
             placeholder="Search by student name, @username, or post content..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && searchTerm.trim()) {
+                addToHistory(searchTerm);
+              }
+            }}
             className="w-full bg-transparent px-md py-sm text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none"
           />
           {searchTerm && (
@@ -158,24 +201,30 @@ export default function Search() {
         </div>
       )}
 
-      {/* Main Results or Discovery View */}
-      <AnimatePresence mode="popLayout">
+      {/* Search Results / Discovery Body */}
+      <AnimatePresence mode="wait">
         {loading ? (
-          <div className="space-y-md">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-20 skeleton rounded-2xl" />
-            ))}
-          </div>
-        ) : debouncedQuery ? (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="space-y-md py-lg"
+          >
+            <div className="h-16 skeleton rounded-2xl" />
+            <div className="h-16 skeleton rounded-2xl" />
+            <div className="h-16 skeleton rounded-2xl" />
+          </motion.div>
+        ) : searchTerm ? (
           hasResults ? (
             <motion.div
-              layout
-              className="space-y-xl"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              key="results"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
+              className="space-y-xl"
             >
-              {/* Students Results */}
+              {/* People / Students Results */}
               {(activeTab === 'All' || activeTab === 'Students') && peopleResults.length > 0 && (
                 <div className="space-y-md">
                   <h2 className="text-xs font-bold text-neutral-400 uppercase tracking-wider pl-xs flex items-center gap-xs">
@@ -188,9 +237,9 @@ export default function Search() {
                         className="p-md hover:shadow-md border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between gap-md transition-all group"
                       >
                         <div className="flex items-center gap-md min-w-0">
-                          <img
-                            src={person.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(person.email || 'user')}`}
-                            alt={person.name}
+                          <UserAvatar
+                            src={person.avatar}
+                            name={person.name}
                             className="w-12 h-12 rounded-full ring-2 ring-primary-500/20 group-hover:ring-primary-500 transition-all flex-shrink-0 object-cover"
                           />
                           <div className="min-w-0">
@@ -244,9 +293,9 @@ export default function Search() {
                           onClick={() => post.author?.uid && navigate(`/profile?uid=${post.author.uid}`)}
                           className="flex items-center gap-md mb-md cursor-pointer group"
                         >
-                          <img
-                            src={post.author?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'}
-                            alt={post.author?.name}
+                          <UserAvatar
+                            src={post.author?.avatar}
+                            name={post.author?.name || 'Student'}
                             className="w-8 h-8 rounded-full object-cover"
                           />
                           <div>
@@ -275,7 +324,9 @@ export default function Search() {
               )}
             </motion.div>
           ) : (
+            /* No Results Found State */
             <motion.div
+              key="no-results"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-center py-4xl border border-dashed border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/30 max-w-md mx-auto rounded-3xl p-2xl"
@@ -288,13 +339,14 @@ export default function Search() {
             </motion.div>
           )
         ) : (
-          /* Empty Search Discovery View: Show Featured Classmates */
+          /* Initial State: Popular Searches + Search History */
           <motion.div
+            key="history-view"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="space-y-xl"
           >
-            {/* Quick Chips */}
+            {/* Quick Chips / Popular Searches */}
             <div className="flex items-center gap-xs flex-wrap">
               <span className="text-xs font-bold text-neutral-400 mr-sm flex items-center gap-xs">
                 <TrendingUp className="w-3.5 h-3.5 text-primary-500" /> Popular Searches:
@@ -302,66 +354,70 @@ export default function Search() {
               {['@student', 'KIET', 'Computer Science', 'Campus Community'].map(chip => (
                 <button
                   key={chip}
-                  onClick={() => setSearchTerm(chip)}
-                  className="px-md py-xs bg-neutral-100 dark:bg-neutral-800/80 hover:bg-primary-50 dark:hover:bg-primary-950/40 text-neutral-700 dark:text-neutral-300 hover:text-primary-500 rounded-full text-xs font-semibold transition-colors"
+                  onClick={() => handleSelectChip(chip)}
+                  className="px-md py-xs bg-neutral-100 dark:bg-neutral-800/80 hover:bg-primary-50 dark:hover:bg-primary-950/40 text-neutral-700 dark:text-neutral-300 hover:text-primary-500 rounded-full text-xs font-semibold transition-colors cursor-pointer"
                 >
                   {chip}
                 </button>
               ))}
             </div>
 
-            {/* Featured Classmates Section */}
-            {featuredStudents.length > 0 && (
-              <div className="space-y-md">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-xs">
-                    <Users className="w-4 h-4 text-primary-500" /> Classmates & Students
-                  </h2>
-                </div>
+            {/* Recent Search History Section */}
+            <div className="space-y-md pt-md">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-primary-500" />
+                  <span>Recent Searches</span>
+                </h2>
+                {searchHistory.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearAllHistory}
+                    className="text-xs font-semibold text-rose-500 hover:text-rose-400 hover:underline flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Clear history</span>
+                  </button>
+                )}
+              </div>
 
-                <div className="grid md:grid-cols-2 gap-md">
-                  {featuredStudents.map((student) => (
-                    <Card
-                      key={student.id}
-                      className="p-md border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-md hover:shadow-md transition-all group"
+              {searchHistory.length > 0 ? (
+                <div className="space-y-2">
+                  {searchHistory.map((queryText) => (
+                    <div
+                      key={queryText}
+                      onClick={() => handleSelectChip(queryText)}
+                      className="flex items-center justify-between p-3.5 rounded-2xl bg-white dark:bg-neutral-900/90 border border-neutral-200/70 dark:border-neutral-800/80 hover:border-primary-500/50 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition-all cursor-pointer group shadow-xs"
                     >
-                      <div
-                        onClick={() => navigate(`/profile?uid=${student.uid}`)}
-                        className="flex items-center gap-md min-w-0 cursor-pointer"
-                      >
-                        <img
-                          src={student.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(student.email || 'user')}`}
-                          alt={student.name}
-                          className="w-12 h-12 rounded-full border-2 border-primary-500/30 group-hover:border-primary-500 transition-all flex-shrink-0 object-cover"
-                        />
-                        <div className="min-w-0">
-                          <h3 className="font-bold text-sm text-neutral-900 dark:text-white group-hover:text-primary-500 transition-colors truncate">
-                            {student.name}
-                          </h3>
-                          {student.username && (
-                            <p className="text-xs font-mono text-primary-500 font-bold">
-                              @{student.username}
-                            </p>
-                          )}
-                          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-[1px]">
-                            {student.college || 'KIET'}
-                          </p>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-primary-500 group-hover:bg-primary-500/10 transition-colors flex-shrink-0">
+                          <History className="w-4 h-4" />
                         </div>
+                        <span className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-primary-500 transition-colors truncate">
+                          {queryText}
+                        </span>
                       </div>
 
-                      <Button
-                        variant="primary"
-                        size="xs"
-                        onClick={() => navigate(`/messages?recipientUid=${student.uid}&recipientName=${encodeURIComponent(student.name)}`)}
-                        className="flex items-center gap-xs flex-shrink-0"
+                      <button
+                        type="button"
+                        onClick={(e) => removeHistoryItem(queryText, e)}
+                        className="p-1.5 text-neutral-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-full transition-colors flex-shrink-0 cursor-pointer"
+                        title="Remove from history"
                       >
-                        <MessageCircleCode className="w-3.5 h-3.5" /> Message
-                      </Button>
-                    </Card>
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="text-center py-10 px-4 border border-dashed border-neutral-200 dark:border-neutral-800 rounded-3xl bg-neutral-50/50 dark:bg-neutral-900/30">
+                  <Clock className="w-8 h-8 text-neutral-400 mx-auto mb-2" />
+                  <p className="text-xs font-bold text-neutral-700 dark:text-neutral-300">No Recent Searches</p>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1">Your recent searches will appear here for quick access.</p>
+                </div>
+              )}
+            </div>
+
           </motion.div>
         )}
       </AnimatePresence>

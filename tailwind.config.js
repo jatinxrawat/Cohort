@@ -86,6 +86,8 @@ module.exports = {
       fontFamily: {
         sans: ['Space Grotesque', 'Inter', ...defaultTheme.fontFamily.sans],
         display: ['Outfit', 'Inter', ...defaultTheme.fontFamily.sans],
+        unbounded: ['Unbounded', 'Outfit', ...defaultTheme.fontFamily.sans],
+        jakarta: ['Plus Jakarta Sans', 'Inter', ...defaultTheme.fontFamily.sans],
       },
       borderRadius: {
         '4xl': '2rem',

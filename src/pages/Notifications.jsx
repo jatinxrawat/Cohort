@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Heart, MessageSquare, UserPlus, Bell, Eye, Trash2, Inbox, Repeat, ExternalLink, Users, Check, X } from 'lucide-react';
 import { formatRelativeTime } from '@/utils/helpers';
+import { UserAvatar } from '@/components/UserAvatar';
 import { collection, onSnapshot, doc, updateDoc, writeBatch, deleteDoc, addDoc } from 'firebase/firestore';
 import { arrayUnion } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
@@ -291,9 +292,9 @@ export default function Notifications() {
                     >
                       {/* Avatar with type badge overlay */}
                       <div className="relative flex-shrink-0">
-                        <img
-                          src={notif.senderAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(notif.senderName || 'user')}`}
-                          alt={notif.senderName || 'Student'}
+                        <UserAvatar
+                          src={notif.senderAvatar}
+                          name={notif.senderName || 'Student'}
                           className="w-11 h-11 rounded-full object-cover"
                         />
                         <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ${style.bg} ${style.color} ring-2 ring-white dark:ring-neutral-900`}>

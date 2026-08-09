@@ -204,7 +204,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white pt-4 pb-36 sm:py-8 px-4 sm:px-6">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white pt-4 pb-36 sm:py-8 px-4 sm:px-6">
       <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
         
         {/* Title Header */}
