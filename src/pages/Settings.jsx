@@ -18,8 +18,7 @@ import {
   Sparkles,
   ChevronRight,
   X,
-  Search,
-  MessageSquare
+  Search
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -51,10 +50,6 @@ export default function Settings() {
 
   // Full-Page Raise Query & Help Modal State
   const [isQueryModalOpen, setIsQueryModalOpen] = useState(false);
-  const [queryCategory, setQueryCategory] = useState('General Support');
-  const [querySubject, setQuerySubject] = useState('');
-  const [queryMessage, setQueryMessage] = useState('');
-  const [isSubmittingQuery, setIsSubmittingQuery] = useState(false);
   const [expandedFaqIndex, setExpandedFaqIndex] = useState(null);
   const [faqSearchQuery, setFaqSearchQuery] = useState('');
 
@@ -208,92 +203,54 @@ export default function Settings() {
     }
   };
 
-  const handleRaiseQuerySubmit = async (e) => {
-    e.preventDefault();
-    if (!querySubject.trim()) {
-      showError('Please enter a query subject.');
-      return;
-    }
-    if (!queryMessage.trim()) {
-      showError('Please describe your query or issue.');
-      return;
-    }
-
-    setIsSubmittingQuery(true);
-    try {
-      await addDoc(collection(db, 'support_queries'), {
-        userId: user?.uid || 'anonymous',
-        userName: user?.name || 'Student',
-        userEmail: user?.email || '',
-        category: queryCategory,
-        subject: querySubject.trim(),
-        message: queryMessage.trim(),
-        createdAt: serverTimestamp(),
-        status: 'pending'
-      });
-
-      showSuccess('Your query has been submitted! Our team will respond shortly.');
-      setQuerySubject('');
-      setQueryMessage('');
-      setQueryCategory('General Support');
-    } catch (err) {
-      console.error(err);
-      showSuccess('Query recorded! Our support team will get back to you.');
-      setQuerySubject('');
-      setQueryMessage('');
-    } finally {
-      setIsSubmittingQuery(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white py-8 px-4 sm:px-6">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white pt-4 pb-36 sm:py-8 px-4 sm:px-6">
+      <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
         
         {/* Title Header */}
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-display font-black text-neutral-900 dark:text-white tracking-tight">
             Account Settings
           </h1>
-          <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 font-medium">
+          <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed">
             Manage your password, theme appearance, privacy preferences, and campus support
           </p>
         </div>
 
         {/* Change Password Card */}
-        <div className="bg-white dark:bg-neutral-900/80 border border-neutral-200/80 dark:border-neutral-800/80 rounded-3xl p-6 shadow-sm backdrop-blur-xl transition-all">
+        <div className="bg-white dark:bg-neutral-900/90 border border-neutral-200/80 dark:border-neutral-800/80 rounded-3xl p-4 sm:p-6 shadow-sm backdrop-blur-xl transition-all">
           <div
             onClick={() => setIsPasswordFormOpen(!isPasswordFormOpen)}
-            className={`flex items-center justify-between cursor-pointer select-none ${
-              isPasswordFormOpen ? 'mb-5 pb-4 border-b border-neutral-100 dark:border-neutral-800/80' : ''
+            className={`flex items-center justify-between gap-3 cursor-pointer select-none ${
+              isPasswordFormOpen ? 'mb-4 pb-4 border-b border-neutral-100 dark:border-neutral-800/80' : ''
             }`}
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-500 flex items-center justify-center border border-sky-500/20 shadow-xs">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-500 flex items-center justify-center border border-sky-500/20 shadow-xs flex-shrink-0">
                 <KeyRound className="w-5 h-5 stroke-[2.5]" />
               </div>
-              <div>
-                <h2 className="text-base font-heading font-extrabold text-neutral-900 dark:text-white">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-sm sm:text-base font-heading font-extrabold text-neutral-900 dark:text-white leading-tight">
                   Change Password
                 </h2>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  Update your password for login with your username or email
+                <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5">
+                  Update login password for your account
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <span className="text-xs font-bold text-sky-500">
                 {isPasswordFormOpen ? 'Hide' : 'Change'}
               </span>
-              <ChevronDown className={`w-5 h-5 text-neutral-400 transition-transform duration-200 ${isPasswordFormOpen ? 'rotate-180 text-sky-500' : ''}`} />
+              <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 text-neutral-400 transition-transform duration-200 ${isPasswordFormOpen ? 'rotate-180 text-sky-500' : ''}`} />
             </div>
           </div>
 
           {isPasswordFormOpen && (
-            <form onSubmit={handleChangePasswordSubmit} className="space-y-4 animate-in fade-in duration-200">
+            <form onSubmit={handleChangePasswordSubmit} className="space-y-3.5 sm:space-y-4 animate-in fade-in duration-200">
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                <div className="flex flex-wrap items-center justify-between gap-1 mb-1.5">
+                  <label className="block text-[10px] sm:text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
                     OLD PASSWORD
                   </label>
                   <button
@@ -313,7 +270,7 @@ export default function Settings() {
                     placeholder="Enter your current password"
                     value={oldPassword}
                     onChange={(e) => setOldPassword(e.target.value)}
-                    className="w-full bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-2xl px-4 py-3 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 transition-all"
+                    className="w-full bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-2xl px-3.5 py-2.5 sm:py-3 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-sky-500"
                   />
                   <button
                     type="button"
@@ -326,7 +283,7 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-neutral-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">
+                <label className="block text-[10px] sm:text-[11px] font-bold text-neutral-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">
                   NEW PASSWORD
                 </label>
                 <div className="relative">
@@ -335,7 +292,7 @@ export default function Settings() {
                     placeholder="At least 6 characters"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-2xl px-4 py-3 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 transition-all"
+                    className="w-full bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-2xl px-3.5 py-2.5 sm:py-3 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-sky-500"
                   />
                   <button
                     type="button"
@@ -348,7 +305,7 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-neutral-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">
+                <label className="block text-[10px] sm:text-[11px] font-bold text-neutral-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">
                   CONFIRM NEW PASSWORD
                 </label>
                 <div className="relative">
@@ -357,7 +314,7 @@ export default function Settings() {
                     placeholder="Re-enter your new password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-2xl px-4 py-3 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 transition-all"
+                    className="w-full bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-2xl px-3.5 py-2.5 sm:py-3 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-sky-500"
                   />
                 </div>
               </div>
@@ -365,7 +322,7 @@ export default function Settings() {
               <button
                 type="submit"
                 disabled={isChangingPass}
-                className="w-full py-3.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 active:scale-[0.99] text-white font-extrabold text-xs rounded-2xl shadow-md shadow-sky-500/20 transition-all cursor-pointer mt-2"
+                className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 active:scale-[0.99] text-white font-extrabold text-xs rounded-2xl shadow-md shadow-sky-500/20 transition-all cursor-pointer mt-2"
               >
                 {isChangingPass ? 'Updating Password...' : 'Save New Password'}
               </button>
@@ -374,21 +331,21 @@ export default function Settings() {
         </div>
 
         {/* Appearance & Theme Card */}
-        <div className="bg-white dark:bg-neutral-900/80 border border-neutral-200/80 dark:border-neutral-800/80 rounded-3xl p-6 shadow-sm backdrop-blur-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20 shadow-xs">
+        <div className="bg-white dark:bg-neutral-900/90 border border-neutral-200/80 dark:border-neutral-800/80 rounded-3xl p-4 sm:p-6 shadow-sm backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20 shadow-xs flex-shrink-0">
                 {isDark ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-indigo-500" />}
               </div>
-              <div>
-                <p className="font-extrabold text-sm text-neutral-900 dark:text-white">Dark Theme</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">Switch between light and dark interface</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-extrabold text-xs sm:text-sm text-neutral-900 dark:text-white leading-tight">Dark Theme</p>
+                <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5">Switch light & dark mode</p>
               </div>
             </div>
             <button
               type="button"
               onClick={toggleTheme}
-              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors cursor-pointer p-1 ${
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors cursor-pointer p-1 flex-shrink-0 ${
                 isDark ? 'bg-sky-500' : 'bg-neutral-300 dark:bg-neutral-700'
               }`}
             >
@@ -402,38 +359,38 @@ export default function Settings() {
         </div>
 
         {/* Notifications & Privacy Settings Card */}
-        <div className="bg-white dark:bg-neutral-900/80 border border-neutral-200/80 dark:border-neutral-800/80 rounded-3xl p-6 shadow-sm backdrop-blur-xl space-y-5">
+        <div className="bg-white dark:bg-neutral-900/90 border border-neutral-200/80 dark:border-neutral-800/80 rounded-3xl p-4 sm:p-6 shadow-sm backdrop-blur-xl space-y-4">
           <div className="flex items-center gap-3 pb-3 border-b border-neutral-100 dark:border-neutral-800/80">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center border border-indigo-500/20 shadow-xs">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center border border-indigo-500/20 shadow-xs flex-shrink-0">
               <Bell className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div>
-              <h2 className="text-base font-heading font-extrabold text-neutral-900 dark:text-white">
+              <h2 className="text-sm sm:text-base font-heading font-extrabold text-neutral-900 dark:text-white">
                 Notifications & Privacy
               </h2>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                Customize your alerts and account visibility
+              <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400">
+                Customize alerts and account visibility
               </p>
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             {[
               { key: 'messageAlerts', label: 'Message Notifications', desc: 'Alert when receiving direct messages' },
-              { key: 'upvoteAlerts', label: 'Upvote & Reaction Alerts', desc: 'Alert when students like your confessions' },
+              { key: 'upvoteAlerts', label: 'Upvote & Reaction Alerts', desc: 'Alert when students like confessions' },
               { key: 'commentAlerts', label: 'Comment Notifications', desc: 'Alert when someone comments on your post' },
-              { key: 'privateProfile', label: 'Private Account Mode', desc: 'Only approved friends can view your activity' },
-              { key: 'showOnlineStatus', label: 'Show Active Status', desc: 'Display active indicator on your avatar' },
+              { key: 'privateProfile', label: 'Private Account Mode', desc: 'Only approved friends view activity' },
+              { key: 'showOnlineStatus', label: 'Show Active Status', desc: 'Display active status on avatar' },
             ].map((item) => (
-              <div key={item.key} className="flex items-center justify-between pt-1">
-                <div>
-                  <p className="font-extrabold text-xs text-neutral-900 dark:text-neutral-100">{item.label}</p>
-                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400">{item.desc}</p>
+              <div key={item.key} className="flex items-center justify-between gap-3 pt-0.5">
+                <div className="min-w-0 flex-1">
+                  <p className="font-extrabold text-xs text-neutral-900 dark:text-neutral-100 leading-tight">{item.label}</p>
+                  <p className="text-[10px] sm:text-[11px] text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5">{item.desc}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleToggle(item.key)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors cursor-pointer p-1 ${
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors cursor-pointer p-1 flex-shrink-0 ${
                     settings[item.key] ? 'bg-sky-500' : 'bg-neutral-300 dark:bg-neutral-700'
                   }`}
                 >
@@ -451,43 +408,43 @@ export default function Settings() {
         {/* Campus Support & FAQs Card (Placed RIGHT BEFORE Logout!) */}
         <div
           onClick={() => setIsQueryModalOpen(true)}
-          className="bg-white dark:bg-neutral-900/90 border border-neutral-200/80 dark:border-neutral-800/80 rounded-3xl p-5 sm:p-6 shadow-sm backdrop-blur-xl hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300 cursor-pointer group"
+          className="bg-white dark:bg-neutral-900/90 border border-neutral-200/80 dark:border-neutral-800/80 rounded-3xl p-4 sm:p-6 shadow-sm backdrop-blur-xl hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300 cursor-pointer group"
         >
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500/20 via-teal-500/15 to-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/30 shadow-xs group-hover:scale-105 transition-transform flex-shrink-0">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-emerald-500/20 via-teal-500/15 to-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/30 shadow-xs group-hover:scale-105 transition-transform flex-shrink-0">
                 <HelpCircle className="w-5 h-5 stroke-[2.5]" />
               </div>
-              <div className="min-w-0">
-                <h2 className="text-sm sm:text-base font-heading font-extrabold text-neutral-900 dark:text-white group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors truncate">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-sm sm:text-base font-heading font-extrabold text-neutral-900 dark:text-white group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors leading-tight">
                   Campus Support & FAQs
                 </h2>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
-                  Browse 10+ campus guides and instant answers
+                <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5">
+                  Browse 10+ campus guides & instant answers
                 </p>
               </div>
             </div>
             <div className="flex-shrink-0">
-              <span className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/15 px-3.5 py-2 rounded-2xl border border-emerald-500/30 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap shadow-xs">
-                <span>View FAQs</span>
-                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+              <span className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/15 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-2xl border border-emerald-500/30 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 flex items-center gap-1 whitespace-nowrap shadow-xs">
+                <span>FAQs</span>
+                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-0.5" />
               </span>
             </div>
           </div>
         </div>
 
         {/* Danger Zone & Logout */}
-        <div className="bg-rose-500/5 dark:bg-rose-950/20 border border-rose-500/20 rounded-3xl p-6 shadow-sm">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-500 flex items-center justify-center border border-rose-500/30">
+        <div className="bg-rose-500/5 dark:bg-rose-950/20 border border-rose-500/20 rounded-3xl p-4 sm:p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-500 flex items-center justify-center border border-rose-500/30 flex-shrink-0">
               <AlertTriangle className="w-5 h-5 stroke-[2.5]" />
             </div>
-            <div>
-              <h2 className="text-base font-heading font-extrabold text-rose-500">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm sm:text-base font-heading font-extrabold text-rose-500 leading-tight">
                 Session Control
               </h2>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                Safely log out of your current session on this device
+              <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5">
+                Safely log out of your session on this device
               </p>
             </div>
           </div>
@@ -495,7 +452,7 @@ export default function Settings() {
           <button
             type="button"
             onClick={requestLogout}
-            className="w-full py-3.5 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 active:scale-[0.99] text-white font-extrabold text-xs rounded-2xl shadow-md shadow-rose-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 active:scale-[0.99] text-white font-extrabold text-xs rounded-2xl shadow-md shadow-rose-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <LogOut className="w-4 h-4 stroke-[2.5]" />
             <span>Log Out of Account</span>
@@ -504,47 +461,47 @@ export default function Settings() {
 
       </div>
 
-      {/* Full-Page Raise Query & Campus Help Center Modal */}
+      {/* Full-Page Campus FAQs Modal */}
       {isQueryModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-xl animate-in fade-in duration-200 flex items-center justify-center p-3 sm:p-6">
-          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[88vh] sm:max-h-[90vh]">
             
             {/* Modal Top Bar */}
-            <div className="p-5 sm:p-6 bg-neutral-50 dark:bg-neutral-950/80 border-b border-neutral-200/80 dark:border-neutral-800/80 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20">
+            <div className="p-4 sm:p-6 bg-neutral-50 dark:bg-neutral-950/80 border-b border-neutral-200/80 dark:border-neutral-800/80 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20 flex-shrink-0">
                   <HelpCircle className="w-5 h-5 stroke-[2.5]" />
                 </div>
-                <div>
-                  <h3 className="text-lg font-heading font-extrabold text-neutral-900 dark:text-white">
-                    Campus Support & Help Center
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg font-heading font-extrabold text-neutral-900 dark:text-white leading-tight">
+                    Campus Support & FAQs
                   </h3>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    Search campus FAQs or raise a direct support ticket
+                  <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5">
+                    Search campus guides & instant answers
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsQueryModalOpen(false)}
-                className="p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white bg-neutral-200/50 dark:bg-neutral-800 rounded-full transition-all cursor-pointer"
+                className="p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white bg-neutral-200/50 dark:bg-neutral-800 rounded-full transition-all cursor-pointer flex-shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal Content Scrollable Area */}
-            <div className="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1">
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
               {/* FAQs Accordion */}
-              <div className="space-y-4 pt-2">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <h4 className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-2">
                     <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                     Frequently Asked Questions ({filteredFaqs.length})
                   </h4>
 
                   {/* FAQ Filter Search Input */}
-                  <div className="relative min-w-[200px]">
+                  <div className="relative w-full sm:w-auto min-w-[180px]">
                     <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
@@ -556,7 +513,7 @@ export default function Settings() {
                   </div>
                 </div>
 
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   {filteredFaqs.map((faq, idx) => {
                     const isOpen = expandedFaqIndex === idx;
                     return (
@@ -582,15 +539,14 @@ export default function Settings() {
                   })}
                 </div>
               </div>
-
             </div>
 
             {/* Modal Bottom Bar */}
-            <div className="p-4 bg-neutral-50 dark:bg-neutral-950/80 border-t border-neutral-200/80 dark:border-neutral-800/80 text-center">
+            <div className="p-3.5 sm:p-4 bg-neutral-50 dark:bg-neutral-950/80 border-t border-neutral-200/80 dark:border-neutral-800/80 text-center">
               <button
                 type="button"
                 onClick={() => setIsQueryModalOpen(false)}
-                className="py-2.5 px-6 rounded-xl border border-neutral-300 dark:border-neutral-700 text-xs font-bold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200/50 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                className="py-2 sm:py-2.5 px-6 rounded-xl border border-neutral-300 dark:border-neutral-700 text-xs font-bold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200/50 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
               >
                 Close Support Center
               </button>
