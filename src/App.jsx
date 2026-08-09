@@ -1,10 +1,11 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { Layout } from '@/components/Layout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { AnimatePresence, motion } from 'framer-motion';
 
 // Lazy load pages
 const Landing = lazy(() => import('@/pages/Landing'));
@@ -30,20 +31,43 @@ const Terms = lazy(() => import('@/pages/Terms'));
 const Contact = lazy(() => import('@/pages/Contact'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center h-screen">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary-500" />
-  </div>
-);
+import { SplashScreen as CapacitorSplashScreen } from '@capacitor/splash-screen';
+import { SplashScreen } from '@/components/SplashScreen';
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    // Hide the native OS-level splash screen immediately on mount
+    CapacitorSplashScreen.hide().catch(err => {
+      console.warn('Native splash hide failed:', err);
+    });
+
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500); // Keep custom splash screen visible for 2.5 seconds
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <ThemeProvider>
       <AuthProvider>
         <NotificationProvider>
+          <AnimatePresence>
+            {showSplash && (
+              <motion.div
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6, ease: 'easeInOut' }}
+                className="fixed inset-0 z-[9999]"
+              >
+                <SplashScreen />
+              </motion.div>
+            )}
+          </AnimatePresence>
           <BrowserRouter>
             <Layout>
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={null}>
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<Landing />} />

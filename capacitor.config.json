@@ -1,5 +1,18 @@
 {
   "appId": "com.cohort.app",
   "appName": "Cohort",
-  "webDir": "dist"
+  "webDir": "dist",
+  "backgroundColor": "#08080c",
+  "plugins": {
+    "FirebaseAuthentication": {
+      "providers": [
+        "google.com"
+      ]
+    },
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "launchAutoHide": true,
+      "backgroundColor": "#08080c"
+    }
+  }
 }
