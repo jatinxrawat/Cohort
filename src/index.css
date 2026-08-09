@@ -22,6 +22,11 @@ html.dark body {
   color: #F3F4F6;
 }
 
+body.in-active-chat #mobile-nav,
+html.in-active-chat #mobile-nav {
+  display: none !important;
+}
+
 h1,
 h2,
 h3,

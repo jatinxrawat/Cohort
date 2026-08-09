@@ -4,8 +4,12 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { Layout } from '@/components/Layout';
+<<<<<<< HEAD
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { AnimatePresence, motion } from 'framer-motion';
+=======
+import { ProtectedRoute, PublicOnlyRoute } from '@/components/ProtectedRoute';
+>>>>>>> 5e64ca5c39c10dcbd8451392b70c38470f1fecd9
 
 // Lazy load pages
 const Landing = lazy(() => import('@/pages/Landing'));
@@ -69,10 +73,10 @@ function App() {
             <Layout>
               <Suspense fallback={null}>
                 <Routes>
-                  {/* Public Routes */}
-                  <Route path="/" element={<Landing />} />
+                  {/* Public Routes (Auto-redirects to /home if logged in) */}
+                  <Route path="/" element={<PublicOnlyRoute><Landing /></PublicOnlyRoute>} />
                   <Route path="/login" element={<Navigate to="/signup" replace />} />
-                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/signup" element={<PublicOnlyRoute><Signup /></PublicOnlyRoute>} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
 
                   {/* Protected Routes */}

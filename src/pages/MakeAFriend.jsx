@@ -592,10 +592,10 @@ export default function MakeAFriend() {
         addDoc(collection(db, 'notifications'), {
           recipientUid: targetProfile.uid,
           senderUid: user.uid,
-          senderName: user.name || 'Jatin',
+          senderName: user.name || 'Student',
           senderAvatar: user.avatar || '',
           type: 'like',
-          text: `you were right swiped by ${user.name || 'Jatin'}.`,
+          text: `you were right swiped by ${user.name || 'Student'}.`,
           read: false,
           time: new Date()
         })

@@ -23,18 +23,22 @@ export const LogoIcon = ({ className = "w-8 h-8", size, glow = true, variant = "
             <stop offset="50%" stopColor="#963BFF" /> {/* topic-violet */}
             <stop offset="100%" stopColor="#00F0FF" /> {/* acid-cyan */}
           </linearGradient>
+          <linearGradient id="cohort-badge-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#14141f" />
+            <stop offset="100%" stopColor="#09090e" />
+          </linearGradient>
         </defs>
 
         {variant === 'badge' && (
           <rect
-            x="2"
-            y="2"
-            width="28"
-            height="28"
-            rx="9"
-            fill="#08080C"
+            x="1.5"
+            y="1.5"
+            width="29"
+            height="29"
+            rx="10"
+            fill="url(#cohort-badge-bg)"
             stroke="url(#cohort-logo-grad)"
-            strokeWidth="2"
+            strokeWidth="1.8"
           />
         )}
 

@@ -27,7 +27,7 @@ export default function EditProfile() {
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
-    bio: user?.bio || 'Computer Science Student & Developer',
+    bio: user?.bio || '',
     college: user?.college || 'Delhi University',
     gender: user?.gender || 'Prefer not to say',
     year: user?.year || '1st Year',

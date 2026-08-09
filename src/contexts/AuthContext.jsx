@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { LogOut } from 'lucide-react';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -7,7 +8,11 @@ import {
   sendPasswordResetEmail,
   GoogleAuthProvider,
   signInWithPopup,
+<<<<<<< HEAD
   signInWithCredential
+=======
+  updatePassword
+>>>>>>> 5e64ca5c39c10dcbd8451392b70c38470f1fecd9
 } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
@@ -17,7 +22,10 @@ import {
   getDoc,
   updateDoc,
   collection,
-  onSnapshot
+  onSnapshot,
+  query,
+  where,
+  getDocs
 } from 'firebase/firestore';
 import { auth, db } from '@/utils/firebase';
 
@@ -29,6 +37,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -142,8 +151,40 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
+  const login = async (emailOrUsername, password) => {
+    let emailToUse = emailOrUsername.trim();
+    if (!emailToUse.includes('@')) {
+      const cleanUsername = emailToUse.replace(/^@/, '').toLowerCase();
+      try {
+        const usersRef = collection(db, 'users');
+        const q1 = query(usersRef, where('username', '==', cleanUsername));
+        const snap1 = await getDocs(q1);
+        if (!snap1.empty && snap1.docs[0].data()?.email) {
+          emailToUse = snap1.docs[0].data().email;
+        } else {
+          const q2 = query(usersRef, where('usernameHandle', '==', cleanUsername));
+          const snap2 = await getDocs(q2);
+          if (!snap2.empty && snap2.docs[0].data()?.email) {
+            emailToUse = snap2.docs[0].data().email;
+          } else {
+            emailToUse = `${cleanUsername}@student.edu`;
+          }
+        }
+      } catch (err) {
+        console.error('Username lookup error:', err);
+        emailToUse = `${cleanUsername}@student.edu`;
+      }
+    }
+    return signInWithEmailAndPassword(auth, emailToUse, password);
+  };
+
+  const setPasswordForUser = async (newPassword) => {
+    if (!auth.currentUser) throw new Error("No authenticated user");
+    await updatePassword(auth.currentUser, newPassword);
+    const uid = auth.currentUser.uid;
+    const docRef = doc(db, 'users', uid);
+    await updateDoc(docRef, { hasPassword: true });
+    setUser(prev => ({ ...prev, hasPassword: true }));
   };
 
   const signup = async (userData) => {
@@ -156,7 +197,8 @@ export const AuthProvider = ({ children }) => {
       email: email,
       college: college || 'KIET',
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || email)}`,
-      joinedDate: new Date().toISOString()
+      joinedDate: new Date().toISOString(),
+      hasPassword: true
     };
 
     // Save profile metadata inside Firestore
@@ -166,11 +208,32 @@ export const AuthProvider = ({ children }) => {
     return userCredential.user;
   };
 
-  const logout = () => {
+  const requestLogout = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const cancelLogout = () => {
+    setIsLogoutModalOpen(false);
+  };
+
+  const confirmLogout = async () => {
+    setIsLogoutModalOpen(false);
     setUser(null);
     setIsAuthenticated(false);
     setHasUnreadMessages(false);
-    return signOut(auth);
+    return await signOut(auth);
+  };
+
+  const logout = () => {
+    requestLogout();
+  };
+
+  const forceLogout = async () => {
+    setIsLogoutModalOpen(false);
+    setUser(null);
+    setIsAuthenticated(false);
+    setHasUnreadMessages(false);
+    return await signOut(auth);
   };
 
   const updateUser = async (updates) => {
@@ -198,12 +261,61 @@ export const AuthProvider = ({ children }) => {
         loginWithGoogle,
         login,
         signup,
+        setPasswordForUser,
         logout,
+        requestLogout,
+        confirmLogout,
+        cancelLogout,
+        forceLogout,
         updateUser,
         requestPasswordReset
       }}
     >
       {children}
+
+      {/* Modern Logout Confirmation Modal */}
+      {isLogoutModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+          {/* Dark Glass Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-md transition-opacity"
+            onClick={cancelLogout}
+          />
+
+          {/* Elevated Glass Card */}
+          <div className="relative bg-white/95 dark:bg-neutral-900/95 border border-neutral-200/80 dark:border-neutral-800/90 rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center z-10 my-auto transform transition-all scale-100 backdrop-blur-2xl">
+            {/* Icon Badge */}
+            <div className="w-16 h-16 rounded-full bg-rose-500/15 text-rose-500 flex items-center justify-center mx-auto mb-4 border border-rose-500/30 shadow-md">
+              <LogOut className="w-8 h-8 stroke-[2.5] animate-pulse" />
+            </div>
+
+            <h3 className="text-xl font-heading font-extrabold text-neutral-900 dark:text-white tracking-tight mb-2">
+              Confirm Logout
+            </h3>
+            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6">
+              Are you sure you want to log out? You will need to log back in to access your campus messages and posts.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={cancelLogout}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-neutral-200 dark:border-neutral-700/80 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 font-bold text-xs transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmLogout}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-extrabold text-xs shadow-lg shadow-rose-500/25 active:scale-95 transition-all cursor-pointer"
+              >
+                Yes, Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 };
