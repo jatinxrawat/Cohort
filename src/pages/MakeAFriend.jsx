@@ -672,42 +672,42 @@ export default function MakeAFriend() {
   const QuestionIcon = currentQuestion?.icon;
 
   return (
-    <div className="section-container min-h-[calc(100vh-120px)] lg:min-h-[calc(100vh-80px)] flex flex-col items-center justify-center p-md select-none relative overflow-hidden bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 text-white rounded-none border-0 my-0 lg:my-4 lg:rounded-3xl lg:border lg:border-neutral-800 w-full lg:max-w-4xl mx-auto shadow-none lg:shadow-glass-lg">
+    <div className="min-h-[calc(100vh-80px)] w-full flex flex-col items-center justify-start p-4 sm:p-6 lg:p-8 select-none relative overflow-hidden bg-zinc-950 text-white">
       <SEO title="Make a Friend" />
       
-      {/* Background neon glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[350px] h-[350px] bg-vandal-pink/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[350px] h-[350px] bg-neon-indigo/15 rounded-full blur-[120px] pointer-events-none" />
+      {/* Subtle ambient background glow */}
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary-600/5 rounded-full blur-[140px] pointer-events-none" />
+
+      {/* Main Page Title Header */}
+      <div className="text-center mb-6 z-10">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-zinc-900 border border-zinc-800 text-primary-400 rounded-full text-xs font-semibold uppercase tracking-wider mb-2 shadow-xs">
+          <Sparkles className="w-3.5 h-3.5 text-primary-400" /> Campus Vibe Twin
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight text-white">
+          Make a Friend
+        </h1>
+        <p className="text-xs sm:text-sm text-zinc-400 mt-1 font-medium max-w-md mx-auto">
+          Discover classmates nearby who match your personality & campus vibe.
+        </p>
+      </div>
 
       {/* STEP 1: ONBOARDING / QUESTIONNAIRE */}
       {step === 'onboarding' && (
-        <div className="w-full max-w-xl flex flex-col items-center relative z-10 py-xl">
-          <div className="text-center mb-xl">
-            <div className="inline-flex items-center gap-xs px-md py-sm bg-gradient-to-r from-vandal-pink/20 to-topic-violet/20 border border-vandal-pink/30 text-vandal-pink rounded-full text-xs font-bold uppercase tracking-widest mb-md shadow-glow-pink">
-              <Sparkles className="w-3.5 h-3.5" /> Make a Friend
-            </div>
-            <h2 className="text-3xl font-display font-extrabold tracking-tight bg-gradient-to-r from-white via-neutral-200 to-neutral-500 bg-clip-text text-transparent">
-              Reveal Your Vibe
-            </h2>
-            <p className="text-xs text-neutral-400 mt-xs font-medium">
-              Answer {QUESTIONS.length} campus questions to find your absolute match!
-            </p>
-          </div>
-
+        <div className="w-full max-w-xl flex flex-col items-center relative z-10 py-4">
           {/* Category Progress Segmented Toggle Bar */}
-          <div className="flex gap-xs w-full justify-between mb-lg p-1 bg-black/40 backdrop-blur-md rounded-2xl border border-neutral-800/80">
+          <div className="flex gap-1.5 w-full justify-between mb-6 p-1.5 bg-zinc-900/90 backdrop-blur-xl rounded-2xl border border-zinc-800 shadow-sm">
             {CATEGORIES.map((cat, idx) => {
               const isCurrent = currentCategory === cat;
               const isPassed = CATEGORIES.indexOf(currentCategory) > idx;
               return (
                 <div
                   key={cat}
-                  className={`flex-1 text-center py-xs rounded-xl text-[10px] font-extrabold tracking-wider transition-all duration-300 ${
+                  className={`flex-1 text-center py-2 rounded-xl text-xs font-bold tracking-wider transition-all duration-300 ${
                     isCurrent
-                      ? 'bg-gradient-to-r from-vandal-pink to-topic-violet text-white shadow-lg shadow-vandal-pink/20 scale-[1.02]'
+                      ? 'bg-primary-600 text-white shadow-sm'
                       : isPassed
-                      ? 'bg-neutral-800/80 text-neutral-300 border border-neutral-700/60'
-                      : 'text-neutral-500'
+                      ? 'bg-zinc-800/80 text-zinc-300 border border-zinc-700/60'
+                      : 'text-zinc-500'
                   }`}
                 >
                   {cat}
@@ -717,36 +717,36 @@ export default function MakeAFriend() {
           </div>
 
           {/* Question Box Card */}
-          <Card className="w-full bg-neutral-900/60 backdrop-blur-xl border border-neutral-800/80 p-xl rounded-2xl relative shadow-2xl">
-            <div className="absolute top-xl right-xl bg-neutral-800 border border-neutral-700/60 px-md py-0.5 rounded-full text-[10px] font-mono text-neutral-400 font-bold">
+          <Card className="w-full bg-zinc-900/90 backdrop-blur-2xl border border-zinc-800 p-6 sm:p-8 rounded-3xl relative shadow-xl space-y-6">
+            <div className="absolute top-6 right-6 bg-zinc-800 border border-zinc-700/60 px-3 py-1 rounded-full text-xs font-mono text-zinc-400 font-bold">
               {questionNumber} / {QUESTIONS.length}
             </div>
 
-            <div className="flex items-center gap-md mb-lg">
+            <div className="flex items-center gap-3">
               {QuestionIcon && (
-                <div className="w-10 h-10 rounded-2xl bg-vandal-pink/15 border border-vandal-pink/30 flex items-center justify-center flex-shrink-0 shadow-glow-pink">
-                  <QuestionIcon className="w-5 h-5 text-vandal-pink" />
+                <div className="w-10 h-10 rounded-xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center flex-shrink-0">
+                  <QuestionIcon className="w-5 h-5 text-primary-400" />
                 </div>
               )}
-              <span className="text-xs font-bold uppercase tracking-wider text-vandal-pink font-mono">
+              <span className="text-xs font-bold uppercase tracking-wider text-primary-400 font-mono">
                 {currentQuestion?.category}
               </span>
             </div>
 
-            <h3 className="text-lg font-bold font-display text-white mb-xl leading-snug">
+            <h3 className="text-lg sm:text-xl font-bold font-display text-white leading-snug">
               {currentQuestion?.text}
             </h3>
 
-            <div className="space-y-md">
+            <div className="space-y-3">
               {currentQuestion?.options.map((opt, oIdx) => (
                 <button
                   key={oIdx}
                   onClick={() => handleSelectOption(currentQuestion.id, oIdx)}
-                  className="w-full text-left p-md bg-neutral-950/50 hover:bg-gradient-to-r hover:from-neutral-900 hover:to-neutral-950 text-sm font-semibold rounded-xl border border-neutral-800 hover:border-vandal-pink/60 text-neutral-300 hover:text-white transition-all transform hover:scale-[1.01] active:scale-[0.99] flex items-center justify-between group cursor-pointer"
+                  className="w-full text-left p-4 bg-zinc-950/60 hover:bg-zinc-800/60 text-sm font-semibold rounded-2xl border border-zinc-800 hover:border-primary-500/50 text-zinc-300 hover:text-white transition-all flex items-center justify-between group cursor-pointer"
                 >
                   <span>{opt}</span>
-                  <div className="w-5 h-5 rounded-full border border-neutral-700 flex items-center justify-center flex-shrink-0 group-hover:border-vandal-pink transition-colors">
-                    <div className="w-2.5 h-2.5 rounded-full bg-vandal-pink scale-0 group-hover:scale-100 transition-transform duration-200" />
+                  <div className="w-5 h-5 rounded-full border border-zinc-700 flex items-center justify-center flex-shrink-0 group-hover:border-primary-400 transition-colors">
+                    <div className="w-2.5 h-2.5 rounded-full bg-primary-400 scale-0 group-hover:scale-100 transition-transform duration-200" />
                   </div>
                 </button>
               ))}
@@ -756,7 +756,7 @@ export default function MakeAFriend() {
             {currentQuestionIndex > 0 && (
               <button
                 onClick={handleOnboardingBack}
-                className="mt-xl flex items-center gap-xs text-xs font-bold text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
+                className="pt-2 flex items-center gap-1 text-xs font-bold text-zinc-400 hover:text-white transition-colors cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" /> Go Back
               </button>
@@ -764,9 +764,9 @@ export default function MakeAFriend() {
           </Card>
 
           {/* Progress Bar */}
-          <div className="w-full bg-neutral-900 h-1.5 rounded-full overflow-hidden mt-xl border border-neutral-800">
+          <div className="w-full bg-zinc-900 h-2 rounded-full overflow-hidden mt-6 border border-zinc-800">
             <div
-              className="bg-gradient-to-r from-vandal-pink to-topic-violet h-full transition-all duration-300"
+              className="bg-primary-600 h-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -775,35 +775,33 @@ export default function MakeAFriend() {
 
       {/* STEP 2: QUESTIONNAIRE COMPLETE - READY TO FIND FRIEND */}
       {step === 'match_ready' && (
-        <div className="w-full max-w-md flex flex-col items-center justify-center text-center relative z-10 py-lg">
-          <div className="relative w-32 h-32 mb-lg flex items-center justify-center">
-            <div className="absolute inset-0 bg-gradient-to-tr from-vandal-pink via-topic-violet to-neon-indigo rounded-full opacity-70 animate-spin-slow blur-xs" />
-            <div className="absolute inset-1.5 bg-black rounded-full" />
-            <Sparkles className="w-12 h-12 text-white animate-pulse-slow relative z-10" />
+        <div className="w-full max-w-md flex flex-col items-center justify-center text-center relative z-10 py-6">
+          <div className="w-20 h-20 rounded-full bg-zinc-900 border border-zinc-800 mb-6 flex items-center justify-center shadow-lg">
+            <Sparkles className="w-10 h-10 text-primary-400" />
           </div>
 
-          <h2 className="text-2xl font-display font-extrabold text-white leading-tight">
+          <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-white leading-tight">
             Ready to Connect
           </h2>
-          <p className="text-sm text-neutral-400 mt-sm px-lg font-medium max-w-sm mb-md animate-fade-in">
-            We have mapped your personality, interests, and passions. Select your search radius and click below to find matches!
+          <p className="text-xs sm:text-sm text-zinc-400 mt-2 px-6 font-medium max-w-sm mb-6">
+            Your vibe parameters are mapped! Select your preferred radius and start swiping.
           </p>
 
           {/* Campus Match Toggle */}
-          <Card className="w-full bg-neutral-900/60 border border-neutral-800/60 p-md mb-md rounded-2xl max-w-xs shadow-xl">
-            <label className="block text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest mb-sm flex items-center justify-center gap-xs">
-              <MapPin className="w-3.5 h-3.5 text-vandal-pink" /> Matching Radius
+          <Card className="w-full bg-zinc-900/90 border border-zinc-800 p-4 mb-6 rounded-2xl max-w-xs shadow-xl">
+            <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3 flex items-center justify-center gap-1.5">
+              <MapPin className="w-4 h-4 text-primary-400" /> Matching Radius
             </label>
-            <div className="flex bg-black/60 p-1 rounded-xl border border-neutral-800">
+            <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
               {['On Campus', 'Outside Campus'].map((opt) => (
                 <button
                   key={opt}
                   type="button"
                   onClick={() => setCampusFilter(opt)}
-                  className={`flex-1 py-sm text-[11px] font-extrabold rounded-lg transition-all duration-300 cursor-pointer ${
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
                     campusFilter === opt
-                      ? 'bg-gradient-to-r from-vandal-pink to-topic-violet text-white shadow-md shadow-vandal-pink/30 scale-[1.02]'
-                      : 'text-neutral-400 hover:text-neutral-200'
+                      ? 'bg-primary-600 text-white shadow-xs'
+                      : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
                   {opt}
@@ -814,14 +812,14 @@ export default function MakeAFriend() {
 
           <button
             onClick={submitOnboardingAnswers}
-            className="px-8 py-3.5 bg-gradient-to-r from-vandal-pink via-topic-violet to-neon-indigo text-white font-extrabold text-sm rounded-full shadow-[0_0_30px_rgba(255,42,133,0.5)] hover:scale-105 active:scale-95 transition-all flex items-center gap-md border border-white/10 uppercase tracking-wider cursor-pointer"
+            className="px-8 py-3.5 bg-primary-600 hover:bg-primary-500 text-white font-bold text-sm rounded-full shadow-lg shadow-primary-600/25 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 uppercase tracking-wider cursor-pointer"
           >
-            Make a Friend <ArrowRight className="w-4 h-4" />
+            Start Matching <ArrowRight className="w-4 h-4" />
           </button>
 
           <button
             onClick={handleRetakeQuiz}
-            className="mt-md text-xs font-bold text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
+            className="mt-4 text-xs font-bold text-zinc-400 hover:text-white transition-colors cursor-pointer"
           >
             Review Answers
           </button>
@@ -830,20 +828,18 @@ export default function MakeAFriend() {
 
       {/* STEP 3: MATCH SCANNING SYSTEM CONSOLE */}
       {step === 'matching_animation' && (
-        <div className="w-full max-w-md flex flex-col items-center justify-center py-2xl relative z-10">
-          <div className="relative w-36 h-36 mb-2xl flex items-center justify-center">
-            <div className="w-24 h-24 rounded-full bg-black/60 border-2 border-vandal-pink flex items-center justify-center relative shadow-[0_0_30px_rgba(255,42,133,0.4)]">
-              <Compass className="w-10 h-10 text-vandal-pink" style={{ animation: 'spin 4s linear infinite' }} />
-            </div>
+        <div className="w-full max-w-md flex flex-col items-center justify-center py-16 relative z-10">
+          <div className="w-20 h-20 rounded-full bg-zinc-900 border border-zinc-800 mb-8 flex items-center justify-center shadow-xl">
+            <Compass className="w-9 h-9 text-primary-400 animate-spin" style={{ animationDuration: '3s' }} />
           </div>
 
-          <Card className="w-full bg-black/80 border border-neutral-800/80 p-lg rounded-xl font-mono text-left text-xs leading-relaxed max-w-sm h-48 overflow-y-auto">
-            <div className="text-vandal-pink font-bold border-b border-neutral-800 pb-sm mb-sm flex items-center justify-between">
+          <Card className="w-full bg-zinc-950 border border-zinc-800 p-5 rounded-2xl font-mono text-left text-xs leading-relaxed max-w-sm h-48 overflow-y-auto shadow-2xl">
+            <div className="text-primary-400 font-bold border-b border-zinc-800 pb-2 mb-2 flex items-center justify-between">
               <span>CAMPUS_VIBE_SCAN</span>
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             </div>
             {matchingConsoleLogs.map((log, lIdx) => (
-              <div key={lIdx} className="text-neutral-300 mb-xs">
+              <div key={lIdx} className="text-zinc-300 mb-1">
                 {log}
               </div>
             ))}
@@ -853,133 +849,138 @@ export default function MakeAFriend() {
 
       {/* STEP 4: SWIPING INTERFACE */}
       {step === 'swiping' && (
-        <div className="w-full flex flex-col items-center relative z-10 py-md">
-          {/* Top Filter Bar with Best Segmented Toggle Switch */}
-          <div className="w-full max-w-sm flex items-center justify-between mb-md bg-black/60 backdrop-blur-xl p-1.5 rounded-2xl border border-neutral-800/80 shadow-lg">
-            <div className="flex items-center gap-1 flex-1">
-              {['All', 'Male', 'Female', 'Liked Profiles'].map((tab) => {
-                const isActive = tab === 'Liked Profiles' ? viewMode === 'liked' : (viewMode === 'swipe' && genderFilter === tab);
-                return (
-                  <button
-                    key={tab}
-                    type="button"
-                    onClick={() => {
-                      if (tab === 'Liked Profiles') {
-                        setViewMode('liked');
-                      } else {
-                        setGenderFilter(tab);
-                        setViewMode('swipe');
-                      }
-                    }}
-                    className={`flex-1 py-1.5 px-xs text-[10px] font-extrabold rounded-xl transition-all duration-300 cursor-pointer text-center ${
-                      isActive
-                        ? 'bg-gradient-to-r from-vandal-pink to-topic-violet text-white shadow-md shadow-vandal-pink/25 scale-[1.02]'
-                        : 'text-neutral-400 hover:text-white hover:bg-neutral-850/50'
-                    }`}
-                  >
-                    {tab === 'Liked Profiles' ? 'Liked' : tab}
-                  </button>
-                );
-              })}
+        <div className="w-full max-w-md flex flex-col items-center relative z-10">
+          
+          {/* Sleek Floating Glass Filter Bar */}
+          <div className="w-full bg-zinc-900/80 backdrop-blur-2xl p-2 rounded-2xl border border-white/10 shadow-2xl mb-5 flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-1.5">
+              <div className="flex items-center gap-1 flex-1 bg-black/40 p-1 rounded-xl border border-zinc-800/80">
+                {['All', 'Male', 'Female', 'Liked Profiles'].map((tab) => {
+                  const isActive = tab === 'Liked Profiles' ? viewMode === 'liked' : (viewMode === 'swipe' && genderFilter === tab);
+                  return (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => {
+                        if (tab === 'Liked Profiles') {
+                          setViewMode('liked');
+                        } else {
+                          setGenderFilter(tab);
+                          setViewMode('swipe');
+                        }
+                      }}
+                      className={`flex-1 py-1.5 px-2 text-[11px] font-bold rounded-lg transition-all duration-200 cursor-pointer text-center whitespace-nowrap ${
+                        isActive
+                          ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-500/25 scale-[1.02]'
+                          : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {tab === 'Liked Profiles' ? 'Liked' : tab}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleRetakeQuiz}
+                title="Retake Vibe Quiz"
+                className="p-2.5 bg-black/40 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-xl transition-all border border-zinc-800 flex-shrink-0 cursor-pointer active:scale-95"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
             </div>
 
-            <button
-              type="button"
-              onClick={handleRetakeQuiz}
-              title="Retake Personality Quiz"
-              className="p-2 ml-xs bg-neutral-850 hover:bg-neutral-750 text-neutral-300 rounded-xl hover:text-white transition-all border border-neutral-750 flex-shrink-0 cursor-pointer active:scale-95"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-            </button>
+            {/* Campus Radius Selector */}
+            {viewMode === 'swipe' && (
+              <div className="flex items-center justify-between px-3 py-1.5 bg-black/30 rounded-xl border border-zinc-800/60 text-xs">
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-violet-400" /> Radius
+                </span>
+                <div className="flex bg-zinc-950 p-0.5 rounded-lg border border-zinc-800">
+                  {['On Campus', 'Outside Campus'].map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={async () => {
+                        setCampusFilter(opt);
+                        if (user?.makeAFriendProfile) {
+                          const updatedProfile = {
+                            ...user.makeAFriendProfile,
+                            campusFilter: opt
+                          };
+                          await updateUser({
+                            makeAFriendProfile: updatedProfile
+                          });
+                        }
+                      }}
+                      className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all duration-200 cursor-pointer ${
+                        campusFilter === opt
+                          ? 'bg-white/15 border border-white/20 text-white shadow-xs'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Campus Toggle in Swiping screen */}
-          {viewMode === 'swipe' && (
-            <div className="w-full max-w-sm flex items-center justify-between mb-md bg-black/40 backdrop-blur-md px-md py-xs rounded-xl border border-neutral-800/50">
-              <span className="text-[9px] font-extrabold text-neutral-400 uppercase tracking-widest flex items-center gap-xs">
-                <MapPin className="w-3 h-3 text-vandal-pink" /> Radius
-              </span>
-              <div className="flex bg-neutral-900/80 p-0.5 rounded-lg border border-neutral-800">
-                {['On Campus', 'Outside Campus'].map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={async () => {
-                      setCampusFilter(opt);
-                      if (user?.makeAFriendProfile) {
-                        const updatedProfile = {
-                          ...user.makeAFriendProfile,
-                          campusFilter: opt
-                        };
-                        await updateUser({
-                          makeAFriendProfile: updatedProfile
-                        });
-                      }
-                    }}
-                    className={`px-md py-xs text-[9px] font-extrabold rounded-md transition-all duration-200 cursor-pointer ${
-                      campusFilter === opt
-                        ? 'bg-gradient-to-r from-vandal-pink to-topic-violet text-white shadow-xs'
-                        : 'text-neutral-400 hover:text-white'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Swipe Deck / Liked Grid Container */}
-          <div className="w-full max-w-sm h-[360px] relative flex items-center justify-center">
+          {/* Swipe Card Deck / Liked Grid Container */}
+          <div className="w-full max-w-md h-[470px] sm:h-[510px] relative flex items-center justify-center">
             {viewMode === 'liked' ? (
-              <div className="w-full h-full bg-neutral-900/40 rounded-3xl border border-neutral-800/60 p-md backdrop-blur-sm flex flex-col text-left">
-                <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-md flex items-center gap-xs border-b border-neutral-800/80 pb-sm">
-                  <Sparkles className="w-3.5 h-3.5 text-vandal-pink" /> Liked Profiles ({likedProfiles.length})
+              <div className="w-full h-full bg-zinc-900/90 backdrop-blur-2xl rounded-3xl border border-white/10 p-5 flex flex-col text-left shadow-2xl">
+                <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4 flex items-center justify-between border-b border-zinc-800 pb-3">
+                  <span className="flex items-center gap-2 text-violet-400">
+                    <Sparkles className="w-4 h-4" /> Liked Profiles ({likedProfiles.length})
+                  </span>
                 </div>
                 
                 {likedProfiles.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-sm overflow-y-auto pr-xs flex-1 max-h-[290px] items-start scrollbar-thin">
+                  <div className="grid grid-cols-1 gap-3 overflow-y-auto pr-1 flex-1 max-h-[400px] items-start scrollbar-thin">
                     {likedProfiles.map((lp) => (
                       <div
                         key={lp.uid}
                         onClick={() => navigate(`/messages?recipientUid=${lp.lpUid || lp.uid}&recipientName=${encodeURIComponent(lp.name)}`)}
-                        className="flex items-center justify-between cursor-pointer group bg-neutral-950/60 hover:bg-neutral-950/90 border border-neutral-800/80 p-md rounded-2xl transition-all hover:scale-[1.01] relative w-full"
+                        className="flex items-center justify-between cursor-pointer group bg-black/40 hover:bg-black/80 border border-zinc-800 p-4 rounded-2xl transition-all hover:border-violet-500/40 relative w-full shadow-xs"
                       >
-                        <div className="flex items-center gap-md min-w-0">
+                        <div className="flex items-center gap-3.5 min-w-0">
                           <div className="relative flex-shrink-0">
                             <img
                               src={lp.avatar}
                               alt={lp.name}
-                              className="w-12 h-12 rounded-full border-2 border-vandal-pink/60 object-cover bg-neutral-800"
+                              className="w-12 h-12 rounded-full border border-violet-500/50 object-cover bg-zinc-800 shadow-sm"
                             />
-                            <div className="absolute -bottom-1 -right-1 bg-gradient-to-tr from-vandal-pink to-topic-violet text-white rounded-full p-[2px] shadow-sm">
-                              <MessageSquare className="w-2.5 h-2.5 fill-current" />
+                            <div className="absolute -bottom-1 -right-1 bg-violet-600 text-white rounded-full p-1 shadow-xs">
+                              <MessageSquare className="w-3 h-3 fill-current" />
                             </div>
                           </div>
                           <div className="min-w-0 text-left">
-                            <span className="text-xs font-bold text-neutral-200 truncate block group-hover:text-vandal-pink transition-colors">
+                            <span className="text-sm font-bold text-white truncate block group-hover:text-violet-400 transition-colors">
                               {lp.name}
                             </span>
-                            <span className="text-[10px] text-neutral-400 font-semibold block mt-[2px]">
-                              Tap to chat
+                            <span className="text-xs text-zinc-400 font-medium block mt-0.5">
+                              Tap to start chat
                             </span>
                           </div>
                         </div>
 
-                        <div className="bg-neutral-900 border border-neutral-800/60 text-neutral-400 rounded-full p-md shadow-sm group-hover:bg-vandal-pink group-hover:text-white transition-all ml-md flex-shrink-0">
+                        <div className="bg-zinc-800 border border-zinc-700 text-zinc-300 rounded-full p-2 shadow-xs group-hover:bg-violet-600 group-hover:text-white transition-all ml-3 flex-shrink-0">
                           <ChevronRight className="w-4 h-4" />
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center p-md">
-                    <div className="w-12 h-12 rounded-full bg-neutral-800 flex items-center justify-center text-neutral-500 border border-neutral-700/60 mb-md">
-                      <Sparkles className="w-6 h-6 text-vandal-pink animate-pulse-slow" />
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
+                    <div className="w-12 h-12 rounded-full bg-zinc-800/80 flex items-center justify-center text-zinc-500 border border-zinc-700/60 mb-4 shadow-sm">
+                      <Sparkles className="w-6 h-6 text-violet-400" />
                     </div>
-                    <h4 className="text-xs font-bold text-white">No Liked Profiles Yet</h4>
-                    <p className="text-[10px] text-neutral-500 mt-xs px-sm leading-normal font-medium">
-                      Swipe right on matches to see them listed here and start chatting.
+                    <h4 className="text-sm font-bold text-white">No Liked Profiles Yet</h4>
+                    <p className="text-xs text-zinc-400 mt-1 px-4 leading-relaxed font-medium">
+                      Swipe right on matches to save them here and open direct chats anytime.
                     </p>
                   </div>
                 )}
@@ -997,97 +998,115 @@ export default function MakeAFriend() {
                           key={profile.uid}
                           style={{ zIndex: 10 - index, position: 'absolute' }}
                           initial={{ scale: 0.95, opacity: 0.8, y: 10 }}
-                          animate={{ scale: isTopCard ? 1 : 0.95, opacity: isTopCard ? 1 : 0.8, y: isTopCard ? 0 : 10 }}
+                          animate={{ scale: isTopCard ? 1 : 0.95, opacity: isTopCard ? 1 : 0.6, y: isTopCard ? 0 : 12 }}
                           exit={{
-                            x: swipeDirection === 'right' ? 300 : swipeDirection === 'left' ? -300 : 0,
+                            x: swipeDirection === 'right' ? 340 : swipeDirection === 'left' ? -340 : 0,
                             opacity: 0,
-                            rotate: swipeDirection === 'right' ? 15 : swipeDirection === 'left' ? -15 : 0,
+                            rotate: swipeDirection === 'right' ? 12 : swipeDirection === 'left' ? -12 : 0,
                             scale: 0.9
                           }}
                           transition={{ duration: 0.25, ease: 'easeInOut' }}
                           className="w-full h-full"
                         >
-                          <Card className="w-full h-full bg-gradient-to-b from-neutral-900 via-neutral-900 to-black border-2 border-neutral-800/80 p-md rounded-3xl flex flex-col justify-between shadow-2xl relative overflow-hidden select-none">
+                          <Card className="w-full h-full bg-gradient-to-b from-zinc-900/95 via-zinc-900/90 to-zinc-950/95 backdrop-blur-2xl border border-white/10 p-5 sm:p-6 rounded-3xl flex flex-col justify-between shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative overflow-hidden select-none">
                             
                             {/* Swipe Indicators overlays */}
                             {isTopCard && swipeDirection === 'right' && (
-                              <div className="absolute top-12 left-8 border-4 border-emerald-500 text-emerald-500 font-extrabold uppercase tracking-widest text-2xl rotate-[-12deg] px-md py-xs rounded-xl z-20 bg-black/60 shadow-lg">
-                                LIKE
+                              <div className="absolute top-10 left-8 border-2 border-emerald-400 text-emerald-400 font-extrabold uppercase tracking-widest text-2xl rotate-[-12deg] px-4 py-1 rounded-xl z-30 bg-zinc-950/90 shadow-2xl">
+                                LIKE ✨
                               </div>
                             )}
                             {isTopCard && swipeDirection === 'left' && (
-                              <div className="absolute top-12 right-8 border-4 border-danger text-danger font-extrabold uppercase tracking-widest text-2xl rotate-[12deg] px-md py-xs rounded-xl z-20 bg-black/60 shadow-lg">
-                                NOPE
+                              <div className="absolute top-10 right-8 border-2 border-rose-500 text-rose-500 font-extrabold uppercase tracking-widest text-2xl rotate-[12deg] px-4 py-1 rounded-xl z-30 bg-zinc-950/90 shadow-2xl">
+                                SKIP ❌
                               </div>
                             )}
 
-                            {/* Top section: Avatar and Match Percentage */}
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-center gap-md">
-                                <img
-                                  src={profile.avatar}
-                                  alt={profile.name}
-                                  className="w-12 h-12 rounded-full border-2 border-vandal-pink object-cover flex-shrink-0 bg-neutral-800"
-                                />
-                                <div className="min-w-0">
-                                  <h3 className="font-display font-extrabold text-sm text-white truncate flex items-center gap-xs">
-                                    {profile.name}
-                                  </h3>
-                                  <p className="text-[9px] text-neutral-400 truncate font-semibold">{profile.college}</p>
-                                  <span className="inline-flex mt-xs px-sm py-[2px] bg-neutral-800 border border-neutral-700/60 rounded-md text-[8px] text-neutral-400 capitalize font-mono font-bold">
-                                    {profile.gender}
-                                  </span>
-                                </div>
-                              </div>
-
-                              <div className="flex flex-col items-end">
-                                <div className="inline-flex items-center gap-xs bg-gradient-to-r from-vandal-pink/20 to-topic-violet/20 border border-vandal-pink/40 text-vandal-pink font-mono text-[10px] px-sm py-xs rounded-lg font-bold shadow-glow-pink animate-pulse">
-                                  <Flame className="w-3 h-3 fill-current" /> {profile.matchPercentage}% Match
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Middle Section: Shared Vibes list */}
-                            <div className="flex-1 my-xs overflow-y-auto pr-xs">
-                              <div className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest mb-xs flex items-center gap-xs">
-                                <TrendingUp className="w-3 h-3 text-vandal-pink" /> Shared Vibe Vectors
-                              </div>
-                              {profile.sharedInterests.length > 0 ? (
-                                <div className="flex flex-wrap gap-xs">
-                                  {profile.sharedInterests.slice(0, 5).map((interest, iIdx) => {
-                                    const InterestIcon = interest.Icon || Sparkles;
-                                    return (
-                                      <span
-                                        key={iIdx}
-                                        className="inline-flex items-center gap-xs text-[9px] font-semibold bg-neutral-900 border border-neutral-800/80 text-neutral-300 px-sm py-xs rounded-xl shadow-sm hover:border-vandal-pink/30 hover:text-white transition-colors"
-                                      >
-                                        <InterestIcon className="w-3 h-3 text-vandal-pink flex-shrink-0" />
-                                        <span>{interest.text.split('(')[0].trim()}</span>
+                            {/* Card Top Section: Avatar, Details & Match Percentage */}
+                            <div className="space-y-4">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                                  <img
+                                    src={profile.avatar}
+                                    alt={profile.name}
+                                    className="w-16 h-16 sm:w-18 sm:h-18 rounded-full border-2 border-violet-500/60 object-cover flex-shrink-0 bg-zinc-800 shadow-md"
+                                  />
+                                  <div className="flex-1 min-w-0 text-left">
+                                    <h3 className="font-display font-extrabold text-base sm:text-lg text-white leading-snug whitespace-normal break-words">
+                                      {profile.name}
+                                    </h3>
+                                    <p className="text-xs text-zinc-400 font-semibold mt-0.5 truncate">{profile.college}</p>
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                      <span className="inline-flex px-2.5 py-0.5 bg-zinc-950/80 border border-zinc-800 rounded-md text-[10px] text-zinc-300 capitalize font-mono font-bold">
+                                        {profile.gender}
                                       </span>
-                                    );
-                                  })}
+                                    </div>
+                                  </div>
                                 </div>
-                              ) : (
-                                <p className="text-xs text-neutral-500 italic mt-sm">
-                                  No identical matches, but opposites attract! Let's talk.
-                                </p>
-                              )}
+
+                                <div className="flex-shrink-0">
+                                  <div className="inline-flex items-center gap-1 bg-violet-500/10 border border-violet-500/30 text-violet-300 font-mono text-[11px] sm:text-xs px-3 py-1 rounded-full font-bold shadow-[0_0_12px_rgba(139,92,246,0.15)] whitespace-nowrap">
+                                    <Flame className="w-3.5 h-3.5 fill-current text-violet-400" /> {profile.matchPercentage}%
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Middle Section: Shared Vibe Vectors */}
+                              <div className="pt-2">
+                                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                  <TrendingUp className="w-3.5 h-3.5 text-violet-400" /> Shared Vibe Vectors
+                                </div>
+                                {profile.sharedInterests.length > 0 ? (
+                                  <div className="flex flex-wrap gap-2 max-h-[180px] overflow-y-auto pr-1">
+                                    {profile.sharedInterests.slice(0, 6).map((interest, iIdx) => {
+                                      const InterestIcon = interest.Icon || Sparkles;
+                                      return (
+                                        <span
+                                          key={iIdx}
+                                          className="inline-flex items-center gap-1.5 text-xs font-medium bg-black/40 border border-zinc-800 text-zinc-300 px-3 py-1.5 rounded-xl hover:border-zinc-700 hover:text-white transition-colors"
+                                        >
+                                          <InterestIcon className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
+                                          <span>{interest.text.split('(')[0].trim()}</span>
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-zinc-400 italic py-2">
+                                    No exact question overlaps, but opposites attract! Connect and start chatting.
+                                  </p>
+                                )}
+                              </div>
                             </div>
 
-                            {/* Action buttons embedded in Card for top Card */}
+                            {/* Bottom Action Controls Embedded in Card */}
                             {isTopCard && (
-                              <div className="flex items-center justify-around border-t border-neutral-800/80 pt-xs mt-xs">
+                              <div className="flex items-center justify-around border-t border-zinc-800/80 pt-4 mt-2">
                                 <button
+                                  type="button"
                                   onClick={() => handleSwipe('left')}
-                                  className="w-10 h-10 bg-neutral-950 border border-neutral-800 hover:border-danger hover:text-danger rounded-full flex items-center justify-center text-neutral-400 transition-all hover:scale-110 active:scale-95 shadow-md cursor-pointer"
+                                  title="Skip Profile"
+                                  className="w-12 h-12 bg-black/50 border border-zinc-800 text-zinc-400 hover:text-rose-400 hover:border-rose-500/40 hover:bg-rose-500/10 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
                                 >
-                                  <X className="w-4 h-4" />
+                                  <X className="w-5 h-5" />
                                 </button>
+
                                 <button
-                                  onClick={() => handleSwipe('right')}
-                                  className="w-10 h-10 bg-gradient-to-r from-vandal-pink to-topic-violet text-white rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-[0_0_20px_rgba(255,42,133,0.4)] cursor-pointer"
+                                  type="button"
+                                  onClick={() => startChat(profile)}
+                                  title="Direct Message"
+                                  className="w-12 h-12 bg-black/50 border border-zinc-800 text-zinc-400 hover:text-sky-400 hover:border-sky-500/40 hover:bg-sky-500/10 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
                                 >
-                                  <Sparkles className="w-4 h-4 text-white" />
+                                  <MessageSquare className="w-5 h-5" />
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleSwipe('right')}
+                                  title="Connect / Match"
+                                  className="w-12 h-12 bg-gradient-to-r from-violet-600 via-indigo-600 to-pink-600 text-white rounded-full flex items-center justify-center transition-all shadow-[0_0_20px_rgba(139,92,246,0.35)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] cursor-pointer active:scale-95"
+                                >
+                                  <Sparkles className="w-5 h-5 text-white" />
                                 </button>
                               </div>
                             )}
@@ -1098,20 +1117,20 @@ export default function MakeAFriend() {
                   </AnimatePresence>
                 ) : (
                   /* Out of Matches State */
-                  <div className="w-full h-full flex flex-col items-center justify-center text-center p-xl bg-neutral-900/40 rounded-3xl border border-neutral-800/60 backdrop-blur-sm z-0">
-                    <div className="w-16 h-16 rounded-full bg-neutral-800 flex items-center justify-center text-neutral-500 border border-neutral-700/60 mb-lg">
-                      <AlertCircle className="w-8 h-8" />
+                  <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 bg-zinc-900/90 rounded-3xl border border-white/10 backdrop-blur-2xl shadow-2xl z-0">
+                    <div className="w-14 h-14 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 border border-zinc-700/60 mb-4 shadow-sm">
+                      <AlertCircle className="w-7 h-7 text-violet-400" />
                     </div>
-                    <h3 className="text-md font-bold font-display text-white">No Profiles Left</h3>
-                    <p className="text-xs text-neutral-400 mt-xs px-md font-medium">
-                      We scanned everyone in your category pool. Change filters, reset swipes, or update your quiz to find more friends!
+                    <h3 className="text-base font-bold font-display text-white">No Profiles Left</h3>
+                    <p className="text-xs text-zinc-400 mt-2 px-4 font-medium leading-relaxed">
+                      You reviewed all profiles in your current filter. Change filters, reset swipes, or retake your quiz to find new friends!
                     </p>
 
-                    <div className="mt-xl flex flex-col gap-sm w-full max-w-[200px]">
-                      <Button size="sm" onClick={handleResetSwipes} className="w-full">
+                    <div className="mt-6 flex flex-col gap-2.5 w-full max-w-[220px]">
+                      <Button size="sm" onClick={handleResetSwipes} className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 border-none font-bold text-xs shadow-md">
                         Reset All Swipes
                       </Button>
-                      <Button size="sm" variant="secondary" onClick={handleRetakeQuiz} className="w-full">
+                      <Button size="sm" variant="secondary" onClick={handleRetakeQuiz} className="w-full font-bold text-xs">
                         Retake Vibe Quiz
                       </Button>
                     </div>
@@ -1130,52 +1149,39 @@ export default function MakeAFriend() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/95 z-[999] flex flex-col items-center justify-center p-xl backdrop-blur-lg"
+            className="fixed inset-0 bg-black/90 z-[999] flex flex-col items-center justify-center p-6 backdrop-blur-xl"
           >
-            <div className="absolute top-1/4 left-1/4 animate-bounce p-xs bg-vandal-pink/20 rounded-full border border-vandal-pink/40">
-              <Sparkles className="w-5 h-5 text-vandal-pink" />
-            </div>
-            <div className="absolute top-1/3 right-1/4 animate-pulse p-xs bg-amber-500/20 rounded-full border border-amber-500/40">
-              <Flame className="w-6 h-6 text-amber-400" />
-            </div>
-            <div className="absolute bottom-1/4 right-1/3 animate-bounce p-xs bg-rose-500/20 rounded-full border border-rose-500/40">
-              <Heart className="w-5 h-5 text-rose-400" />
-            </div>
-            <div className="absolute bottom-1/3 left-1/3 animate-bounce p-xs bg-topic-violet/20 rounded-full border border-topic-violet/40">
-              <Zap className="w-5 h-5 text-topic-violet" />
-            </div>
-
             <div className="text-center max-w-sm relative z-10 flex flex-col items-center">
-              <h2 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-vandal-pink via-topic-violet to-neon-indigo font-display mb-md animate-pulse">
-                Vibe Aligned!
+              <h2 className="text-4xl font-extrabold text-white font-display mb-2">
+                Vibe Aligned ✨
               </h2>
-              <p className="text-sm text-neutral-300 mb-2xl px-md">
-                You and <strong className="text-white font-bold">{matchedProfile.name}</strong> share the same vibes!
+              <p className="text-xs sm:text-sm text-zinc-300 mb-8 px-4 font-medium">
+                You and <strong className="text-white font-bold">{matchedProfile.name}</strong> share the same campus vibes!
               </p>
 
               {/* Match Double Avatar Bubble */}
-              <div className="flex items-center justify-center gap-xl mb-3xl relative">
-                <div className="w-24 h-24 rounded-full border-4 border-vandal-pink overflow-hidden shadow-[0_0_30px_rgba(255,42,133,0.5)] hover:scale-105 transition-transform bg-neutral-800">
+              <div className="flex items-center justify-center gap-8 mb-10 relative">
+                <div className="w-20 h-20 rounded-full border-2 border-primary-500 overflow-hidden shadow-lg bg-zinc-800">
                   <UserAvatar src={user.avatar} name={user.name || 'You'} className="w-full h-full object-cover" />
                 </div>
-                <div className="absolute bg-neutral-900 text-vandal-pink rounded-full p-sm shadow-md z-25 border border-neutral-800">
-                  <Sparkles className="w-5 h-5 text-vandal-pink" />
+                <div className="absolute bg-zinc-900 text-primary-400 rounded-full p-2 shadow-md z-25 border border-zinc-800">
+                  <Sparkles className="w-5 h-5 text-primary-400" />
                 </div>
-                <div className="w-24 h-24 rounded-full border-4 border-topic-violet overflow-hidden shadow-[0_0_30px_rgba(150,59,255,0.5)] hover:scale-105 transition-transform bg-neutral-800">
+                <div className="w-20 h-20 rounded-full border-2 border-primary-500 overflow-hidden shadow-lg bg-zinc-800">
                   <UserAvatar src={matchedProfile.avatar} name={matchedProfile.name || 'Friend'} className="w-full h-full object-cover" />
                 </div>
               </div>
 
-              <div className="flex flex-col gap-md w-full px-lg">
+              <div className="flex flex-col gap-3 w-full px-4">
                 <button
                   onClick={() => startChat(matchedProfile)}
-                  className="w-full py-4 bg-gradient-to-r from-vandal-pink via-topic-violet to-neon-indigo text-white font-bold rounded-xl shadow-lg hover:scale-105 transition-all text-sm flex items-center justify-center gap-sm uppercase tracking-wider cursor-pointer"
+                  className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-2xl shadow-lg text-sm flex items-center justify-center gap-2 uppercase tracking-wider cursor-pointer transition-all"
                 >
                   <MessageSquare className="w-4 h-4" /> Open Chat Window
                 </button>
                 <button
                   onClick={() => setIsMatchOverlayOpen(false)}
-                  className="w-full py-md border border-neutral-700 hover:border-neutral-500 rounded-xl text-neutral-400 hover:text-white transition-all text-xs font-semibold cursor-pointer"
+                  className="w-full py-3 border border-zinc-800 hover:border-zinc-700 rounded-2xl text-zinc-400 hover:text-white transition-all text-xs font-semibold cursor-pointer"
                 >
                   Keep Matching
                 </button>

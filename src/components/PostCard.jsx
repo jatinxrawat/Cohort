@@ -641,7 +641,7 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
     <Card
       className={
         isCohortOfficialPost
-          ? "mb-lg border-purple-500/30 dark:border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.12)] bg-purple-950/5 dark:bg-purple-950/20"
+          ? "mb-lg border-purple-500/50 dark:border-purple-500/60 shadow-[0_0_15px_rgba(168,85,247,0.15)] bg-white dark:bg-neutral-900"
           : "mb-lg border-neutral-100 dark:border-neutral-800 shadow-sm"
       }
     >

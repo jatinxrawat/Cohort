@@ -1265,7 +1265,7 @@ export default function AnonymousFeed({ defaultTab }) {
                     key={confession.id}
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="relative rounded-3xl p-xl bg-gradient-to-br from-white via-violet-50/40 to-white dark:from-zinc-900 dark:via-violet-950/30 dark:to-zinc-900 border border-violet-200 dark:border-violet-500/30 shadow-md dark:shadow-[0_0_25px_rgba(139,92,246,0.15)] hover:border-violet-400/50 hover:shadow-lg dark:hover:shadow-[0_0_35px_rgba(139,92,246,0.25)] space-y-lg transition-all duration-300"
+                    className="relative rounded-3xl p-xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-rose-200 dark:border-rose-500/30 shadow-md dark:shadow-[0_4px_20px_rgba(244,63,94,0.08)] hover:border-rose-400/50 space-y-lg transition-all duration-300"
                   >
                     {/* Header Badges */}
                     <div className="flex items-center justify-between text-xs">
@@ -1319,7 +1319,7 @@ export default function AnonymousFeed({ defaultTab }) {
 
                     {/* Centered Confession Text */}
                     <div className="py-md text-center">
-                      <p className="text-lg md:text-xl font-heading font-semibold text-neutral-900 dark:text-zinc-100 leading-relaxed px-sm whitespace-pre-wrap break-words">
+                      <p className="text-lg md:text-xl font-heading font-medium text-neutral-800 dark:text-zinc-200 leading-relaxed px-sm whitespace-pre-wrap break-words">
                         "{confession.text}"
                       </p>
                       {confession.imageUrl && (

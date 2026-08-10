@@ -55,19 +55,19 @@ export const MobileNav = () => {
                   className={`flex-1 flex flex-col items-center justify-center gap-[2px] py-1 px-1 rounded-full transition-all duration-200 relative min-w-0 ${
                     active
                       ? special
-                        ? 'text-purple-600 dark:text-purple-400 font-bold scale-105'
+                        ? 'text-purple-400 dark:text-purple-300 font-bold scale-105'
                         : specialConfession
-                        ? 'text-rose-600 dark:text-rose-400 font-bold scale-105'
+                        ? 'text-rose-400 dark:text-rose-300 font-bold scale-105'
                         : specialFriend
-                        ? 'text-vandal-pink font-bold scale-105'
+                        ? 'text-pink-400 dark:text-pink-300 font-bold scale-105'
                         : 'text-primary-600 dark:text-primary-400 font-bold scale-105'
                       : special
-                      ? 'text-purple-400/80 dark:text-purple-400/80 hover:text-purple-500'
+                      ? 'text-purple-300 dark:text-purple-300 hover:text-purple-200'
                       : specialConfession
-                      ? 'text-rose-400/80 dark:text-rose-400/80 hover:text-rose-500'
+                      ? 'text-rose-400 dark:text-rose-300 hover:text-rose-200'
                       : specialFriend
-                      ? 'text-vandal-pink/80 hover:text-vandal-pink font-semibold'
-                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                      ? 'text-pink-400 dark:text-pink-300 hover:text-pink-200 font-semibold'
+                      : 'text-neutral-500 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white'
                   }`}
                   aria-label={label}
                 >

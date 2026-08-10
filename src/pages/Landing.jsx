@@ -407,14 +407,15 @@ export default function Landing() {
           glowRadius={50}
           glowIntensity={1.2}
           coneSpread={30}
-          animated={true}
+          animated={false}
+          disableGlow={true}
           colors={['#c084fc', '#f472b6', '#38bdf8']}
           className="h-full"
         >
           <div className="p-6 sm:p-8 flex flex-col justify-between space-y-6 text-left h-full">
             <div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold mb-3">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
                 NEARBY VIBES
               </div>
               <h2 className="text-2xl sm:text-4xl font-display font-black text-white tracking-tight">
