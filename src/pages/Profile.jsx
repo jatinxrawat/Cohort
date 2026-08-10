@@ -398,13 +398,12 @@ export default function Profile() {
       try {
         let activeProfile = null;
 
-        if (isOwnProfile && currentUser?.username !== 'cohort') {
+        if (isOwnProfile) {
           activeProfile = currentUser;
         } else {
           const isCohortTarget =
             targetUid === 'cohort_official' ||
-            (targetName || '').toLowerCase() === 'cohort' ||
-            (currentUser?.username || '').toLowerCase() === 'cohort';
+            (targetName || '').toLowerCase() === 'cohort';
 
           if (isCohortTarget) {
             const cohortDocRef = doc(db, 'users', 'cohort_official');

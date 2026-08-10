@@ -78,8 +78,8 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-xs text-primary-200">Email Us</p>
-                  <a href="mailto:support@collex.in" className="font-semibold hover:text-primary-100 transition-colors">
-                    support@collex.in
+                  <a href="mailto:cohortnow.online@gmail.com" className="font-semibold hover:text-primary-100 transition-colors">
+                    cohortnow.online@gmail.com
                   </a>
                 </div>
               </div>

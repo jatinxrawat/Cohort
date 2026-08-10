@@ -41,8 +41,8 @@ export default function Help() {
         <p className="text-neutral-600 dark:text-neutral-400 mb-lg">
           Can't find what you're looking for? Contact our support team.
         </p>
-        <a href="mailto:support@collex.in" className="text-primary-500 hover:text-primary-600 font-medium">
-          support@collex.in
+        <a href="mailto:cohortnow.online@gmail.com" className="text-primary-500 hover:text-primary-600 font-medium">
+          cohortnow.online@gmail.com
         </a>
       </Card>
     </div>

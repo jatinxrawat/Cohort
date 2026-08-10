@@ -207,10 +207,10 @@ export default function Landing() {
           </div>
 
           {/* --- HEADER NAVBAR INSIDE HERO CARD --- */}
-          <header className="relative z-20 flex items-center justify-between mb-4 lg:mb-6">
-            <Link to="/" className="flex items-center gap-3.5 group flex-shrink-0">
-              <LogoIcon className="w-10 h-10 sm:w-12 sm:h-12 transform group-hover:scale-105 transition-transform drop-shadow-md" variant="badge" glow={true} />
-              <span className="font-display font-black text-xl sm:text-2xl lg:text-3xl tracking-tight text-white">
+          <header className="relative z-20 flex items-center justify-between gap-2 mb-4 lg:mb-6">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3.5 group flex-shrink-0">
+              <LogoIcon className="w-8 h-8 sm:w-12 sm:h-12 transform group-hover:scale-105 transition-transform drop-shadow-md" variant="badge" glow={true} />
+              <span className="font-display font-black text-lg sm:text-2xl lg:text-3xl tracking-tight text-white whitespace-nowrap">
                 Cohort<span className="text-pink-500">.</span>
               </span>
             </Link>
@@ -223,7 +223,7 @@ export default function Landing() {
             </nav>
 
           {/* Action Button */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
             {isAuthenticated ? (
               <SpecularButton
                 onClick={() => navigate('/home')}
@@ -236,14 +236,14 @@ export default function Landing() {
                 baseColor="#6b21a8"
                 autoAnimate={true}
               >
-                Enter App
+                <span className="whitespace-nowrap">Enter App</span>
               </SpecularButton>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <button
                   type="button"
                   onClick={() => navigate('/login')}
-                  className="px-4 py-2 text-xs sm:text-sm font-bold text-neutral-200 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+                  className="px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-neutral-200 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer whitespace-nowrap"
                 >
                   Log In
                 </button>
@@ -258,7 +258,7 @@ export default function Landing() {
                   baseColor="#6b21a8"
                   autoAnimate={true}
                 >
-                  Sign Up Free
+                  <span className="whitespace-nowrap">Sign Up Free</span>
                 </SpecularButton>
               </div>
             )}
@@ -284,7 +284,7 @@ export default function Landing() {
               Join real, unfiltered conversations, anonymous confessions, campus marketplace listings, and vibe matching at your university.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2 w-full sm:w-auto">
               <SpecularButton
                 onClick={() => navigate('/signup')}
                 size="lg"
@@ -296,14 +296,15 @@ export default function Landing() {
                 baseColor="#7e22ce"
                 autoAnimate={true}
                 shineSize={15}
+                className="w-full sm:w-auto justify-center"
               >
-                <span>Sign Up Free</span>
+                <span className="whitespace-nowrap">Sign Up Free</span>
                 <ChevronRight className="w-5 h-5 stroke-[3]" />
               </SpecularButton>
               <button
                 type="button"
                 onClick={() => setShowDownloadModal(true)}
-                className="cursor-pointer border-none bg-transparent p-0 active:scale-95 transition-transform"
+                className="cursor-pointer border-none bg-transparent p-0 active:scale-95 transition-transform w-full sm:w-auto"
               >
                 <SpecularButton
                   size="lg"
@@ -314,8 +315,9 @@ export default function Landing() {
                   lineColor="#a855f7"
                   baseColor="#262626"
                   autoAnimate={false}
+                  className="w-full sm:w-auto justify-center"
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-2 whitespace-nowrap">
                     <Download className="w-4 h-4 text-purple-400" />
                     <span>Download App</span>
                   </div>
