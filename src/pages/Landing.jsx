@@ -20,8 +20,6 @@ import {
   CheckCircle2,
   ArrowRight,
   Search,
-  ChevronUp,
-  ChevronDown,
   X,
   Layers,
   BarChart3,
@@ -32,7 +30,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogoIcon, LogoText } from '@/components/Logo';
-import OptionWheel from '@/components/OptionWheel';
+import Carousel from '@/components/Carousel';
 import Topography from '@/components/Topography';
 import Aurora from '@/components/Aurora';
 import { COLLEGES } from '@/utils/colleges';
@@ -43,34 +41,51 @@ import BorderGlow from '@/components/BorderGlow';
 // --- MOCK UNIVERSITY DATA ---
 // Static COLLEGES data imported from utils/colleges
 
-const FEATURE_ITEMS = [
-  'Anonymous Confessions',
-  'Campus Community',
-  'Campus Marketplace',
-  'Make a Friend',
-  'Vanish Gossip Mode',
-  'Student Vibe Match',
-  'Campus Polls & News',
-  'Verified Peer Circles'
-];
+// Measures its container and passes the width down to Carousel so it fills the full card
+function CarouselCard() {
+  const wrapRef = useRef(null);
+  const [cardWidth, setCardWidth] = useState(400);
+
+  useEffect(() => {
+    if (!wrapRef.current) return;
+    const ro = new ResizeObserver(([entry]) => {
+      setCardWidth(entry.contentRect.width);
+    });
+    ro.observe(wrapRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div ref={wrapRef} id="feature-carousel-section" style={{ width: '100%', height: '100%', minHeight: 420 }}>
+      <Carousel
+        autoplay={true}
+        autoplayDelay={3000}
+        pauseOnHover={true}
+        loop={true}
+        round={false}
+        baseWidth={cardWidth}
+      />
+    </div>
+  );
+}
+
 
 const VIBE_TAGS = [
-  { label: 'CONFESSION', color: 'bg-rose-500/20 text-rose-300 border-rose-500/40', icon: Flame },
-  { label: 'CRUSH', color: 'bg-pink-500/20 text-pink-300 border-pink-500/40', icon: Heart },
-  { label: 'LOST & FOUND', color: 'bg-amber-500/20 text-amber-300 border-amber-500/40', icon: Sparkles },
-  { label: 'STORY TIME', color: 'bg-purple-500/20 text-purple-300 border-purple-500/40', icon: MessageCircle },
-  { label: 'PSA', color: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40', icon: Zap },
-  { label: 'FIT CHECK', color: 'bg-blue-500/20 text-blue-300 border-blue-500/40', icon: Users },
-  { label: 'DM ME', color: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40', icon: Send },
-  { label: 'EVENTS', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', icon: Calendar },
-  { label: 'CAREER', color: 'bg-violet-500/20 text-violet-300 border-violet-500/40', icon: Briefcase },
-  { label: 'MARKETPLACE', color: 'bg-teal-500/20 text-teal-300 border-teal-500/40', icon: ShoppingBag },
+  { label: 'CONFESSION', icon: Flame },
+  { label: 'CRUSH', icon: Heart },
+  { label: 'LOST & FOUND', icon: Sparkles },
+  { label: 'STORY TIME', icon: MessageCircle },
+  { label: 'PSA', icon: Zap },
+  { label: 'FIT CHECK', icon: Users },
+  { label: 'DM ME', icon: Send },
+  { label: 'EVENTS', icon: Calendar },
+  { label: 'CAREER', icon: Briefcase },
+  { label: 'MARKETPLACE', icon: ShoppingBag },
 ];
 
 export default function Landing() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const optionWheelRef = useRef(null);
 
   // Inject WebSite JSON-LD Structured Data on Homepage mount
   useEffect(() => {
@@ -414,14 +429,15 @@ export default function Landing() {
           glowRadius={50}
           glowIntensity={1.2}
           coneSpread={30}
-          animated={true}
+          animated={false}
+          disableGlow={true}
           colors={['#c084fc', '#f472b6', '#38bdf8']}
           className="h-full"
         >
           <div className="p-6 sm:p-8 flex flex-col justify-between space-y-6 text-left h-full">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold mb-3">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-neutral-400 text-xs font-bold mb-3">
+                <span className="w-2 h-2 rounded-full bg-purple-400" />
                 NEARBY VIBES
               </div>
               <h2 className="text-2xl sm:text-4xl font-display font-black text-white tracking-tight">
@@ -441,9 +457,11 @@ export default function Landing() {
                   <button
                     key={idx}
                     onClick={() => setSelectedVibe(tag.label)}
-                    className={`px-4 py-2 rounded-full border text-xs font-black tracking-wide flex items-center gap-1.5 transition-all cursor-pointer ${
-                      tag.color
-                    } ${isSelected ? 'scale-105 shadow-md ring-2 ring-white/30' : 'hover:scale-105'}`}
+                    className={`px-4 py-2 rounded-full border text-xs font-bold tracking-wide flex items-center gap-1.5 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-purple-500/15 text-purple-300 border-purple-500/40 scale-105'
+                        : 'bg-white/5 text-neutral-400 border-white/10 hover:bg-white/8 hover:text-neutral-200 hover:border-white/20'
+                    }`}
                   >
                     <IconComp className="w-3.5 h-3.5" />
                     <span>{tag.label}</span>
@@ -474,80 +492,9 @@ export default function Landing() {
           </div>
         </BorderGlow>
 
-        {/* RIGHT CARD: 3D FEATURE OPTION WHEEL (Hidden on Mobile) */}
-        <div className="hidden lg:block h-full">
-          <BorderGlow
-            borderRadius={36}
-            backgroundColor="#120F17"
-            glowColor="310 85 75"
-            glowRadius={50}
-            glowIntensity={1.2}
-            coneSpread={30}
-            animated={true}
-            colors={['#f472b6', '#c084fc', '#eab308']}
-            className="h-full"
-          >
-            <div className="p-6 sm:p-8 flex flex-col justify-between space-y-4 text-left min-h-[420px] sm:min-h-[460px] relative overflow-hidden h-full" id="feature-wheel-section">
-              <div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-bold mb-2.5">
-                  ✦ FEATURE WHEEL
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-display font-black text-white tracking-tight">
-                  Explore Cohort Features
-                </h2>
-                <p className="text-xs sm:text-sm text-neutral-400 font-medium mt-0.5">
-                  Use controls or scroll to discover features
-                </p>
-              </div>
-
-              {/* Full Card 3D OptionWheel Container */}
-              <div className="relative h-72 sm:h-80 bg-neutral-950/90 border border-neutral-800 rounded-3xl overflow-hidden shadow-inner flex items-center justify-center p-2">
-                <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-neutral-950 via-neutral-950/80 to-transparent pointer-events-none z-10" />
-                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-neutral-950 via-neutral-950/80 to-transparent pointer-events-none z-10" />
-                
-                {/* Step Controls (Up / Down Arrows) */}
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-2">
-                  <button
-                    type="button"
-                    onClick={() => optionWheelRef.current?.stepPrev()}
-                    className="w-9 h-9 rounded-full bg-neutral-900/90 hover:bg-purple-600 border border-neutral-700 hover:border-purple-400 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-lg active:scale-90"
-                    aria-label="Previous feature"
-                    title="Previous feature"
-                  >
-                    <ChevronUp className="w-5 h-5 stroke-[2.5]" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => optionWheelRef.current?.stepNext()}
-                    className="w-9 h-9 rounded-full bg-neutral-900/90 hover:bg-purple-600 border border-neutral-700 hover:border-purple-400 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-lg active:scale-90"
-                    aria-label="Next feature"
-                    title="Next feature"
-                  >
-                    <ChevronDown className="w-5 h-5 stroke-[2.5]" />
-                  </button>
-                </div>
-
-                <OptionWheel
-                  ref={optionWheelRef}
-                  items={FEATURE_ITEMS}
-                  defaultSelected={0}
-                  textColor="#737373"
-                  activeColor="#c084fc"
-                  side="left"
-                  fontSize={1.75}
-                  spacing={1.65}
-                  curve={1.1}
-                  tilt={9}
-                  blur={0}
-                  fade={0.35}
-                  smoothing={200}
-                  inset={32}
-                  loop={true}
-                  draggable={true}
-                />
-              </div>
-            </div>
-          </BorderGlow>
+        {/* RIGHT CARD: FEATURE CAROUSEL (Hidden on Mobile) */}
+        <div className="hidden lg:block h-full bg-[#120F17] border border-neutral-800 rounded-[36px] overflow-hidden">
+          <CarouselCard />
         </div>
 
       </div>

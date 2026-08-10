@@ -59,6 +59,7 @@ const BorderGlow = ({
   glowIntensity = 1.0,
   coneSpread = 25,
   animated = false,
+  disableGlow = false,
   colors = ['#c084fc', '#f472b6', '#38bdf8'],
   fillOpacity = 0.5,
 }) => {
@@ -92,6 +93,7 @@ const BorderGlow = ({
   }, [getCenterOfElement]);
 
   const handlePointerMove = useCallback((e) => {
+    if (disableGlow) return;
     const card = cardRef.current;
     if (!card) return;
 
@@ -104,7 +106,7 @@ const BorderGlow = ({
 
     card.style.setProperty('--edge-proximity', `${(edge * 100).toFixed(3)}`);
     card.style.setProperty('--cursor-angle', `${angle.toFixed(3)}deg`);
-  }, [getEdgeProximity, getCursorAngle]);
+  }, [getEdgeProximity, getCursorAngle, disableGlow]);
 
   useEffect(() => {
     if (!animated || !cardRef.current) return;
@@ -132,7 +134,7 @@ const BorderGlow = ({
   return (
     <div
       ref={cardRef}
-      onPointerMove={handlePointerMove}
+      onPointerMove={disableGlow ? undefined : handlePointerMove}
       className={`border-glow-card ${className}`}
       style={{
         '--card-bg': backgroundColor,
@@ -141,6 +143,7 @@ const BorderGlow = ({
         '--glow-padding': `${glowRadius}px`,
         '--cone-spread': coneSpread,
         '--fill-opacity': fillOpacity,
+        '--edge-proximity': disableGlow ? '0' : undefined,
         ...glowVars,
         ...buildGradientVars(colors),
       }}
