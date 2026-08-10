@@ -185,13 +185,13 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white p-3 sm:p-5 md:p-6 lg:p-8 selection:bg-purple-500/30 selection:text-purple-300">
+    <div className="min-h-screen bg-neutral-950 text-white p-3 sm:p-4 lg:p-5 selection:bg-purple-500/30 selection:text-purple-300">
       
       {/* Centered Responsive Container with max-width constraint */}
-      <div className="w-full max-w-[1440px] mx-auto space-y-6 sm:space-y-8">
+      <div className="w-full max-w-[1440px] mx-auto space-y-5 sm:space-y-6">
         
-        {/* --- FIZZ-STYLE HERO BANNER CONTAINER (AURORA EFFECT) --- */}
-        <div className="relative rounded-[28px] sm:rounded-[36px] lg:rounded-[40px] bg-neutral-950 border border-neutral-800 p-5 sm:p-8 lg:p-10 xl:p-12 text-white shadow-2xl overflow-hidden">
+        {/* --- FIZZ-STYLE HERO BANNER CONTAINER (AURORA EFFECT - FULL SCREEN DESKTOP HERO) --- */}
+        <div className="relative rounded-[28px] sm:rounded-[36px] lg:rounded-[40px] bg-neutral-950 border border-neutral-800 p-5 sm:p-8 lg:p-10 xl:p-12 text-white shadow-2xl overflow-hidden flex flex-col justify-between min-h-[calc(100vh-2.5rem)]">
           
           {/* Mobile Static Glow (Ultra Fast, Zero GPU Shader Overhead) */}
           <div className="md:hidden absolute inset-0 pointer-events-none opacity-60 z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/50 via-neutral-950 to-neutral-950" />
@@ -207,7 +207,7 @@ export default function Landing() {
           </div>
 
           {/* --- HEADER NAVBAR INSIDE HERO CARD --- */}
-          <header className="relative z-20 flex items-center justify-between mb-6 sm:mb-8 lg:mb-10">
+          <header className="relative z-20 flex items-center justify-between mb-4 lg:mb-6">
             <Link to="/" className="flex items-center gap-3.5 group flex-shrink-0">
               <LogoIcon className="w-10 h-10 sm:w-12 sm:h-12 transform group-hover:scale-105 transition-transform drop-shadow-md" variant="badge" glow={true} />
               <span className="font-display font-black text-xl sm:text-2xl lg:text-3xl tracking-tight text-white">
@@ -266,7 +266,7 @@ export default function Landing() {
         </header>
 
         {/* --- HERO CONTENT GRID --- */}
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 xl:gap-12 items-center my-auto">
           
           {/* Left Column: Headlines & CTA */}
           <div className="lg:col-span-7 space-y-6 text-left">
