@@ -385,8 +385,14 @@ export default function Profile() {
 
   // Check if viewing own profile or another student
   const hasTarget = Boolean(targetUid || targetName);
+  const isOfficialLoggedIn =
+    (currentUser?.username || '').toLowerCase() === 'cohort' ||
+    (currentUser?.name || '').toLowerCase() === 'cohort' ||
+    currentUser?.isOfficial === true ||
+    currentUser?.uid === 'cohort_official';
+
   const isOwnProfile = !hasTarget ||
-    (targetUid && targetUid === currentUser?.uid) ||
+    (targetUid && (targetUid === currentUser?.uid || (isOfficialLoggedIn && targetUid === 'cohort_official'))) ||
     (targetName && targetName.toLowerCase() === currentUser?.name?.toLowerCase());
 
   // Load Profile data directly from Firestore
@@ -398,35 +404,35 @@ export default function Profile() {
       try {
         let activeProfile = null;
 
-        if (isOwnProfile) {
+        const isCohortTarget =
+          targetUid === 'cohort_official' ||
+          (targetName || '').toLowerCase() === 'cohort' ||
+          (isOwnProfile && isOfficialLoggedIn);
+
+        if (isCohortTarget) {
+          const cohortDocRef = doc(db, 'users', 'cohort_official');
+          const cohortSnap = await getDoc(cohortDocRef);
+          if (cohortSnap.exists()) {
+            activeProfile = { uid: 'cohort_official', id: 'cohort_official', ...cohortSnap.data() };
+          } else {
+            activeProfile = {
+              uid: 'cohort_official',
+              id: 'cohort_official',
+              name: 'Cohort',
+              username: 'cohort',
+              email: 'cohort@official.com',
+              college: 'Cohort Official Platform',
+              isOfficial: true,
+              bio: 'The official Cohort platform account. Connecting students across campuses. Follow for official feature updates, campus drops, and 24/7 support.',
+              followers: [],
+              following: [],
+              avatar: 'https://ui-avatars.com/api/?name=Cohort&background=9333ea&color=fff&bold=true&size=128',
+              joinedDate: new Date().toISOString()
+            };
+          }
+        } else if (isOwnProfile) {
           activeProfile = currentUser;
         } else {
-          const isCohortTarget =
-            targetUid === 'cohort_official' ||
-            (targetName || '').toLowerCase() === 'cohort';
-
-          if (isCohortTarget) {
-            const cohortDocRef = doc(db, 'users', 'cohort_official');
-            const cohortSnap = await getDoc(cohortDocRef);
-            if (cohortSnap.exists()) {
-              activeProfile = { uid: 'cohort_official', id: 'cohort_official', ...cohortSnap.data() };
-            } else {
-              activeProfile = {
-                uid: 'cohort_official',
-                id: 'cohort_official',
-                name: 'Cohort',
-                username: 'cohort',
-                email: 'cohort@official.com',
-                college: 'Cohort Official Platform',
-                isOfficial: true,
-                bio: 'The official Cohort platform account. Connecting students across campuses. Follow for official feature updates, campus drops, and 24/7 support.',
-                followers: [],
-                following: [],
-                avatar: 'https://ui-avatars.com/api/?name=Cohort&background=9333ea&color=fff&bold=true&size=128',
-                joinedDate: new Date().toISOString()
-              };
-            }
-          } else {
             if (targetUid) {
               // Fetch target user by UID
               const docRef = doc(db, 'users', targetUid);
@@ -461,7 +467,6 @@ export default function Profile() {
               };
             }
           }
-        }
 
         setProfileUser(activeProfile);
 

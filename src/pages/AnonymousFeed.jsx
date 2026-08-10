@@ -751,11 +751,17 @@ export default function AnonymousFeed({ defaultTab }) {
       {/* Header */}
       <div className="flex items-center justify-between max-w-2xl mx-auto border-b border-neutral-200 dark:border-zinc-800/80 pb-lg">
         <div>
-          <h1 className="text-2xl md:text-3xl font-heading font-bold bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-600 dark:from-violet-400 dark:via-purple-300 dark:to-indigo-300 bg-clip-text text-transparent">
-            Anonymous
+          <h1 className={`text-2xl md:text-3xl font-heading font-bold bg-clip-text text-transparent ${
+            activeTab === 'confessions'
+              ? 'bg-gradient-to-r from-rose-500 via-red-500 to-pink-500 dark:from-rose-400 dark:via-red-400 dark:to-pink-400 drop-shadow-[0_0_15px_rgba(244,63,94,0.3)]'
+              : 'bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-600 dark:from-violet-400 dark:via-purple-300 dark:to-indigo-300'
+          }`}>
+            {activeTab === 'confessions' ? 'Confessions' : 'Anonymous'}
           </h1>
           <p className="text-xs text-neutral-500 dark:text-zinc-400 mt-xs font-medium tracking-wide">
-            Share freely. Nobody knows it’s you.
+            {activeTab === 'confessions'
+              ? 'Share your secret campus confessions. Nobody knows it’s you.'
+              : 'Share freely. Nobody knows it’s you.'}
           </p>
         </div>
       </div>

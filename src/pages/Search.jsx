@@ -99,6 +99,8 @@ export default function Search() {
         // Search Students / Users
         const usersSnap = await getDocs(collection(db, 'users'));
         const foundPeople = [];
+        let addedCohort = false;
+
         usersSnap.forEach(d => {
           const data = d.data();
           const nameMatch = data.name && data.name.toLowerCase().includes(cleanTerm);
@@ -106,7 +108,29 @@ export default function Search() {
           const collegeMatch = data.college && data.college.toLowerCase().includes(cleanTerm);
 
           if (nameMatch || usernameMatch || collegeMatch) {
-            foundPeople.push({ id: d.id, uid: d.id, ...data });
+            const isCohortAccount =
+              d.id === 'cohort_official' ||
+              (data.username || '').toLowerCase() === 'cohort' ||
+              (data.name || '').toLowerCase() === 'cohort' ||
+              data.isOfficial === true;
+
+            if (isCohortAccount) {
+              if (!addedCohort) {
+                addedCohort = true;
+                foundPeople.push({
+                  id: 'cohort_official',
+                  uid: 'cohort_official',
+                  name: 'Cohort',
+                  username: 'cohort',
+                  college: 'Cohort Official Platform',
+                  isOfficial: true,
+                  bio: data.bio || 'The official Cohort platform account. Connecting students across campuses.',
+                  avatar: data.avatar || 'https://ui-avatars.com/api/?name=Cohort&background=9333ea&color=fff&bold=true&size=128'
+                });
+              }
+            } else {
+              foundPeople.push({ id: d.id, uid: d.id, ...data });
+            }
           }
         });
         setPeopleResults(foundPeople);

@@ -397,8 +397,15 @@ export default function MakeAFriend() {
         const data = d.data();
         const uid = d.id;
 
-        // Skip current user, already swiped profiles, and users who haven't completed the quiz
-        if (uid === user.uid || currentSwiped[uid] || !data.makeAFriendProfile?.completed) {
+        // Skip current user, official Cohort account, already swiped profiles, and users who haven't completed the quiz
+        if (
+          uid === user.uid ||
+          uid === 'cohort_official' ||
+          (data.username || '').toLowerCase() === 'cohort' ||
+          data.isOfficial === true ||
+          currentSwiped[uid] ||
+          !data.makeAFriendProfile?.completed
+        ) {
           return;
         }
 

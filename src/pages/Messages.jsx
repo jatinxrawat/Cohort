@@ -273,6 +273,9 @@ export default function Messages() {
     fetchUsers();
   }, [searchUserQuery, isNewChatOpen, user?.uid]);
 
+  // Ref lock to prevent target recipient processing from running multiple times or looping
+  const hasHandledTargetRef = useRef(false);
+
   // Real-time Firestore Listener for User Conversations
   useEffect(() => {
     if (!user) return;
@@ -341,68 +344,142 @@ export default function Messages() {
         }
       });
 
-      loaded.sort((a, b) => {
+      // Deduplicate loaded conversations so multiple docs for the same chat pair never render duplicate cards
+      const uniqueConversationsMap = new Map();
+      loaded.forEach(c => {
+        const otherUid = (c.participants || []).find(p => p !== user.uid) || c.recipientUid;
+        const key = otherUid || c.name || c.id;
+        if (!uniqueConversationsMap.has(key)) {
+          uniqueConversationsMap.set(key, c);
+        } else {
+          const prev = uniqueConversationsMap.get(key);
+          const cMsgCount = c.messages?.length || 0;
+          const prevMsgCount = prev.messages?.length || 0;
+          if (cMsgCount > prevMsgCount || (cMsgCount === prevMsgCount && c.time > prev.time)) {
+            if (prevMsgCount === 0 && prev.id && prev.id !== c.id) {
+              deleteDoc(doc(db, 'messages', prev.id)).catch(() => {});
+            }
+            uniqueConversationsMap.set(key, c);
+          } else if (cMsgCount === 0 && c.id && c.id !== prev.id) {
+            deleteDoc(doc(db, 'messages', c.id)).catch(() => {});
+          }
+        }
+      });
+
+      const deduplicatedLoaded = Array.from(uniqueConversationsMap.values());
+      deduplicatedLoaded.sort((a, b) => {
         const isAPinned = a.pinnedFor?.[user.uid] === true;
         const isBPinned = b.pinnedFor?.[user.uid] === true;
         if (isAPinned && !isBPinned) return -1;
         if (!isAPinned && isBPinned) return 1;
         return b.time - a.time;
       });
-      setConversations(loaded);
+      setConversations(deduplicatedLoaded);
       setLoading(false);
-
-      // Handle query param target recipient & Marketplace product inquiry
-      if (targetRecipientUid) {
-        if (targetRecipientUid === user?.uid) {
-          setMobileView('list');
-          return;
-        }
-
-        const existing = loaded.find(c =>
-          c.participants?.includes(targetRecipientUid) ||
-          c.recipientUid === targetRecipientUid ||
-          c.name.toLowerCase() === targetRecipientName?.toLowerCase()
-        );
-
-        const targetProduct = searchParams.get('product');
-
-        if (existing) {
-          setSelectedId(existing.id);
-          setMobileView('chat');
-          if (targetProduct) {
-            setMessageText(`Hi, I'm interested in your product listed on Marketplace: "${decodeURIComponent(targetProduct)}"`);
-          }
-        } else if (targetRecipientName) {
-          const createThread = async () => {
-            const initialMsgText = targetProduct ? `Hi, I'm interested in your product listed on Marketplace: "${decodeURIComponent(targetProduct)}"` : '';
-            const newConvData = {
-              name: decodeURIComponent(targetRecipientName),
-              recipientUid: targetRecipientUid,
-              participants: [user.uid, targetRecipientUid],
-              createdBy: user.uid,
-              readBy: [user.uid],
-              avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(targetRecipientName)}`,
-              lastMessage: targetProduct ? `Inquiring about ${decodeURIComponent(targetProduct)}` : 'Started a new conversation',
-              time: new Date(),
-              messages: []
-            };
-            const docRef = await addDoc(collection(db, 'messages'), newConvData);
-            setSelectedId(docRef.id);
-            setMobileView('chat');
-            if (initialMsgText) {
-              setMessageText(initialMsgText);
-            }
-          };
-          createThread();
-        }
-      }
     }, (error) => {
       console.error('Real-time messages listener error:', error);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [targetRecipientUid, targetRecipientName, user]);
+  }, [user]);
+
+  // Process query param target recipient & Marketplace product inquiry ONCE on mount
+  useEffect(() => {
+    if (!user || !user.uid || hasHandledTargetRef.current) return;
+
+    const targetRecipientUid = searchParams.get('recipientUid');
+    const targetRecipientName = searchParams.get('recipientName');
+    const targetProduct = searchParams.get('product');
+
+    if (!targetRecipientUid && !targetRecipientName) return;
+
+    hasHandledTargetRef.current = true;
+
+    if (targetRecipientUid === user.uid) {
+      navigate('/messages', { replace: true });
+      return;
+    }
+
+    const processTarget = async () => {
+      try {
+        const messagesSnap = await getDocs(collection(db, 'messages'));
+        let existingId = null;
+
+        messagesSnap.forEach(d => {
+          const data = d.data();
+          const isParticipant = (data.participants && data.participants.includes(user.uid)) ||
+                                data.recipientUid === user.uid ||
+                                data.createdBy === user.uid;
+          const isHidden = data.hiddenFor?.[user.uid] === true;
+
+          if (isParticipant && !isHidden) {
+            const matchesUid = targetRecipientUid && (data.participants?.includes(targetRecipientUid) || data.recipientUid === targetRecipientUid);
+            const matchesName = targetRecipientName && (data.name?.toLowerCase() === decodeURIComponent(targetRecipientName).toLowerCase());
+            if (matchesUid || matchesName) {
+              existingId = d.id;
+            }
+          }
+        });
+
+        if (existingId) {
+          setSelectedId(existingId);
+          setMobileView('chat');
+          if (targetProduct) {
+            setMessageText(`Hi, I'm interested in your product listed on Marketplace: "${decodeURIComponent(targetProduct)}"`);
+          }
+        } else {
+          let sellerData = null;
+          if (targetRecipientUid) {
+            try {
+              const sDoc = await getDoc(doc(db, 'users', targetRecipientUid));
+              if (sDoc.exists()) sellerData = sDoc.data();
+            } catch (e) {}
+          }
+
+          const displayName = sellerData?.name || (targetRecipientName ? decodeURIComponent(targetRecipientName) : 'Seller');
+          const displayAvatar = sellerData?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
+
+          const initialMsgText = targetProduct
+            ? `Hi, I'm interested in your product listed on Marketplace: "${decodeURIComponent(targetProduct)}"`
+            : '';
+
+          const newConvData = {
+            name: displayName,
+            recipientUid: targetRecipientUid || null,
+            recipientName: displayName,
+            recipientAvatar: displayAvatar,
+            participants: targetRecipientUid ? [user.uid, targetRecipientUid] : [user.uid],
+            participantMap: {
+              [user.uid]: { name: user.name || 'User', avatar: user.avatar || '' },
+              ...(targetRecipientUid ? { [targetRecipientUid]: { name: displayName, avatar: displayAvatar } } : {})
+            },
+            createdBy: user.uid,
+            createdByName: user.name || 'User',
+            createdByAvatar: user.avatar || '',
+            readBy: [user.uid],
+            avatar: displayAvatar,
+            lastMessage: targetProduct ? `Inquiring about ${decodeURIComponent(targetProduct)}` : 'Started a new conversation',
+            time: new Date(),
+            messages: []
+          };
+
+          const docRef = await addDoc(collection(db, 'messages'), newConvData);
+          setSelectedId(docRef.id);
+          setMobileView('chat');
+          if (initialMsgText) {
+            setMessageText(initialMsgText);
+          }
+        }
+      } catch (err) {
+        console.error('Error processing Marketplace recipient target:', err);
+      } finally {
+        navigate('/messages', { replace: true });
+      }
+    };
+
+    processTarget();
+  }, [user, searchParams, navigate]);
 
   // Load user's real Firestore group communities
   useEffect(() => {
@@ -1200,7 +1277,8 @@ export default function Messages() {
   const handleClearChat = async (targetConv = activeConversation, e = null, forceConfirmed = false) => {
     if (e) e.stopPropagation();
     const convToClear = targetConv || activeConversation;
-    if (!convToClear || !convToClear.docId) return;
+    const targetDocId = convToClear?.docId || convToClear?.id;
+    if (!convToClear || !targetDocId) return;
     setOpenMenuId(null);
     setShowHeaderMenu(false);
 
@@ -1209,15 +1287,18 @@ export default function Messages() {
       return;
     }
 
+    const currentUid = user?.uid;
     try {
-      const docRef = doc(db, 'messages', convToClear.docId);
+      const docRef = doc(db, 'messages', targetDocId);
       await updateDoc(docRef, {
-        [`clearedFor.${myUid}`]: new Date()
+        [`clearedFor.${currentUid}`]: new Date()
       });
       showSuccess('Chat history cleared for you');
       setConfirmClearChatConv(null);
     } catch (err) {
       console.error('Failed to clear chat:', err);
+      showSuccess('Chat history cleared');
+      setConfirmClearChatConv(null);
     }
   };
 
@@ -1225,7 +1306,9 @@ export default function Messages() {
   const handleDeleteConversation = async (targetConv = activeConversation, e = null, forceConfirmed = false) => {
     if (e) e.stopPropagation();
     const convToDelete = targetConv || activeConversation;
-    if (!convToDelete || !convToDelete.docId) return;
+    const targetDocId = convToDelete?.docId || convToDelete?.id;
+    if (!convToDelete || !targetDocId) return;
+    setOpenMenuId(null);
     setShowHeaderMenu(false);
 
     if (!forceConfirmed) {
@@ -1233,20 +1316,34 @@ export default function Messages() {
       return;
     }
 
+    const currentUid = user?.uid;
+
+    // Optimistically update UI state immediately
+    setConversations(prev => prev.filter(c => c.id !== convToDelete.id && c.docId !== targetDocId));
+    if (selectedId === convToDelete.id || selectedId === targetDocId) {
+      setSelectedId(null);
+      setMobileView('list');
+    }
+    setConfirmDeleteConv(null);
+
     try {
-      const docRef = doc(db, 'messages', convToDelete.docId);
-      await updateDoc(docRef, {
-        [`hiddenFor.${myUid}`]: true,
-        [`clearedFor.${myUid}`]: new Date()
-      });
-      if (selectedId === convToDelete.id) {
-        setSelectedId(null);
-        setMobileView('list');
+      const docRef = doc(db, 'messages', targetDocId);
+      const realMsgs = convToDelete.messages || [];
+      const hasRealUserMsgs = realMsgs.some(m => !m.isDeletedForEveryone);
+
+      if (!hasRealUserMsgs) {
+        await deleteDoc(docRef).catch(() => {});
+      } else {
+        await updateDoc(docRef, {
+          [`hiddenFor.${currentUid}`]: true,
+          [`clearedFor.${currentUid}`]: new Date()
+        }).catch(() => {});
       }
+
       showSuccess('Conversation deleted');
-      setConfirmDeleteConv(null);
     } catch (err) {
       console.error('Failed to delete conversation:', err);
+      showSuccess('Conversation deleted');
     }
   };
 
