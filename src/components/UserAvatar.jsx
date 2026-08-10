@@ -23,7 +23,6 @@ export const UserAvatar = ({
       alt={alt || name || 'User avatar'}
       className={`object-cover rounded-full flex-shrink-0 ${className}`}
       referrerPolicy="no-referrer"
-      crossOrigin="anonymous"
       onError={(e) => {
         if (!hasError) {
           setHasError(true);

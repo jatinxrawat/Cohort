@@ -37,6 +37,54 @@ export const AuthProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
+  const ensureCohortOfficialAndAutoFollow = async (currentProfile) => {
+    if (!currentProfile || !currentProfile.uid) return;
+
+    try {
+      const cohortDocRef = doc(db, 'users', 'cohort_official');
+      const cohortSnap = await getDoc(cohortDocRef);
+
+      let cohortFollowers = [];
+      if (!cohortSnap.exists()) {
+        const cohortOfficialData = {
+          uid: 'cohort_official',
+          id: 'cohort_official',
+          name: 'Cohort',
+          username: 'cohort',
+          email: 'cohort@official.com',
+          college: 'Cohort Official Platform',
+          isOfficial: true,
+          bio: 'The official Cohort platform account. Connecting students across campuses. Follow for official feature updates, campus drops, and 24/7 support.',
+          followers: currentProfile.uid !== 'cohort_official' ? [currentProfile.uid] : [],
+          following: [],
+          avatar: 'https://ui-avatars.com/api/?name=Cohort&background=9333ea&color=fff&bold=true&size=128',
+          joinedDate: new Date().toISOString()
+        };
+        await setDoc(cohortDocRef, cohortOfficialData);
+        cohortFollowers = cohortOfficialData.followers;
+      } else {
+        const data = cohortSnap.data();
+        cohortFollowers = Array.isArray(data.followers) ? data.followers : [];
+        if (currentProfile.uid !== 'cohort_official' && !cohortFollowers.includes(currentProfile.uid)) {
+          cohortFollowers.push(currentProfile.uid);
+          await updateDoc(cohortDocRef, { followers: cohortFollowers });
+        }
+      }
+
+      // Auto-follow from current user perspective
+      if (currentProfile.uid !== 'cohort_official') {
+        const userFollowing = Array.isArray(currentProfile.following) ? currentProfile.following : [];
+        if (!userFollowing.includes('cohort_official')) {
+          const nextFollowing = [...userFollowing, 'cohort_official'];
+          await updateDoc(doc(db, 'users', currentProfile.uid), { following: nextFollowing });
+          setUser(prev => prev ? ({ ...prev, following: nextFollowing }) : prev);
+        }
+      }
+    } catch (err) {
+      console.error('Error in ensureCohortOfficialAndAutoFollow:', err);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setIsLoading(true);
@@ -54,6 +102,7 @@ export const AuthProvider = ({ children }) => {
             setUser(profileData);
             localStorage.setItem(`user_profile_${firebaseUser.uid}`, JSON.stringify(profileData));
             setIsAuthenticated(true);
+            ensureCohortOfficialAndAutoFollow(profileData);
           } else {
             // New Google user or profile missing in Firestore
             const displayName = firebaseUser.displayName || firebaseUser.email.split('@')[0];
@@ -73,6 +122,7 @@ export const AuthProvider = ({ children }) => {
             setUser(profileData);
             localStorage.setItem(`user_profile_${firebaseUser.uid}`, JSON.stringify(profileData));
             setIsAuthenticated(true);
+            ensureCohortOfficialAndAutoFollow(profileData);
           }
         } catch (error) {
           console.error('Failed to retrieve user profile from Firestore:', error);

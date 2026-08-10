@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { Mail, MapPin, Calendar, Award, Edit, MessageSquare, Share2, Heart, UserPlus, UserCheck, MessageCircleCode, AtSign, AlertCircle, User, GraduationCap, Gift, X, Search, Users, Edit2, Trash2, Repeat, EyeOff, Flame, Tag, ShoppingBag, ArrowRight, Image as ImageIcon, Loader2, Send, Rss } from 'lucide-react';
+import { Mail, MapPin, Calendar, Award, Edit, MessageSquare, Share2, Heart, UserPlus, UserCheck, MessageCircleCode, AtSign, AlertCircle, User, GraduationCap, Gift, X, Search, Users, Edit2, Trash2, Repeat, EyeOff, Flame, Tag, ShoppingBag, ArrowRight, Image as ImageIcon, Loader2, Send, Rss, ShieldCheck, Check, Camera } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
@@ -93,6 +93,15 @@ export default function Profile() {
   const [selectedPostForLikes, setSelectedPostForLikes] = useState(null);
   const [likedUsersList, setLikedUsersList] = useState([]);
   const [loadingLikedUsers, setLoadingLikedUsers] = useState(false);
+
+  // Official Cohort Account Edit State
+  const [isEditOfficialModalOpen, setIsEditOfficialModalOpen] = useState(false);
+  const [officialBioInput, setOfficialBioInput] = useState('');
+  const [officialAvatarUrl, setOfficialAvatarUrl] = useState('');
+  const [officialAvatarPreview, setOfficialAvatarPreview] = useState('');
+  const [isUploadingOfficialAvatar, setIsUploadingOfficialAvatar] = useState(false);
+  const [isSavingOfficial, setIsSavingOfficial] = useState(false);
+  const officialFileInputRef = useRef(null);
 
   const [selectedPostForComments, setSelectedPostForComments] = useState(null);
   const [commentsList, setCommentsList] = useState([]);
@@ -377,8 +386,14 @@ export default function Profile() {
 
   // Check if viewing own profile or another student
   const hasTarget = Boolean(targetUid || targetName);
+  const isOfficialLoggedIn =
+    (currentUser?.username || '').toLowerCase() === 'cohort' ||
+    (currentUser?.name || '').toLowerCase() === 'cohort' ||
+    currentUser?.isOfficial === true ||
+    currentUser?.uid === 'cohort_official';
+
   const isOwnProfile = !hasTarget ||
-    (targetUid && targetUid === currentUser?.uid) ||
+    (targetUid && (targetUid === currentUser?.uid || (isOfficialLoggedIn && targetUid === 'cohort_official'))) ||
     (targetName && targetName.toLowerCase() === currentUser?.name?.toLowerCase());
 
   // Load Profile data directly from Firestore
@@ -390,43 +405,69 @@ export default function Profile() {
       try {
         let activeProfile = null;
 
-        if (isOwnProfile) {
-          activeProfile = currentUser;
-        } else {
-          if (targetUid) {
-            // Fetch target user by UID
-            const docRef = doc(db, 'users', targetUid);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-              activeProfile = { uid: targetUid, id: targetUid, ...docSnap.data() };
-            }
-          }
-          
-          if (!activeProfile && targetName) {
-            // Fetch target user by Name
-            const q = query(collection(db, 'users'), where('name', '==', targetName));
-            const querySnapshot = await getDocs(q);
-            querySnapshot.forEach(d => {
-              activeProfile = { uid: d.id, id: d.id, ...d.data() };
-            });
-          }
+        const isCohortTarget =
+          targetUid === 'cohort_official' ||
+          (targetName || '').toLowerCase() === 'cohort' ||
+          (isOwnProfile && isOfficialLoggedIn);
 
-          if (!activeProfile && (targetUid || targetName)) {
-            // Create fallback profile so actions like follow/message work seamlessly
-            const fallbackId = targetUid || `user_${Date.now()}`;
-            const fallbackName = targetName || 'Kushal';
+        if (isCohortTarget) {
+          const cohortDocRef = doc(db, 'users', 'cohort_official');
+          const cohortSnap = await getDoc(cohortDocRef);
+          if (cohortSnap.exists()) {
+            activeProfile = { uid: 'cohort_official', id: 'cohort_official', ...cohortSnap.data() };
+          } else {
             activeProfile = {
-              uid: fallbackId,
-              id: fallbackId,
-              name: fallbackName,
-              username: fallbackName.toLowerCase().replace(/\s+/g, ''),
-              college: 'KIET',
+              uid: 'cohort_official',
+              id: 'cohort_official',
+              name: 'Cohort',
+              username: 'cohort',
+              email: 'cohort@official.com',
+              college: 'Cohort Official Platform',
+              isOfficial: true,
+              bio: 'The official Cohort platform account. Connecting students across campuses. Follow for official feature updates, campus drops, and 24/7 support.',
               followers: [],
               following: [],
+              avatar: 'https://ui-avatars.com/api/?name=Cohort&background=9333ea&color=fff&bold=true&size=128',
               joinedDate: new Date().toISOString()
             };
           }
-        }
+        } else if (isOwnProfile) {
+          activeProfile = currentUser;
+        } else {
+            if (targetUid) {
+              // Fetch target user by UID
+              const docRef = doc(db, 'users', targetUid);
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                activeProfile = { uid: targetUid, id: targetUid, ...docSnap.data() };
+              }
+            }
+            
+            if (!activeProfile && targetName) {
+              // Fetch target user by Name
+              const q = query(collection(db, 'users'), where('name', '==', targetName));
+              const querySnapshot = await getDocs(q);
+              querySnapshot.forEach(d => {
+                activeProfile = { uid: d.id, id: d.id, ...d.data() };
+              });
+            }
+
+            if (!activeProfile && (targetUid || targetName)) {
+              // Create fallback profile so actions like follow/message work seamlessly
+              const fallbackId = targetUid || `user_${Date.now()}`;
+              const fallbackName = targetName || 'Kushal';
+              activeProfile = {
+                uid: fallbackId,
+                id: fallbackId,
+                name: fallbackName,
+                username: fallbackName.toLowerCase().replace(/\s+/g, ''),
+                college: 'KIET',
+                followers: [],
+                following: [],
+                joinedDate: new Date().toISOString()
+              };
+            }
+          }
 
         setProfileUser(activeProfile);
 
@@ -629,6 +670,69 @@ export default function Profile() {
     return myFollowing.includes(uId);
   };
 
+  useEffect(() => {
+    if (isEditOfficialModalOpen && profileUser) {
+      setOfficialBioInput(profileUser.bio || "The official Cohort platform account. Connecting students across campuses. Follow for official feature updates, campus drops, and 24/7 support.");
+      setOfficialAvatarUrl(profileUser.avatar || '');
+      setOfficialAvatarPreview(profileUser.avatar || '');
+    }
+  }, [isEditOfficialModalOpen, profileUser]);
+
+  const handleOfficialAvatarSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingOfficialAvatar(true);
+      const preview = URL.createObjectURL(file);
+      setOfficialAvatarPreview(preview);
+
+      const compressed = await compressImage(file);
+      const uploadedUrl = await uploadImageToCloudinary(compressed);
+
+      if (uploadedUrl) {
+        setOfficialAvatarUrl(uploadedUrl);
+        setOfficialAvatarPreview(uploadedUrl);
+      } else {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setOfficialAvatarUrl(reader.result);
+          setOfficialAvatarPreview(reader.result);
+        };
+        reader.readAsDataURL(compressed);
+      }
+    } catch (err) {
+      console.error('Failed to process avatar:', err);
+      showError('Failed to upload image. Please try again.');
+    } finally {
+      setIsUploadingOfficialAvatar(false);
+    }
+  };
+
+  const handleSaveOfficialProfile = async () => {
+    setIsSavingOfficial(true);
+    try {
+      const updatedBio = officialBioInput.trim();
+      const updatedAvatar = officialAvatarUrl || profileUser?.avatar || 'https://ui-avatars.com/api/?name=Cohort&background=9333ea&color=fff&bold=true&size=128';
+
+      const cohortDocRef = doc(db, 'users', 'cohort_official');
+      await setDoc(cohortDocRef, {
+        bio: updatedBio,
+        avatar: updatedAvatar
+      }, { merge: true });
+
+      setProfileUser(prev => prev ? ({ ...prev, bio: updatedBio, avatar: updatedAvatar }) : prev);
+
+      showSuccess('Cohort Official Profile updated!');
+      setIsEditOfficialModalOpen(false);
+    } catch (err) {
+      console.error('Failed to update Official Account:', err);
+      showError('Failed to save official profile updates.');
+    } finally {
+      setIsSavingOfficial(false);
+    }
+  };
+
   const handleListUserFollow = (tId, currentlyFollowing, tName) => {
     if (!currentUser || !tId) return;
 
@@ -653,7 +757,15 @@ export default function Profile() {
   );
 
   const targetId = profileUser?.uid || targetUid;
-  const isFollowing = (currentUser?.following || []).includes(targetId);
+  const isOfficialCohortAccount =
+    targetUid === 'cohort_official' ||
+    (profileUser?.username || '').toLowerCase() === 'cohort' ||
+    (profileUser?.name || '').toLowerCase() === 'cohort' ||
+    (targetName || '').toLowerCase() === 'cohort' ||
+    profileUser?.isOfficial === true ||
+    profileUser?.uid === 'cohort_official';
+
+  const isFollowing = isOfficialCohortAccount || (currentUser?.following || []).includes(targetId);
 
   const handleToggleFollow = () => {
     if (!currentUser || !targetId || isOwnProfile) return;
@@ -727,6 +839,64 @@ export default function Profile() {
     { label: 'Following', value: profileUser?.following?.length || 0 },
   ];
 
+  const renderFormattedBio = (text) => {
+    if (!text) return null;
+
+    const lines = text.split('\n');
+
+    return (
+      <div className="space-y-1.5 mt-sm max-w-xl">
+        {lines.map((line, lineIdx) => {
+          const trimmed = line.trim();
+          if (!trimmed) return <div key={lineIdx} className="h-1" />;
+
+          const parseBold = (content) => {
+            const parts = content.split(/(\*\*.*?\*\*)/g);
+            return parts.map((part, i) => {
+              if (part.startsWith('**') && part.endsWith('**')) {
+                return (
+                  <strong key={i} className="font-extrabold text-neutral-900 dark:text-white bg-gradient-to-r from-purple-400 via-pink-400 to-sky-400 bg-clip-text text-transparent">
+                    {part.slice(2, -2)}
+                  </strong>
+                );
+              }
+              return part;
+            });
+          };
+
+          if (trimmed.includes('•') || trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+            const items = trimmed
+              .split('•')
+              .flatMap(item => item.split(/[-*]\s+/))
+              .map(i => i.trim())
+              .filter(Boolean);
+
+            if (items.length > 1) {
+              return (
+                <div key={lineIdx} className="flex flex-wrap gap-2 my-1.5">
+                  {items.map((item, itemIdx) => (
+                    <span
+                      key={itemIdx}
+                      className="inline-flex items-center text-xs font-bold px-3 py-1 rounded-full bg-gradient-to-r from-purple-500/15 via-pink-500/15 to-indigo-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 shadow-xs backdrop-blur-xs"
+                    >
+                      {parseBold(item)}
+                    </span>
+                  ))}
+                </div>
+              );
+            }
+          }
+
+          return (
+            <p key={lineIdx} className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed font-medium">
+              {parseBold(trimmed)}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="section-container max-w-2xl">
@@ -755,49 +925,137 @@ export default function Profile() {
       <div className="max-w-2xl mx-auto">
         {/* Cover and Avatar */}
         <div className="relative mb-lg">
-          <div className="h-44 bg-gradient-to-r from-primary-500 to-blue-600 rounded-2xl shadow-inner relative overflow-hidden">
-            <div className="absolute top-4 right-4 text-xs font-semibold bg-white/20 backdrop-blur-md px-md py-xs rounded-full text-white">
-              Student Edition
+          {isOfficialCohortAccount ? (
+            <div className="h-44 bg-neutral-950 rounded-2xl shadow-2xl relative overflow-hidden border border-purple-500/30 flex items-center justify-center">
+              {/* Radial Glowing Background Accents */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/30 via-pink-900/15 to-transparent pointer-events-none" />
+              <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -left-10 -top-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+
+              {/* Large Stylized "Cohort." Logo Banner */}
+              <div className="relative z-10 select-none flex items-baseline tracking-tighter">
+                <span className="text-4xl sm:text-5xl md:text-6xl font-heading font-black text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.2)]">
+                  Cohort
+                </span>
+                <span className="text-4xl sm:text-5xl md:text-6xl font-heading font-black text-pink-500 drop-shadow-[0_0_20px_rgba(236,72,153,0.9)] animate-pulse">
+                  .
+                </span>
+              </div>
+
+              {/* Official Account Pill Badge */}
+              <div className="absolute top-4 right-4 text-xs font-black bg-neutral-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-purple-200 border border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.3)] flex items-center gap-1.5 z-20">
+                <ShieldCheck className="w-4 h-4 text-purple-400 fill-purple-500/30 stroke-[2.5]" />
+                <span>Official Platform Account</span>
+              </div>
             </div>
-          </div>
-          <div className="absolute -bottom-6 left-lg">
+          ) : (
+            <div className="h-44 bg-gradient-to-r from-primary-500 to-blue-600 rounded-2xl shadow-inner relative overflow-hidden">
+              <div className="absolute top-4 right-4 text-xs font-semibold bg-white/20 backdrop-blur-md px-md py-xs rounded-full text-white">
+                Student Edition
+              </div>
+            </div>
+          )}
+
+          <div className="absolute -bottom-6 left-lg group">
             <UserAvatar
-              src={profileUser?.avatar}
+              src={profileUser?.avatar || 'https://ui-avatars.com/api/?name=Cohort&background=9333ea&color=fff&bold=true&size=128'}
               name={profileUser?.name || 'User'}
               className="w-24 h-24 rounded-full border-4 border-white dark:border-neutral-900 shadow-md object-cover"
             />
+            {isOfficialCohortAccount && (
+              <button
+                type="button"
+                onClick={() => setIsEditOfficialModalOpen(true)}
+                className="absolute bottom-0 right-0 p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg border-2 border-white dark:border-neutral-900 transition-transform hover:scale-110 cursor-pointer"
+                title="Edit Official Avatar & Bio"
+              >
+                <Camera className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
 
         {/* Header with Actions */}
         <Card className="mb-lg pt-2xl border-neutral-100 dark:border-neutral-800 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-md mb-lg">
-            <div>
-              <h1 className="text-3xl font-heading font-bold text-neutral-900 dark:text-white leading-tight">
-                {profileUser?.name || 'Student Name'}
-              </h1>
-              {profileUser?.username && (
-                <p className="text-sm font-bold text-primary-500 font-mono mt-xs flex items-center gap-xs">
-                  <AtSign className="w-4 h-4 inline" />{profileUser.username}
-                </p>
-              )}
-              <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 mt-xs">
-                {profileUser?.college || 'KIET'}
-              </p>
-              {/* Bio Option Below Username & College Name */}
-              {(profileUser?.bio || isOwnProfile) && (
-                <p className="text-sm text-neutral-700 dark:text-neutral-300 mt-sm leading-relaxed max-w-xl font-normal">
-                  {profileUser?.bio ? profileUser.bio : (
-                    <span className="italic text-neutral-400 dark:text-neutral-500 text-xs">
-                      Add a bio in Edit Profile to tell others about yourself...
-                    </span>
-                  )}
-                </p>
-              )}
-            </div>
+            {isOfficialCohortAccount ? (
+              <div>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h1 className="text-3xl font-heading font-black text-neutral-900 dark:text-white tracking-tight">
+                    Cohort
+                  </h1>
+                  <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-purple-600/30 via-fuchsia-600/30 to-pink-600/30 border border-purple-500/60 text-purple-300 dark:text-purple-200 text-xs font-black shadow-[0_0_15px_rgba(168,85,247,0.4)] backdrop-blur-md">
+                    <ShieldCheck className="w-4 h-4 text-purple-400 fill-purple-500/40 stroke-[2.5]" />
+                    <span className="tracking-wider">OFFICIAL TEAM</span>
+                  </div>
+                </div>
 
-            <div className="flex gap-md flex-wrap">
-              {isOwnProfile ? (
+                <p className="mt-xs text-sm font-black font-mono flex items-center gap-xs">
+                  <AtSign className="w-4 h-4 text-purple-400 stroke-[2.5]" />
+                  <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-sky-400 bg-clip-text text-transparent tracking-wider">
+                    cohort
+                  </span>
+                </p>
+
+                {renderFormattedBio(
+                  profileUser?.bio ||
+                    "The official Cohort platform account.\nConnect • Make Friends • Join Groups • Build Communities\n**Campus life, redefined.**"
+                )}
+              </div>
+            ) : (
+              <div>
+                <h1 className="text-3xl font-heading font-bold text-neutral-900 dark:text-white leading-tight">
+                  {profileUser?.name || 'Student Name'}
+                </h1>
+                {profileUser?.username && (
+                  <p className="text-sm font-bold text-primary-500 font-mono mt-xs flex items-center gap-xs">
+                    <AtSign className="w-4 h-4 inline" />{profileUser.username}
+                  </p>
+                )}
+                <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 mt-xs">
+                  {profileUser?.college || 'KIET'}
+                </p>
+                {(profileUser?.bio || isOwnProfile) && (
+                  profileUser?.bio ? (
+                    renderFormattedBio(profileUser.bio)
+                  ) : (
+                    <p className="text-sm text-neutral-700 dark:text-neutral-300 mt-sm leading-relaxed max-w-xl font-normal">
+                      <span className="italic text-neutral-400 dark:text-neutral-500 text-xs">
+                        Add a bio in Edit Profile to tell others about yourself...
+                      </span>
+                    </p>
+                  )
+                )}
+              </div>
+            )}
+
+            <div className="flex gap-md flex-wrap items-center">
+              {isOfficialCohortAccount ? (
+                <>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="flex items-center gap-xs border-purple-500/40 text-purple-600 dark:text-purple-300 hover:bg-purple-500/10 font-bold"
+                    onClick={() => setIsEditOfficialModalOpen(true)}
+                  >
+                    <Edit className="w-4 h-4 text-purple-500" /> Edit Profile
+                  </Button>
+
+                  <div className="py-2 px-4 rounded-xl bg-gradient-to-r from-purple-600/20 to-sky-600/20 border border-sky-400/40 text-sky-600 dark:text-sky-300 text-xs font-extrabold flex items-center gap-1.5 shadow-md">
+                    <Check className="w-4 h-4 text-sky-400 stroke-[3]" />
+                    <span>Following Official Account</span>
+                  </div>
+
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="flex items-center gap-xs"
+                    onClick={handleSendMessage}
+                  >
+                    <MessageCircleCode className="w-4 h-4" /> Message Support
+                  </Button>
+                </>
+              ) : isOwnProfile ? (
                 <>
                   <Link to="/edit-profile">
                     <Button variant="secondary" size="sm" className="flex items-center gap-md">
@@ -840,34 +1098,36 @@ export default function Profile() {
             </div>
           </div>
 
-          <div className="space-y-md text-neutral-600 dark:text-neutral-400 mb-lg text-sm">
-            <div className="flex items-center gap-md">
-              <MapPin className="w-4 h-4 text-primary-500" />
-              <span>{profileUser?.college || 'KIET'}</span>
+          {!isOfficialCohortAccount && (
+            <div className="space-y-md text-neutral-600 dark:text-neutral-400 mb-lg text-sm">
+              <div className="flex items-center gap-md">
+                <MapPin className="w-4 h-4 text-primary-500" />
+                <span>{profileUser?.college || 'KIET'}</span>
+              </div>
+              {profileUser?.gender && (
+                <div className="flex items-center gap-md">
+                  <User className="w-4 h-4 text-primary-500" />
+                  <span>Gender: {profileUser.gender}</span>
+                </div>
+              )}
+              {profileUser?.year && (
+                <div className="flex items-center gap-md">
+                  <GraduationCap className="w-4 h-4 text-primary-500" />
+                  <span>Year of study: {profileUser.year}</span>
+                </div>
+              )}
+              {profileUser?.dob && (
+                <div className="flex items-center gap-md">
+                  <Gift className="w-4 h-4 text-primary-500" />
+                  <span>Born: {new Date(profileUser.dob).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-md">
+                <Calendar className="w-4 h-4 text-primary-500" />
+                <span>Member since {profileUser?.joinedDate ? new Date(profileUser.joinedDate).getFullYear() : '2026'}</span>
+              </div>
             </div>
-            {profileUser?.gender && (
-              <div className="flex items-center gap-md">
-                <User className="w-4 h-4 text-primary-500" />
-                <span>Gender: {profileUser.gender}</span>
-              </div>
-            )}
-            {profileUser?.year && (
-              <div className="flex items-center gap-md">
-                <GraduationCap className="w-4 h-4 text-primary-500" />
-                <span>Year of study: {profileUser.year}</span>
-              </div>
-            )}
-            {profileUser?.dob && (
-              <div className="flex items-center gap-md">
-                <Gift className="w-4 h-4 text-primary-500" />
-                <span>Born: {new Date(profileUser.dob).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-              </div>
-            )}
-            <div className="flex items-center gap-md">
-              <Calendar className="w-4 h-4 text-primary-500" />
-              <span>Member since {profileUser?.joinedDate ? new Date(profileUser.joinedDate).getFullYear() : '2026'}</span>
-            </div>
-          </div>
+          )}
 
           {/* Stats Row */}
           <div className="grid grid-cols-3 gap-lg pt-lg border-t border-neutral-100 dark:border-neutral-800">
@@ -943,18 +1203,20 @@ export default function Profile() {
                 </button>
               )}
 
-              <button
-                type="button"
-                onClick={() => setPostsTab('marketplace')}
-                className={`px-3.5 py-1.5 rounded-xl transition-all duration-300 cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                  postsTab === 'marketplace'
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25 font-bold scale-[1.02]'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'
-                }`}
-              >
-                <Tag className="w-3.5 h-3.5" />
-                <span>Market ({userMarketplaceItems.length})</span>
-              </button>
+              {!isOfficialCohortAccount && (
+                <button
+                  type="button"
+                  onClick={() => setPostsTab('marketplace')}
+                  className={`px-3.5 py-1.5 rounded-xl transition-all duration-300 cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                    postsTab === 'marketplace'
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25 font-bold scale-[1.02]'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'
+                  }`}
+                >
+                  <Tag className="w-3.5 h-3.5" />
+                  <span>Market ({userMarketplaceItems.length})</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -1828,6 +2090,88 @@ export default function Profile() {
                 <span>Post</span>
               </Button>
             </form>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal to Edit Cohort Official Account */}
+      {isEditOfficialModalOpen && (
+        <Modal
+          isOpen={isEditOfficialModalOpen}
+          onClose={() => setIsEditOfficialModalOpen(false)}
+          title="Edit Official Cohort Profile"
+        >
+          <div className="space-y-lg">
+            {/* Avatar Edit */}
+            <div className="flex flex-col items-center gap-sm">
+              <div className="relative">
+                <UserAvatar
+                  src={officialAvatarPreview || 'https://ui-avatars.com/api/?name=Cohort&background=9333ea&color=fff&bold=true&size=128'}
+                  name="Cohort"
+                  className="w-24 h-24 rounded-full border-4 border-purple-500/40 object-cover shadow-xl"
+                />
+                {isUploadingOfficialAvatar && (
+                  <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
+                  </div>
+                )}
+              </div>
+              <input
+                ref={officialFileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleOfficialAvatarSelect}
+              />
+              <Button
+                variant="secondary"
+                size="sm"
+                className="flex items-center gap-xs text-xs font-bold border-purple-500/30 text-purple-600 dark:text-purple-300 hover:bg-purple-500/10"
+                onClick={() => officialFileInputRef.current?.click()}
+                disabled={isUploadingOfficialAvatar}
+              >
+                <Camera className="w-4 h-4 text-purple-500" /> Change Official Image
+              </Button>
+            </div>
+
+            {/* Bio Edit */}
+            <div>
+              <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-xs uppercase tracking-wider">
+                Official Account Bio
+              </label>
+              <textarea
+                value={officialBioInput}
+                onChange={(e) => setOfficialBioInput(e.target.value)}
+                placeholder="Enter official account bio..."
+                className="w-full p-md bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500 text-neutral-900 dark:text-white leading-relaxed resize-none"
+                rows={4}
+              />
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-md pt-md border-t border-neutral-100 dark:border-neutral-800">
+              <Button
+                variant="ghost"
+                onClick={() => setIsEditOfficialModalOpen(false)}
+                disabled={isSavingOfficial}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleSaveOfficialProfile}
+                disabled={isSavingOfficial || isUploadingOfficialAvatar}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-bold"
+              >
+                {isSavingOfficial ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-1" /> Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
+            </div>
           </div>
         </Modal>
       )}

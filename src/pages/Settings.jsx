@@ -18,7 +18,8 @@ import {
   Sparkles,
   ChevronRight,
   X,
-  Search
+  Search,
+  Mail
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -408,11 +409,11 @@ export default function Settings() {
         </div>
 
         {/* Campus Support & FAQs Card (Placed RIGHT BEFORE Logout!) */}
-        <div
-          onClick={() => setIsQueryModalOpen(true)}
-          className="bg-white dark:bg-neutral-900/90 border border-neutral-200/80 dark:border-neutral-800/80 rounded-3xl p-4 sm:p-6 shadow-sm backdrop-blur-xl hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300 cursor-pointer group"
-        >
-          <div className="flex items-center justify-between gap-3">
+        <div className="bg-white dark:bg-neutral-900/90 border border-neutral-200/80 dark:border-neutral-800/80 rounded-3xl p-4 sm:p-6 shadow-sm backdrop-blur-xl space-y-4">
+          <div
+            onClick={() => setIsQueryModalOpen(true)}
+            className="flex items-center justify-between gap-3 cursor-pointer group"
+          >
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-emerald-500/20 via-teal-500/15 to-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/30 shadow-xs group-hover:scale-105 transition-transform flex-shrink-0">
                 <HelpCircle className="w-5 h-5 stroke-[2.5]" />
@@ -432,6 +433,29 @@ export default function Settings() {
                 <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-0.5" />
               </span>
             </div>
+          </div>
+
+          {/* Official Email Support Box */}
+          <div className="pt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-neutral-50/80 dark:bg-neutral-950/60 p-3.5 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-500 dark:text-purple-400 flex items-center justify-center border border-purple-500/30 flex-shrink-0">
+                <Mail className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-400 block">Official Support Email</span>
+                <a href="mailto:cohortnow.online@gmail.com" className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400 hover:underline truncate block">
+                  cohortnow.online@gmail.com
+                </a>
+              </div>
+            </div>
+
+            <a
+              href="mailto:cohortnow.online@gmail.com"
+              className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap shadow-sm shadow-purple-500/20 active:scale-95 cursor-pointer"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>Contact Support</span>
+            </a>
           </div>
         </div>
 
