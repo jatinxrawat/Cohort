@@ -185,39 +185,42 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white p-3 sm:p-5 md:p-7 space-y-5 selection:bg-purple-500/30 selection:text-purple-300">
+    <div className="min-h-screen bg-neutral-950 text-white p-3 sm:p-5 md:p-6 lg:p-8 selection:bg-purple-500/30 selection:text-purple-300">
       
-      {/* --- FIZZ-STYLE HERO BANNER CONTAINER (AURORA EFFECT) --- */}
-      <div className="relative rounded-[32px] sm:rounded-[40px] bg-neutral-950 border border-neutral-800 p-5 sm:p-10 lg:p-14 text-white shadow-2xl overflow-hidden">
+      {/* Centered Responsive Container with max-width constraint */}
+      <div className="w-full max-w-[1440px] mx-auto space-y-6 sm:space-y-8">
         
-        {/* Mobile Static Glow (Ultra Fast, Zero GPU Shader Overhead) */}
-        <div className="md:hidden absolute inset-0 pointer-events-none opacity-60 z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/50 via-neutral-950 to-neutral-950" />
+        {/* --- FIZZ-STYLE HERO BANNER CONTAINER (AURORA EFFECT) --- */}
+        <div className="relative rounded-[28px] sm:rounded-[36px] lg:rounded-[40px] bg-neutral-950 border border-neutral-800 p-5 sm:p-8 lg:p-10 xl:p-12 text-white shadow-2xl overflow-hidden">
+          
+          {/* Mobile Static Glow (Ultra Fast, Zero GPU Shader Overhead) */}
+          <div className="md:hidden absolute inset-0 pointer-events-none opacity-60 z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/50 via-neutral-950 to-neutral-950" />
 
-        {/* Desktop WebGL Aurora Background Layer (Hidden on Mobile) */}
-        <div className="hidden md:block absolute inset-0 pointer-events-none opacity-65 z-0 overflow-hidden">
-          <Aurora
-            colorStops={["#7c3aed", "#c084fc", "#ec4899"]}
-            blend={0.6}
-            amplitude={1.2}
-            speed={0.6}
-          />
-        </div>
+          {/* Desktop WebGL Aurora Background Layer (Hidden on Mobile) */}
+          <div className="hidden md:block absolute inset-0 pointer-events-none opacity-65 z-0 overflow-hidden">
+            <Aurora
+              colorStops={["#7c3aed", "#c084fc", "#ec4899"]}
+              blend={0.6}
+              amplitude={1.2}
+              speed={0.6}
+            />
+          </div>
 
-        {/* --- HEADER NAVBAR INSIDE HERO CARD --- */}
-        <header className="relative z-20 flex items-center justify-between mb-8 sm:mb-14">
-          <Link to="/" className="flex items-center gap-3.5 group">
-            <LogoIcon className="w-12 h-12 transform group-hover:scale-105 transition-transform drop-shadow-md" variant="badge" glow={true} />
-            <span className="font-display font-black text-2xl sm:text-3xl tracking-tight text-white">
-              Cohort<span className="text-pink-500">.</span>
-            </span>
-          </Link>
+          {/* --- HEADER NAVBAR INSIDE HERO CARD --- */}
+          <header className="relative z-20 flex items-center justify-between mb-8 sm:mb-12 lg:mb-14">
+            <Link to="/" className="flex items-center gap-3.5 group flex-shrink-0">
+              <LogoIcon className="w-10 h-10 sm:w-12 sm:h-12 transform group-hover:scale-105 transition-transform drop-shadow-md" variant="badge" glow={true} />
+              <span className="font-display font-black text-xl sm:text-2xl lg:text-3xl tracking-tight text-white">
+                Cohort<span className="text-pink-500">.</span>
+              </span>
+            </Link>
 
-          {/* Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-8 bg-neutral-950/90 backdrop-blur-2xl border border-neutral-800 px-10 py-4 rounded-full text-base sm:text-lg font-black shadow-2xl">
-            <a href="#vibe-hubs" className="text-neutral-200 hover:text-white transition-colors">Vibe Hubs</a>
-            <a href="#feature-wheel-section" className="text-neutral-200 hover:text-white transition-colors">Features Wheel</a>
-            <a href="#features-deck" className="text-neutral-200 hover:text-white transition-colors">What's Inside</a>
-          </nav>
+            {/* Navigation Links */}
+            <nav className="hidden lg:flex items-center gap-6 xl:gap-8 bg-neutral-950/90 backdrop-blur-2xl border border-neutral-800 px-6 xl:px-8 py-3 rounded-full text-sm xl:text-base font-black shadow-2xl">
+              <a href="#vibe-hubs" className="text-neutral-200 hover:text-white transition-colors">Vibe Hubs</a>
+              <a href="#feature-wheel-section" className="text-neutral-200 hover:text-white transition-colors">Features Wheel</a>
+              <a href="#features-deck" className="text-neutral-200 hover:text-white transition-colors">What's Inside</a>
+            </nav>
 
           {/* Action Button */}
           <div className="flex items-center gap-3">
@@ -272,12 +275,12 @@ export default function Landing() {
               <span>FIRST DIGITAL CAMPUS APP</span>
             </div>
 
-            <h1 className="font-display font-black text-4xl sm:text-6xl lg:text-7xl leading-[1.05] tracking-tight drop-shadow-md text-white">
+            <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-5xl xl:text-6xl 2xl:text-7xl leading-[1.08] tracking-tight drop-shadow-md text-white">
               Your Campus. <br />
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-300 bg-clip-text text-transparent">Social Media.</span>
             </h1>
 
-            <p className="text-neutral-300 text-sm sm:text-lg max-w-xl font-medium leading-relaxed">
+            <p className="text-neutral-300 text-sm sm:text-base lg:text-lg max-w-xl font-medium leading-relaxed">
               Join real, unfiltered conversations, anonymous confessions, campus marketplace listings, and vibe matching at your university.
             </p>
 
@@ -865,6 +868,7 @@ export default function Landing() {
         )}
       </AnimatePresence>
 
+      </div>
     </div>
   );
 }

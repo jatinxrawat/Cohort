@@ -2611,7 +2611,7 @@ export default function Messages() {
 
                   {/* Bio Display */}
                   {liveProfile.bio && (
-                    <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 max-w-xs mx-auto leading-relaxed pt-2 italic font-normal">
+                    <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 max-w-xs mx-auto leading-relaxed pt-2 italic font-normal whitespace-pre-wrap">
                       "{liveProfile.bio}"
                     </p>
                   )}
