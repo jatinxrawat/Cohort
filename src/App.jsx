@@ -28,6 +28,8 @@ const About = lazy(() => import('@/pages/About'));
 const Privacy = lazy(() => import('@/pages/Privacy'));
 const Terms = lazy(() => import('@/pages/Terms'));
 const Contact = lazy(() => import('@/pages/Contact'));
+const Uncut = lazy(() => import('@/pages/Uncut'));
+const CollegeLove = lazy(() => import('@/pages/uncut/CollegeLove'));
 const CollegePublic = lazy(() => import('@/pages/CollegePublic'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
@@ -233,6 +235,8 @@ function App() {
                   <Route path="/privacy" element={<Privacy />} />
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/uncut" element={<Uncut />} />
+                  <Route path="/uncut/college-love" element={<CollegeLove />} />
 
                   {/* College Pages */}
                   <Route path="/colleges/:collegeId" element={<CollegePublic />} />

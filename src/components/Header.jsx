@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon, Sparkles, Users, Bookmark, Settings as SettingsIcon } from 'lucide-react';
+import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon, Sparkles, Users, Bookmark, Settings as SettingsIcon, BookOpen } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/Button';
@@ -78,6 +78,14 @@ export const Header = () => {
                 </span>
               )}
             </Link>
+            <Link
+              to="/uncut"
+              className="flex flex-col items-center justify-center px-2.5 py-1 text-neutral-600 dark:text-neutral-400 hover:text-pink-500 dark:hover:text-pink-400 hover:bg-pink-500/10 rounded-xl transition-all duration-200 cursor-pointer"
+              title="Cohort Uncut"
+            >
+              <BookOpen className="w-5 h-5 text-pink-500 dark:text-pink-400" />
+              <span className="text-[8px] font-black tracking-wider leading-none mt-1 uppercase text-pink-500 dark:text-pink-400">UNCUT</span>
+            </Link>
           </div>
         )}
 
@@ -106,14 +114,27 @@ export const Header = () => {
                   </span>
                 )}
               </Link>
+              <Link
+                to="/messages"
+                className="md:hidden p-2 text-neutral-600 dark:text-neutral-300 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-all relative cursor-pointer"
+                aria-label="Messages"
+                title="Messages"
+              >
+                <MessageSquare className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 bg-sky-500 text-white font-extrabold text-[9px] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-950 animate-pulse shadow-sm">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </Link>
             </>
           )}
 
-          {/* Glowing Theme Toggle Button */}
+          {/* Glowing Theme Toggle Button - hidden on mobile per layout requests */}
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-2 sm:p-2.5 text-neutral-600 dark:text-neutral-300 hover:text-amber-500 dark:hover:text-amber-400 bg-neutral-100/80 dark:bg-neutral-900/80 hover:bg-amber-500/10 border border-neutral-200/60 dark:border-neutral-800/80 rounded-full transition-all duration-300 cursor-pointer shadow-xs active:scale-90 flex items-center justify-center"
+            className="hidden md:flex p-2.5 text-neutral-600 dark:text-neutral-300 hover:text-amber-500 dark:hover:text-amber-400 bg-neutral-100/80 dark:bg-neutral-900/80 hover:bg-amber-500/10 border border-neutral-200/60 dark:border-neutral-800/80 rounded-full transition-all duration-300 cursor-pointer shadow-xs active:scale-90 items-center justify-center"
             aria-label="Toggle theme"
             title="Toggle theme"
           >
