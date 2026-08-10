@@ -1,7 +1,11 @@
 import React from 'react';
 import { Card } from '@/components/Card';
 import { Zap, Users, Target, Heart } from 'lucide-react';
+import SEO from '@/components/SEO';
 
+/**
+ * About Cohort Page
+ */
 export default function About() {
   const values = [
     { icon: Users, title: 'Community First', desc: 'We believe in the power of connected communities' },
@@ -12,12 +16,16 @@ export default function About() {
 
   return (
     <div className="section-container max-w-3xl">
-      <h1 className="text-3xl font-heading font-bold mb-lg">About Collex</h1>
+      <SEO 
+        title="About Cohort | Campus Social Media"
+        description="Discover Cohort's mission to transform campus communication. We provide college students with anonymous confessions, circles, messaging, and matching features."
+      />
+      <h1 className="text-3xl font-heading font-bold mb-lg">About Cohort</h1>
 
       <Card className="mb-lg">
         <h2 className="text-2xl font-bold mb-md">Our Mission</h2>
         <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed mb-lg">
-          Collex is on a mission to transform how college students connect, collaborate, and grow together. We believe that every student deserves access to a vibrant, supportive community right within their campus.
+          Cohort is on a mission to transform how college students connect, collaborate, and grow together. We believe that every student deserves access to a vibrant, supportive community right within their campus.
         </p>
         <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed">
           Our platform brings together the best features for campus life: from social connections and event discovery to academic resources and career opportunities—all in one place.
@@ -42,8 +50,8 @@ export default function About() {
         <p className="text-neutral-700 dark:text-neutral-300 mb-lg">
           Have questions or feedback? We'd love to hear from you!
         </p>
-        <a href="mailto:hello@collex.in" className="text-primary-500 hover:text-primary-600 font-medium">
-          hello@collex.in
+        <a href="mailto:cohortnow.online@gmail.com" className="text-primary-500 hover:text-primary-600 font-medium">
+          cohortnow.online@gmail.com
         </a>
       </Card>
     </div>

@@ -5,6 +5,7 @@ import { Button } from '@/components/Button';
 import { useNotification } from '@/contexts/NotificationContext';
 import { Bookmark, Heart, MessageCircle, Share2, EyeOff, BookmarkMinus } from 'lucide-react';
 import { formatRelativeTime } from '@/utils/helpers';
+import SEO from '@/components/SEO';
 
 export default function SavedPosts() {
   const { showSuccess } = useNotification();
@@ -26,6 +27,7 @@ export default function SavedPosts() {
 
   return (
     <div className="section-container max-w-2xl">
+      <SEO title="Saved Posts" />
       <div className="mb-3xl">
         <h1 className="text-3xl font-heading font-bold flex items-center gap-md">
           <Bookmark className="w-8 h-8 text-primary-500 fill-primary-500/10" /> Saved Posts

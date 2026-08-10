@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { UserAvatar } from '@/components/UserAvatar';
+import SEO from '@/components/SEO';
 import {
   Sparkles,
   Heart,
@@ -665,6 +666,7 @@ export default function MakeAFriend() {
 
   return (
     <div className="section-container min-h-[calc(100vh-120px)] lg:min-h-[calc(100vh-80px)] flex flex-col items-center justify-center p-md select-none relative overflow-hidden bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 text-white rounded-none border-0 my-0 lg:my-4 lg:rounded-3xl lg:border lg:border-neutral-800 w-full lg:max-w-4xl mx-auto shadow-none lg:shadow-glass-lg">
+      <SEO title="Make a Friend" />
       
       {/* Background neon glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[350px] h-[350px] bg-vandal-pink/10 rounded-full blur-[100px] pointer-events-none" />

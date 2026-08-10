@@ -5,7 +5,11 @@ import { Input } from '@/components/Input';
 import { useNotification } from '@/contexts/NotificationContext';
 import { Mail, MessageSquare, User, Building, MapPin, Send } from 'lucide-react';
 import { validateEmail } from '@/utils/helpers';
+import SEO from '@/components/SEO';
 
+/**
+ * Contact Cohort Page
+ */
 export default function Contact() {
   const { showSuccess, showError } = useNotification();
   const [formData, setFormData] = useState({
@@ -56,6 +60,11 @@ export default function Contact() {
 
   return (
     <div className="section-container max-w-5xl">
+      <SEO 
+        title="Contact Cohort | Campus Social Media"
+        description="Get in touch with the Cohort campus team. Send us queries, feedback, partnerships request, or connect with our student moderators."
+      />
+      
       <div className="text-center mb-3xl">
         <h1 className="text-4xl font-heading font-bold mb-md">Get in Touch</h1>
         <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-xl mx-auto">
@@ -78,8 +87,8 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-xs text-primary-200">Email Us</p>
-                  <a href="mailto:support@collex.in" className="font-semibold hover:text-primary-100 transition-colors">
-                    support@collex.in
+                  <a href="mailto:cohortnow.online@gmail.com" className="font-semibold hover:text-primary-100 transition-colors">
+                    cohortnow.online@gmail.com
                   </a>
                 </div>
               </div>
@@ -109,8 +118,8 @@ export default function Contact() {
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-lg leading-relaxed">
               If you want to report an objectionable post, spam account, or technical glitch, please contact our moderation team directly.
             </p>
-            <a href="mailto:moderators@collex.in" className="text-primary-500 hover:text-primary-600 font-semibold text-sm">
-              moderators@collex.in &rarr;
+            <a href="mailto:cohortnow.online@gmail.com" className="text-primary-500 hover:text-primary-600 font-semibold text-sm">
+              cohortnow.online@gmail.com &rarr;
             </a>
           </Card>
         </div>

@@ -1,19 +1,27 @@
 import React from 'react';
 import { Card } from '@/components/Card';
 import { ChevronDown } from 'lucide-react';
+import SEO from '@/components/SEO';
 
+/**
+ * Help Center Page
+ */
 export default function Help() {
   const [openFaq, setOpenFaq] = React.useState(null);
 
   const faqs = [
-    { q: 'How do I create an account?', a: 'Visit the signup page and fill in your details. You need a valid college email.' },
-    { q: 'Is Collex free to use?', a: 'Yes! Collex is completely free for all students.' },
+    { q: 'How do I create an account?', a: 'Visit the signup page and fill in your details. You need a valid college email address.' },
+    { q: 'Is Cohort free to use?', a: 'Yes! Cohort is completely free for all students.' },
     { q: 'How do I post in the community?', a: 'Navigate to Home and use the post creation box at the top of your feed.' },
     { q: 'Can I delete my account?', a: 'Yes, you can delete your account from Settings > Account > Delete Account.' },
   ];
 
   return (
     <div className="section-container max-w-3xl">
+      <SEO 
+        title="Help Center | Cohort"
+        description="Get help with Cohort. Find answers to frequently asked questions about campus communities, confessions, account settings, and support."
+      />
       <h1 className="text-3xl font-heading font-bold mb-lg">Help & Support</h1>
       
       <Card className="mb-lg">
@@ -41,8 +49,8 @@ export default function Help() {
         <p className="text-neutral-600 dark:text-neutral-400 mb-lg">
           Can't find what you're looking for? Contact our support team.
         </p>
-        <a href="mailto:support@collex.in" className="text-primary-500 hover:text-primary-600 font-medium">
-          support@collex.in
+        <a href="mailto:cohortnow.online@gmail.com" className="text-primary-500 hover:text-primary-600 font-medium">
+          cohortnow.online@gmail.com
         </a>
       </Card>
     </div>

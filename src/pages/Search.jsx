@@ -17,6 +17,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { useDebounce } from '@/hooks';
+import SEO from '@/components/SEO';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 
@@ -144,6 +145,7 @@ export default function Search() {
 
   return (
     <div className="section-container max-w-4xl mx-auto space-y-xl">
+      <SEO title="Search Campus" />
       {/* Search Header */}
       <div className="text-center md:text-left">
         <h1 className="text-3xl md:text-4xl font-heading font-extrabold text-neutral-900 dark:text-white flex items-center justify-center md:justify-start gap-md">

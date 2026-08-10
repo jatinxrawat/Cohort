@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { UserAvatar } from '@/components/UserAvatar';
 import { uploadImageToCloudinary } from '@/utils/cloudinary';
+import SEO from '@/components/SEO';
 
 const FAKE_NAMES = [
   'priya sharma',
@@ -292,6 +293,7 @@ export default function Home() {
 
   return (
     <div className="section-container">
+      <SEO title="Campus Feed" />
       <div className="max-w-2xl mx-auto">
         {/* Create Post */}
         <div className="mb-lg p-4 sm:p-5 rounded-3xl bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200/80 dark:border-neutral-800/80 shadow-lg shadow-black/5 dark:shadow-black/30 transition-all">

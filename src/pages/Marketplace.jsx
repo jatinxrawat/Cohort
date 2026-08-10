@@ -12,6 +12,7 @@ import { compressImage } from '@/utils/helpers';
 import { uploadImageToCloudinary } from '@/utils/cloudinary';
 import { Tag, ShoppingBag, Search, Plus, Filter, ArrowRight, ShieldAlert, Sparkles, MessageCircleCode, Image as ImageIcon, Upload, X, Edit2, Trash2, Loader2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import SEO from '@/components/SEO';
 
 const FAKE_SELLERS = [
   'preeti deshmukh',
@@ -230,6 +231,7 @@ export default function Marketplace() {
 
   return (
     <div className="section-container">
+      <SEO title="Campus Marketplace" />
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-md mb-lg">
         <div>

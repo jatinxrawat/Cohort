@@ -1,7 +1,11 @@
 import React from 'react';
 import { Card } from '@/components/Card';
 import { Shield, Eye, Lock, FileText, Bell } from 'lucide-react';
+import SEO from '@/components/SEO';
 
+/**
+ * Privacy Policy Page
+ */
 export default function Privacy() {
   const sections = [
     {
@@ -12,7 +16,7 @@ export default function Privacy() {
     {
       icon: Shield,
       title: '2. How We Use Your Information',
-      content: 'We use the collected information to operate, maintain, and improve the Collex platform. This includes personalizing your feed, facilitating connections with peer students, showing relevant campus events, managing marketplace transactions, sending notifications, and maintaining a safe and secure community environment.',
+      content: 'We use the collected information to operate, maintain, and improve the Cohort platform. This includes personalizing your feed, facilitating connections with peer students, showing relevant campus events, managing marketplace transactions, sending notifications, and maintaining a safe and secure community environment.',
     },
     {
       icon: Lock,
@@ -22,7 +26,7 @@ export default function Privacy() {
     {
       icon: FileText,
       title: '4. Cookies and Tracking',
-      content: 'We use cookies and similar tracking technologies to analyze user activity, remember your settings, and authenticate your sessions. You can configure your browser to reject cookies, but some features of the Collex platform may not function properly as a result.',
+      content: 'We use cookies and similar tracking technologies to analyze user activity, remember your settings, and authenticate your sessions. You can configure your browser to reject cookies, but some features of the Cohort platform may not function properly as a result.',
     },
     {
       icon: Bell,
@@ -33,6 +37,11 @@ export default function Privacy() {
 
   return (
     <div className="section-container max-w-4xl">
+      <SEO 
+        title="Privacy Policy | Cohort"
+        description="Learn how Cohort manages, protects, and handles your campus information and personal data."
+      />
+      
       <div className="text-center mb-3xl">
         <Shield className="w-16 h-16 text-primary-500 mx-auto mb-lg" />
         <h1 className="text-4xl font-heading font-bold mb-md">Privacy Policy</h1>
@@ -66,8 +75,8 @@ export default function Privacy() {
         <p className="text-neutral-700 dark:text-neutral-300 mb-md font-medium">
           Have questions or concerns about your privacy?
         </p>
-        <a href="mailto:privacy@collex.in" className="text-primary-500 hover:text-primary-600 font-semibold text-sm">
-          privacy@collex.in
+        <a href="mailto:cohortnow.online@gmail.com" className="text-primary-500 hover:text-primary-600 font-semibold text-sm">
+          cohortnow.online@gmail.com
         </a>
       </Card>
     </div>
