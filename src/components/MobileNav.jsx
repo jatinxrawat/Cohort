@@ -62,7 +62,6 @@ export const MobileNav = () => {
                         : specialFriend
                         ? 'text-vandal-pink font-bold scale-105'
                         : specialUncut
-                        ? 'text-pink-500 dark:text-pink-400 font-bold scale-105'
                         ? 'text-pink-400 dark:text-pink-300 font-bold scale-105'
                         : 'text-primary-600 dark:text-primary-400 font-bold scale-105'
                       : special
@@ -72,8 +71,6 @@ export const MobileNav = () => {
                       : specialFriend
                       ? 'text-vandal-pink/80 hover:text-vandal-pink font-semibold'
                       : specialUncut
-                      ? 'text-pink-400/80 dark:text-pink-400/80 hover:text-pink-500'
-                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                       ? 'text-pink-400 dark:text-pink-300 hover:text-pink-200 font-semibold'
                       : 'text-neutral-500 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white'
                   }`}
