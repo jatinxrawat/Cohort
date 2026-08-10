@@ -1,12 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, useMotionValue, useTransform } from 'motion/react';
-import {
-  FiFileText,
-  FiLayers,
-  FiHeart,
-  FiShoppingBag,
-  FiUserPlus
-} from 'react-icons/fi';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { FileText, Layers, Heart, ShoppingBag, UserPlus } from 'lucide-react';
 
 import './Carousel.css';
 
@@ -15,7 +9,7 @@ const DEFAULT_ITEMS = [
     title: 'Anonymous Confessions',
     description: 'Share real, unfiltered campus thoughts with complete identity privacy.',
     id: 1,
-    icon: <FiFileText className="carousel-icon" />,
+    icon: <FileText className="carousel-icon" />,
     badge: 'LIVE',
     badgeColor: '#f43f5e',
     stat: '12K+ confessions today',
@@ -26,7 +20,7 @@ const DEFAULT_ITEMS = [
     title: 'Campus Community',
     description: 'Discover college clubs, academic groups, and live chat rooms.',
     id: 2,
-    icon: <FiLayers className="carousel-icon" />,
+    icon: <Layers className="carousel-icon" />,
     badge: 'POPULAR',
     badgeColor: '#6366f1',
     stat: '800+ active groups',
@@ -37,7 +31,7 @@ const DEFAULT_ITEMS = [
     title: 'Campus Marketplace',
     description: 'Buy and sell textbooks, gadgets, and more with fellow students.',
     id: 3,
-    icon: <FiShoppingBag className="carousel-icon" />,
+    icon: <ShoppingBag className="carousel-icon" />,
     badge: 'NEW',
     badgeColor: '#14b8a6',
     stat: '3K+ listings',
@@ -48,7 +42,7 @@ const DEFAULT_ITEMS = [
     title: 'Make a Friend',
     description: 'Connect with like-minded peers based on vibe, interests, and branch.',
     id: 4,
-    icon: <FiUserPlus className="carousel-icon" />,
+    icon: <UserPlus className="carousel-icon" />,
     badge: 'HOT',
     badgeColor: '#f59e0b',
     stat: '5K+ matches this week',
@@ -59,7 +53,7 @@ const DEFAULT_ITEMS = [
     title: 'Verified Peer Circles',
     description: 'Trusted networks verified by college email for safe interactions.',
     id: 5,
-    icon: <FiHeart className="carousel-icon" />,
+    icon: <Heart className="carousel-icon" />,
     badge: 'SECURE',
     badgeColor: '#a855f7',
     stat: '100% college-verified',
