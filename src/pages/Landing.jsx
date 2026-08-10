@@ -194,6 +194,13 @@ export default function Landing() {
               <a href="#vibe-hubs" className="text-neutral-200 hover:text-white transition-colors">Vibe Hubs</a>
               <a href="#feature-wheel-section" className="text-neutral-200 hover:text-white transition-colors">Features Wheel</a>
               <a href="#features-deck" className="text-neutral-200 hover:text-white transition-colors">What's Inside</a>
+              <Link to="/uncut" className="text-neutral-200 hover:text-white transition-colors flex items-center gap-1.5 group/nav">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
+                </span>
+                <span className="group-hover/nav:text-pink-400 transition-colors">Cohort Uncut</span>
+              </Link>
             </nav>
 
           {/* Action Button */}
@@ -550,6 +557,93 @@ export default function Landing() {
           </div>
 
         </div>
+      </div>
+
+      {/* --- COHORT UNCUT PROMOTIONAL SECTION --- */}
+      <div className="relative w-full max-w-[1440px] mx-auto py-2">
+        <BorderGlow
+          borderRadius={36}
+          backgroundColor="#0e0c15"
+          glowColor="325 90 70"
+          glowRadius={60}
+          glowIntensity={1.3}
+          coneSpread={35}
+          animated={true}
+          colors={['#FF2A85', '#963BFF', '#00F0FF']}
+          className="w-full"
+        >
+          <div className="p-8 sm:p-12 lg:p-14 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12 text-left relative overflow-hidden">
+            {/* Background elements */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+
+            {/* Left Content */}
+            <div className="space-y-5 max-w-2xl z-10">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pink-500/10 border border-pink-500/30 backdrop-blur-md text-[10px] font-black tracking-wider uppercase text-pink-400 animate-pulse">
+                <Sparkles className="w-3.5 h-3.5 text-pink-400" />
+                <span>NEW STORY CORNER</span>
+              </div>
+              <h2 className="font-display font-black text-3xl sm:text-5xl tracking-tight text-white leading-tight">
+                Read campus stories on <br />
+                <span className="bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 bg-clip-text text-transparent">Cohort Uncut</span>
+              </h2>
+              <p className="text-neutral-300 text-sm sm:text-base leading-relaxed font-medium">
+                No boring articles or stuffy journals here. Dive into fresh, engaging college stories about love, late-night campus trauma, heartbreak, sacrifice, exam failure, and all the unwritten rules we silently live by.
+              </p>
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <Link
+                  to="/uncut"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-850 border border-neutral-800 hover:border-pink-500/40 text-pink-400 hover:text-pink-300 text-xs font-extrabold shadow-md transition-all hover:scale-[1.02] active:scale-95 cursor-pointer"
+                >
+                  <span>Publish your campus story</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-pink-500 stroke-[2.5]" />
+                </Link>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <span className="px-3.5 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs font-bold text-neutral-400">
+                  #LateNightThoughts
+                </span>
+                <span className="px-3.5 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs font-bold text-neutral-400">
+                  #CampusPsychology
+                </span>
+                <span className="px-3.5 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs font-bold text-neutral-400">
+                  #DormRoomVibes
+                </span>
+              </div>
+            </div>
+
+            {/* Right Card / Visual Teaser */}
+            <div className="w-full lg:w-96 flex-shrink-0 z-10">
+              <div className="bg-neutral-900/90 backdrop-blur-xl border border-neutral-800/80 rounded-3xl p-6 shadow-2xl text-left hover:border-pink-500/40 transition-all duration-300 relative group overflow-hidden">
+                {/* Glow bar */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 to-purple-500" />
+                
+                <span className="text-[10px] font-bold text-pink-400 tracking-widest uppercase">
+                  Featured Story
+                </span>
+                
+                <h3 className="font-display font-black text-base text-white mt-2 mb-3 leading-snug group-hover:text-pink-400 transition-colors">
+                  College, Love Stories and the Dilemma
+                </h3>
+                
+                <p className="text-xs text-neutral-400 line-clamp-3 mb-4 leading-relaxed">
+                  Why falling in love in college feels like choosing between who you are, who you want to become, and who you want beside you.
+                </p>
+                
+                <div className="flex items-center justify-between text-[11px] text-neutral-500 font-bold border-t border-neutral-800/85 pt-3">
+                  <span>6 min read</span>
+                  <div className="flex items-center gap-1.5 text-pink-400">
+                    <span>Read Article</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+
+                {/* Cover Link to /uncut/college-love */}
+                <Link to="/uncut/college-love" className="absolute inset-0 z-20 cursor-pointer" aria-label="Read full article" />
+              </div>
+            </div>
+          </div>
+        </BorderGlow>
       </div>
 
       {/* --- BOTTOM CALL-TO-ACTION FIZZ PURPLE CARD --- */}

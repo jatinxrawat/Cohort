@@ -27,7 +27,8 @@ export const Layout = ({ children }) => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
-  const isLandingPage = location.pathname === '/';
+  const isUncutPage = location.pathname.startsWith('/uncut');
+  const isLandingPage = location.pathname === '/' || isUncutPage;
   const isAuthPage = location.pathname === '/signup' || location.pathname === '/login' || location.pathname === '/forgot-password';
   const isMessagesPage = location.pathname === '/messages';
   const isCommunityPage = location.pathname === '/community';
