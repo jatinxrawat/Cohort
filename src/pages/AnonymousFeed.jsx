@@ -87,9 +87,16 @@ const renderGenderBadge = (gender) => {
 
 export default function AnonymousFeed({ defaultTab }) {
   const { user } = useAuth();
-  const { showSuccess, showWarning } = useNotification();
+  const { showSuccess, showError } = useNotification();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const isOfficialAdmin =
+    (user?.username || '').toLowerCase() === 'cohort' ||
+    (user?.name || '').toLowerCase() === 'cohort' ||
+    user?.isOfficial === true ||
+    user?.uid === 'cohort_official' ||
+    user?.email === 'cohort@official.com';
 
   const getInitialTab = () => {
     if (defaultTab) return defaultTab;
@@ -746,11 +753,17 @@ export default function AnonymousFeed({ defaultTab }) {
       {/* Header */}
       <div className="flex items-center justify-between max-w-2xl mx-auto border-b border-neutral-200 dark:border-zinc-800/80 pb-lg">
         <div>
-          <h1 className="text-2xl md:text-3xl font-heading font-bold bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-600 dark:from-violet-400 dark:via-purple-300 dark:to-indigo-300 bg-clip-text text-transparent">
-            Anonymous
+          <h1 className={`text-2xl md:text-3xl font-heading font-bold bg-clip-text text-transparent ${
+            activeTab === 'confessions'
+              ? 'bg-gradient-to-r from-rose-500 via-red-500 to-pink-500 dark:from-rose-400 dark:via-red-400 dark:to-pink-400 drop-shadow-[0_0_15px_rgba(244,63,94,0.3)]'
+              : 'bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-600 dark:from-violet-400 dark:via-purple-300 dark:to-indigo-300'
+          }`}>
+            {activeTab === 'confessions' ? 'Confessions' : 'Anonymous'}
           </h1>
           <p className="text-xs text-neutral-500 dark:text-zinc-400 mt-xs font-medium tracking-wide">
-            Share freely. Nobody knows it’s you.
+            {activeTab === 'confessions'
+              ? 'Share your secret campus confessions. Nobody knows it’s you.'
+              : 'Share freely. Nobody knows it’s you.'}
           </p>
         </div>
       </div>
@@ -852,7 +865,8 @@ export default function AnonymousFeed({ defaultTab }) {
             <div className="space-y-lg">
               {posts.map(post => {
                 const isLiked = (post.likedUsers || []).includes(user?.uid || 'guest');
-                const isPostOwner = post.authorUid === user?.uid;
+                const isActualPostOwner = post.authorUid === user?.uid;
+                const isPostOwner = isActualPostOwner || isOfficialAdmin;
                 const isResharedByMe = Boolean(user?.uid && (post.resharedUsers || []).includes(user.uid));
                 const reshareCount = post.repostsCount || post.reposts || 0;
                 const commentsList = commentsMap[post.id] || [];
@@ -885,8 +899,8 @@ export default function AnonymousFeed({ defaultTab }) {
                             <span className="text-xs font-semibold text-violet-700 dark:text-violet-300 bg-violet-100 dark:bg-violet-950/40 px-md py-xs rounded-full border border-violet-200 dark:border-violet-500/20">
                               {post.anonymousName || 'Anonymous Fox'}
                             </span>
-                            {renderGenderBadge(post.gender || (isPostOwner ? user?.gender : null))}
-                            {isPostOwner && (
+                            {renderGenderBadge(post.gender || (isActualPostOwner ? user?.gender : null))}
+                            {isActualPostOwner && (
                               <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full shadow-xs">
                                 Posted by You
                               </span>
@@ -1067,7 +1081,7 @@ export default function AnonymousFeed({ defaultTab }) {
                                           >
                                             Reply
                                           </button>
-                                          {c.authorUid === user?.uid && (
+                                          {(c.authorUid === user?.uid || isOfficialAdmin) && (
                                             <button
                                               onClick={() => setDeletingComment({ commentId: c.id, postId: post.id, isConfession: false })}
                                               className="hover:text-rose-400 transition-colors cursor-pointer"
@@ -1134,7 +1148,7 @@ export default function AnonymousFeed({ defaultTab }) {
                                                         >
                                                           Reply
                                                         </button>
-                                                        {r.authorUid === user?.uid && (
+                                                        {(r.authorUid === user?.uid || isOfficialAdmin) && (
                                                           <button
                                                             onClick={() => setDeletingComment({ commentId: r.id, postId: post.id, isConfession: false })}
                                                             className="hover:text-rose-400 transition-colors cursor-pointer"
@@ -1241,7 +1255,8 @@ export default function AnonymousFeed({ defaultTab }) {
             <div className="space-y-lg">
               {confessions.map(confession => {
                 const commentsList = commentsMap[confession.id] || [];
-                const isConfessionOwner = confession.authorUid === user?.uid;
+                const isActualConfessionOwner = confession.authorUid === user?.uid;
+                const isConfessionOwner = isActualConfessionOwner || isOfficialAdmin;
                 const isResharedByMe = Boolean(user?.uid && (confession.resharedUsers || []).includes(user.uid));
                 const reshareCount = confession.repostsCount || confession.reposts || 0;
 
@@ -1258,8 +1273,8 @@ export default function AnonymousFeed({ defaultTab }) {
                         <span className="font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-xs bg-rose-500/10 px-md py-xs rounded-full border border-rose-500/20">
                           <Flame className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" /> Confession
                         </span>
-                        {renderGenderBadge(confession.gender || (isConfessionOwner ? user?.gender : null))}
-                        {isConfessionOwner && (
+                        {renderGenderBadge(confession.gender || (isActualConfessionOwner ? user?.gender : null))}
+                        {isActualConfessionOwner && (
                           <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full shadow-xs">
                             Posted by You
                           </span>
@@ -1396,7 +1411,7 @@ export default function AnonymousFeed({ defaultTab }) {
                                           >
                                             Reply
                                           </button>
-                                          {c.authorUid === user?.uid && (
+                                          {(c.authorUid === user?.uid || isOfficialAdmin) && (
                                             <button
                                               onClick={() => setDeletingComment({ commentId: c.id, postId: confession.id, isConfession: true })}
                                               className="hover:text-rose-400 transition-colors cursor-pointer"
@@ -1463,7 +1478,7 @@ export default function AnonymousFeed({ defaultTab }) {
                                                         >
                                                           Reply
                                                         </button>
-                                                        {r.authorUid === user?.uid && (
+                                                        {(r.authorUid === user?.uid || isOfficialAdmin) && (
                                                           <button
                                                             onClick={() => setDeletingComment({ commentId: r.id, postId: confession.id, isConfession: true })}
                                                             className="hover:text-rose-400 transition-colors cursor-pointer"

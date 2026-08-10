@@ -17,7 +17,9 @@ import {
   Trash2,
   AlertCircle,
   Zap,
-  PenSquare
+  PenSquare,
+  ShieldCheck,
+  Sparkles
 } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
@@ -63,9 +65,18 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
 
   const isResharedByMe = Boolean(user?.uid && localResharedUsers.includes(user.uid));
 
-  const isPostOwner = (post.author?.uid && post.author.uid === user?.uid) ||
-                      (post.authorUid && post.authorUid === user?.uid) ||
-                      (user?.name && post.author?.name === user?.name);
+  const isOfficialAdmin =
+    (user?.username || '').toLowerCase() === 'cohort' ||
+    (user?.name || '').toLowerCase() === 'cohort' ||
+    user?.isOfficial === true ||
+    user?.uid === 'cohort_official' ||
+    user?.email === 'cohort@official.com';
+
+  const isActualPostOwner = (post.author?.uid && post.author.uid === user?.uid) ||
+                            (post.authorUid && post.authorUid === user?.uid) ||
+                            (user?.name && post.author?.name === user?.name);
+
+  const isPostOwner = isActualPostOwner || isOfficialAdmin;
 
   // Real-time resolution of post author profile from Firestore
   const [liveAuthorProfile, setLiveAuthorProfile] = useState(null);
@@ -83,8 +94,8 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
     return () => unsub();
   }, [authorUid]);
 
-  const authorAvatar = (isPostOwner && user?.avatar) || liveAuthorProfile?.avatar || post.author?.avatar;
-  const authorName = (isPostOwner && user?.name) || liveAuthorProfile?.name || post.author?.name || 'Student';
+  const authorAvatar = (isActualPostOwner && user?.avatar) || liveAuthorProfile?.avatar || post.author?.avatar;
+  const authorName = (isActualPostOwner && user?.name) || liveAuthorProfile?.name || post.author?.name || 'Student';
 
   const handleSaveInlineEdit = async () => {
     if (!editPostContent.trim()) return;
@@ -619,8 +630,21 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
 
   const topLevelComments = comments.filter(c => !c.parentId);
 
+  const isCohortOfficialPost =
+    (authorName || '').toLowerCase() === 'cohort' ||
+    (post.author?.name || '').toLowerCase() === 'cohort' ||
+    (post.author?.username || '').toLowerCase() === 'cohort' ||
+    post.authorUid === 'cohort_official' ||
+    post.author?.uid === 'cohort_official';
+
   return (
-    <Card className="mb-lg border-neutral-100 dark:border-neutral-800 shadow-sm">
+    <Card
+      className={
+        isCohortOfficialPost
+          ? "mb-lg border-purple-500/30 dark:border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.12)] bg-purple-950/5 dark:bg-purple-950/20"
+          : "mb-lg border-neutral-100 dark:border-neutral-800 shadow-sm"
+      }
+    >
       {/* Header */}
       <div className="flex items-start justify-between mb-lg">
         <div
@@ -633,13 +657,18 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
             className="w-12 h-12 rounded-full ring-2 ring-transparent group-hover:ring-primary-500 transition-all object-cover"
           />
           <div>
-            <h3 className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-500 transition-colors">
-              {authorName}
+            <h3 className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-500 transition-colors flex items-center gap-1">
+              <span>{authorName}</span>
+              {isCohortOfficialPost && (
+                <ShieldCheck className="w-4 h-4 text-purple-400 fill-purple-500/20 inline-block stroke-[2.5]" title="Verified Cohort Official Account" />
+              )}
             </h3>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              {(post.author?.role && post.author.role !== 'Student' && post.author.role !== 'Delhi University')
-                ? post.author.role
-                : (post.author?.college || user?.college || 'KIET')} • {formatRelativeTime(post.timestamp)}
+              {isCohortOfficialPost
+                ? 'Cohort Official'
+                : ((post.author?.role && post.author.role !== 'Student' && post.author.role !== 'Delhi University')
+                    ? post.author.role
+                    : (post.author?.college || user?.college || 'KIET'))} • {formatRelativeTime(post.timestamp)}
             </p>
           </div>
         </div>
@@ -849,28 +878,27 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
           <span>{comments.length || post.comments || 0}</span>
         </button>
 
-        {/* Repost / Reshare Pill (Hidden on user's own post) */}
-        {!isPostOwner && (
-          <button
-            onClick={() => {
-              if (isResharedByMe) {
-                handleUnreshare();
-              } else {
-                setShowReshareModal(true);
-                setReshareMode(null);
-              }
-            }}
-            className={`flex items-center gap-xs px-md py-sm rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-              isResharedByMe
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500 font-bold'
-                : 'bg-neutral-100 dark:bg-neutral-800/80 border-transparent text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-            }`}
-            title={isResharedByMe ? "Click to unreshare" : "Reshare post"}
-          >
-            <Repeat className={`w-4 h-4 ${isResharedByMe ? 'text-emerald-500 fill-emerald-500/20' : 'text-primary-500'}`} />
-            <span>{localReposts}</span>
-          </button>
-        )}
+        {/* Repost / Reshare Pill */}
+        <button
+          type="button"
+          onClick={() => {
+            if (isResharedByMe) {
+              handleUnreshare();
+            } else {
+              setShowReshareModal(true);
+              setReshareMode(null);
+            }
+          }}
+          className={`flex items-center gap-xs px-md py-sm rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+            isResharedByMe
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500 font-bold'
+              : 'bg-neutral-100 dark:bg-neutral-800/80 border-transparent text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+          }`}
+          title={isResharedByMe ? "Click to unreshare" : "Reshare post"}
+        >
+          <Repeat className={`w-4 h-4 ${isResharedByMe ? 'text-emerald-500 fill-emerald-500/20' : 'text-primary-500'}`} />
+          <span>{localReposts}</span>
+        </button>
 
         {/* Share Pill */}
         <button
