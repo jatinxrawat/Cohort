@@ -10,6 +10,7 @@ import { useNotification } from '@/contexts/NotificationContext';
 import { formatRelativeTime, compressImage, getAvatarUrl } from '@/utils/helpers';
 import { UserAvatar } from '@/components/UserAvatar';
 import { uploadImageToCloudinary } from '@/utils/cloudinary';
+import SEO from '@/components/SEO';
 import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, query, where, deleteDoc, increment, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 
@@ -920,6 +921,7 @@ export default function Profile() {
 
   return (
     <div className="section-container">
+      <SEO title="Student Profile" />
       <div className="max-w-2xl mx-auto">
         {/* Cover and Avatar */}
         <div className="relative mb-lg">

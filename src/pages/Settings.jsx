@@ -24,6 +24,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotification } from '@/contexts/NotificationContext';
+import SEO from '@/components/SEO';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 
@@ -206,6 +207,7 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white pt-4 pb-36 sm:py-8 px-4 sm:px-6">
+      <SEO title="Settings" />
       <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
         
         {/* Title Header */}

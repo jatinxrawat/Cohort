@@ -1,6 +1,9 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import SEO from '@/components/SEO';
+
+import { Capacitor } from '@capacitor/core';
 
 export const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -17,13 +20,21 @@ export const ProtectedRoute = ({ children }) => {
     return <Navigate to="/signup" replace />;
   }
 
-  return children;
+  return (
+    <>
+      <SEO noindex={true} />
+      {children}
+    </>
+  );
 };
 
 export const PublicOnlyRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
+  const isNative = Capacitor.isNativePlatform();
 
-  if (isLoading) {
+  // Show app loader only on native apps to hide initialization layout flashes.
+  // On web, render the page immediately to keep first-paint speed high.
+  if (isLoading && isNative) {
     return (
       <div className="flex items-center justify-center h-screen bg-black text-white">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sky-500" />
@@ -31,9 +42,15 @@ export const PublicOnlyRoute = ({ children }) => {
     );
   }
 
-  if (isAuthenticated) {
+  if (!isLoading && isAuthenticated) {
     return <Navigate to="/home" replace />;
   }
 
-  return children;
+  return (
+    <>
+      <SEO noindex={true} />
+      {children}
+    </>
+  );
 };
+

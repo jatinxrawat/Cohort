@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import SEO from '@/components/SEO';
 import {
   Heart,
   MessageCircle,
@@ -748,6 +749,7 @@ export default function AnonymousFeed({ defaultTab }) {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-zinc-950 text-neutral-900 dark:text-zinc-100 p-md md:p-xl space-y-xl pb-24 lg:pb-12 transition-colors">
+      <SEO title={activeTab === 'confessions' ? "Confessions" : "Anonymous Feed"} />
       {/* Header */}
       <div className="flex items-center justify-between max-w-2xl mx-auto border-b border-neutral-200 dark:border-zinc-800/80 pb-lg">
         <div>

@@ -1,0 +1,31 @@
+User-agent: *
+
+# Allow crawling of public-facing pages
+Allow: /
+Allow: /about
+Allow: /contact
+Allow: /help
+Allow: /privacy
+Allow: /terms
+Allow: /colleges/
+
+# Disallow crawling of authentication and private dashboard spaces
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /home
+Disallow: /anonymous
+Disallow: /confessions
+Disallow: /community
+Disallow: /marketplace
+Disallow: /placement
+Disallow: /profile
+Disallow: /edit-profile
+Disallow: /saved-posts
+Disallow: /notifications
+Disallow: /messages
+Disallow: /make-friend
+Disallow: /search
+Disallow: /settings
+
+Sitemap: https://cohortnow.online/sitemap.xml

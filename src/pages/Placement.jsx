@@ -9,6 +9,7 @@ import { Input } from '@/components/Input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { Briefcase, MapPin, Search, Plus, FileText, CheckCircle2, DollarSign, UploadCloud, AlertCircle } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 export default function Placement() {
   const { user } = useAuth();
@@ -148,6 +149,7 @@ export default function Placement() {
 
   return (
     <div className="section-container">
+      <SEO title="Career Opportunities" />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-3xl">
         <div>

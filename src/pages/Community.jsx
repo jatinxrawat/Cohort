@@ -16,6 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { PostCard } from '@/components/PostCard';
 import { uploadImageToCloudinary } from '@/utils/cloudinary';
+import SEO from '@/components/SEO';
 import {
   collection, addDoc, doc, deleteDoc, updateDoc, query,
   orderBy, onSnapshot, getDoc, getDocs, arrayUnion, arrayRemove, where
@@ -1130,6 +1131,7 @@ export default function Community() {
 
   return (
     <div className="section-container p-0 flex h-full w-full overflow-hidden">
+      <SEO title="Campus Circles" />
 
       {/* ──────── JOIN BANNER ──────── */}
       <AnimatePresence>

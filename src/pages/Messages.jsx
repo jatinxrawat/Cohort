@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import SEO from '@/components/SEO';
 import { collection, addDoc, doc, getDoc, deleteDoc, updateDoc, getDocs, onSnapshot, arrayUnion, query, where } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 import { Card } from '@/components/Card';
@@ -1454,6 +1455,7 @@ export default function Messages() {
 
   return (
     <div className="max-w-7xl mx-auto p-0 md:p-md h-full w-full flex flex-col font-sans antialiased text-neutral-900 dark:text-white overflow-hidden">
+      <SEO title="Direct Messages" />
       <div className="flex flex-col md:flex-row gap-0 md:gap-lg h-full min-h-0 flex-1 overflow-hidden">
         {/* Left Sidebar - Conversations List */}
         <div className={`w-full md:w-80 lg:w-96 flex-shrink-0 flex flex-col h-full overflow-hidden ${

@@ -11,6 +11,7 @@ import { db, auth } from '@/utils/firebase';
 import { Camera, AlertTriangle } from 'lucide-react';
 import { ImageCropper } from '@/components/ImageCropper';
 import { UserAvatar } from '@/components/UserAvatar';
+import SEO from '@/components/SEO';
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -107,6 +108,7 @@ export default function EditProfile() {
 
   return (
     <div className="section-container max-w-2xl">
+      <SEO title="Edit Profile" />
       <h1 className="text-3xl font-heading font-bold mb-lg">Edit Profile</h1>
       
       <Card className="mb-lg">

@@ -7,10 +7,9 @@ import { Layout } from '@/components/Layout';
 import { ProtectedRoute, PublicOnlyRoute } from '@/components/ProtectedRoute';
 import { AnimatePresence, motion } from 'framer-motion';
 
-// Lazy load pages
-const Landing = lazy(() => import('@/pages/Landing'));
-const Signup = lazy(() => import('@/pages/Signup'));
-const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+import Landing from '@/pages/Landing';
+import Signup from '@/pages/Signup';
+import ForgotPassword from '@/pages/ForgotPassword';
 const Home = lazy(() => import('@/pages/Home'));
 const AnonymousFeed = lazy(() => import('@/pages/AnonymousFeed'));
 const Community = lazy(() => import('@/pages/Community'));
@@ -29,13 +28,16 @@ const About = lazy(() => import('@/pages/About'));
 const Privacy = lazy(() => import('@/pages/Privacy'));
 const Terms = lazy(() => import('@/pages/Terms'));
 const Contact = lazy(() => import('@/pages/Contact'));
+const CollegePublic = lazy(() => import('@/pages/CollegePublic'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
 import { SplashScreen as CapacitorSplashScreen } from '@capacitor/splash-screen';
 import { SplashScreen } from '@/components/SplashScreen';
+import { Capacitor } from '@capacitor/core';
 
 function App() {
-  const [showSplash, setShowSplash] = useState(true);
+  const isNative = Capacitor.isNativePlatform();
+  const [showSplash, setShowSplash] = useState(isNative);
 
   useEffect(() => {
     // Hide the native OS-level splash screen immediately on mount
@@ -43,8 +45,8 @@ function App() {
       console.warn('Native splash hide failed:', err);
     });
 
-    // Request push notification permissions on first launch
-    if (Capacitor.isNativePlatform()) {
+    if (isNative) {
+      // Request push notification permissions on first launch
       const requestNotificationPermission = async () => {
         try {
           const { PushNotifications } = await import('@capacitor/push-notifications');
@@ -73,13 +75,13 @@ function App() {
         }
       };
       setupBackButton();
-    }
 
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 2500); // Keep custom splash screen visible for 2.5 seconds
-    return () => clearTimeout(timer);
-  }, []);
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+      }, 2500); // Keep custom splash screen visible for 2.5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [isNative]);
 
   return (
     <ThemeProvider>
@@ -231,6 +233,9 @@ function App() {
                   <Route path="/privacy" element={<Privacy />} />
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/contact" element={<Contact />} />
+
+                  {/* College Pages */}
+                  <Route path="/colleges/:collegeId" element={<CollegePublic />} />
 
                   {/* 404 */}
                   <Route path="*" element={<NotFound />} />

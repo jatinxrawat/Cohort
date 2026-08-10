@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, MessageSquare, UserPlus, Bell, Eye, Trash2, Inbox, Repeat, ExternalLink, Users, Check, X } from 'lucide-react';
 import { formatRelativeTime } from '@/utils/helpers';
 import { UserAvatar } from '@/components/UserAvatar';
+import SEO from '@/components/SEO';
 import { collection, onSnapshot, doc, updateDoc, writeBatch, deleteDoc, addDoc } from 'firebase/firestore';
 import { arrayUnion } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
@@ -207,6 +208,7 @@ export default function Notifications() {
 
   return (
     <div className="section-container max-w-3xl w-full overflow-x-hidden">
+      <SEO title="Notifications" />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-3xl">
         <div>

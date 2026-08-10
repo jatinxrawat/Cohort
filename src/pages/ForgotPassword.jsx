@@ -5,6 +5,7 @@ import { useNotification } from '@/contexts/NotificationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogoIcon } from '@/components/Logo';
 import Scanner from '@/components/Scanner';
+import SEO from '@/components/SEO';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -63,6 +64,10 @@ export default function ForgotPassword() {
 
   return (
     <div className="h-screen overflow-hidden bg-black text-white relative flex flex-col justify-between selection:bg-purple-500 selection:text-white font-sans">
+      <SEO 
+        title="Forgot Password" 
+        description="Reset your Cohort campus account password." 
+      />
       
       {/* Full-Screen React Bits <Scanner /> WebGL Component Background */}
       <div className="absolute inset-0 z-0 opacity-65 pointer-events-none">

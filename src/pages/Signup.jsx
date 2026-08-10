@@ -6,6 +6,7 @@ import { Logo, LogoIcon } from '@/components/Logo';
 import { useNotification } from '@/contexts/NotificationContext';
 import SpecularButton from '@/components/SpecularButton';
 import Scanner from '@/components/Scanner';
+import SEO from '@/components/SEO';
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -120,6 +121,10 @@ export default function Signup() {
 
   return (
     <div className="h-screen overflow-hidden bg-black text-white relative flex flex-col justify-between selection:bg-purple-500 selection:text-white font-sans">
+      <SEO 
+        title={isSignup ? "Sign Up" : "Log In"} 
+        description="Connect with your university campus community on Cohort. Log in or create a new student account." 
+      />
       
       {/* Full-Screen React Bits <Scanner /> WebGL Component Background */}
       <div className="absolute inset-0 z-0 opacity-65 pointer-events-none">
