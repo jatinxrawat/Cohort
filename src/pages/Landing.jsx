@@ -207,7 +207,7 @@ export default function Landing() {
           </div>
 
           {/* --- HEADER NAVBAR INSIDE HERO CARD --- */}
-          <header className="relative z-20 flex items-center justify-between mb-8 sm:mb-12 lg:mb-14">
+          <header className="relative z-20 flex items-center justify-between mb-6 sm:mb-8 lg:mb-10">
             <Link to="/" className="flex items-center gap-3.5 group flex-shrink-0">
               <LogoIcon className="w-10 h-10 sm:w-12 sm:h-12 transform group-hover:scale-105 transition-transform drop-shadow-md" variant="badge" glow={true} />
               <span className="font-display font-black text-xl sm:text-2xl lg:text-3xl tracking-tight text-white">
@@ -325,12 +325,12 @@ export default function Landing() {
           </div>
 
           {/* Right Column: Floating 3D Interactive Mockup Cards (Hidden on Mobile) */}
-          <div className="hidden lg:block lg:col-span-5 relative space-y-4">
+          <div className="hidden lg:block lg:col-span-5 relative space-y-3 sm:space-y-3.5">
             
             {/* Live Confession Card Preview */}
-            <div className="bg-neutral-900/90 backdrop-blur-xl border border-white/20 rounded-3xl p-5 shadow-2xl text-left transform -rotate-1 hover:rotate-0 transition-transform duration-300">
-              <div className="flex items-center justify-between mb-3">
-                <span className="px-2.5 py-1 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-400 text-[10px] font-bold uppercase flex items-center gap-1">
+            <div className="bg-neutral-900/90 backdrop-blur-xl border border-white/20 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-2xl text-left transform -rotate-1 hover:rotate-0 transition-transform duration-300">
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-400 text-[10px] font-bold uppercase flex items-center gap-1">
                   <Flame className="w-3 h-3" /> Anonymous Confession
                 </span>
                 <span className="text-[11px] text-neutral-400">2m ago</span>
@@ -338,7 +338,7 @@ export default function Landing() {
               <p className="text-xs sm:text-sm text-neutral-200 leading-relaxed font-medium">
                 "{localConfessions[0].text}"
               </p>
-              <div className="flex items-center gap-4 mt-3 text-xs text-neutral-400 font-bold">
+              <div className="flex items-center gap-4 mt-2.5 text-xs text-neutral-400 font-bold">
                 <span className="flex items-center gap-1 text-pink-400">
                   <Heart className="w-3.5 h-3.5 fill-pink-400" /> {localConfessions[0].likes + 12}
                 </span>
@@ -349,11 +349,11 @@ export default function Landing() {
             </div>
 
             {/* Live Campus Poll Preview */}
-            <div className="bg-neutral-900/90 backdrop-blur-2xl border border-purple-500/30 rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_rgba(147,51,234,0.2)] text-left hover:border-purple-500/50 transition-all duration-300 relative group overflow-hidden">
+            <div className="bg-neutral-900/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-[0_10px_40px_rgba(147,51,234,0.2)] text-left hover:border-purple-500/50 transition-all duration-300 relative group overflow-hidden">
               {/* Subtle gradient top accent bar */}
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 opacity-80" />
 
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-2.5">
                 <span className="text-xs font-black text-purple-400 tracking-wider uppercase flex items-center gap-2">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
@@ -367,11 +367,11 @@ export default function Landing() {
                 </span>
               </div>
 
-              <p className="text-sm font-extrabold text-white mb-3 tracking-tight leading-snug">
+              <p className="text-xs sm:text-sm font-extrabold text-white mb-2.5 tracking-tight leading-snug">
                 Can you survive a 9 AM Monday lecture?
               </p>
 
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {pollVotes.map((opt, idx) => {
                   const isSelected = selectedPollIndex === idx;
                   const pct = totalPollVotes > 0 ? Math.round((opt.count / totalPollVotes) * 100) : 0;
@@ -381,7 +381,7 @@ export default function Landing() {
                       key={idx}
                       type="button"
                       onClick={() => handleTogglePollVote(idx)}
-                      className={`w-full text-left relative overflow-hidden rounded-2xl p-3 text-xs font-bold transition-all duration-300 flex items-center justify-between cursor-pointer border ${
+                      className={`w-full text-left relative overflow-hidden rounded-xl sm:rounded-2xl py-2 px-3 text-xs font-bold transition-all duration-300 flex items-center justify-between cursor-pointer border ${
                         isSelected
                           ? 'bg-purple-950/40 border-purple-500/80 ring-2 ring-purple-500/30 text-white shadow-[0_0_20px_rgba(168,85,247,0.25)]'
                           : 'bg-neutral-800/80 border-neutral-700/80 text-neutral-200 hover:bg-neutral-800 hover:border-neutral-600'
