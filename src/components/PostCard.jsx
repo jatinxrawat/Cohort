@@ -78,24 +78,37 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
 
   const isPostOwner = isActualPostOwner || isOfficialAdmin;
 
+  const isCohortOfficialPost =
+    (post.author?.name || '').toLowerCase() === 'cohort' ||
+    (post.author?.username || '').toLowerCase() === 'cohort' ||
+    post.authorUid === 'cohort_official' ||
+    post.author?.uid === 'cohort_official';
+
   // Real-time resolution of post author profile from Firestore
   const [liveAuthorProfile, setLiveAuthorProfile] = useState(null);
-  const authorUid = post.author?.uid || post.authorUid || post.uid;
+  const targetAuthorUid = isCohortOfficialPost
+    ? 'cohort_official'
+    : (post.author?.uid || post.authorUid || post.uid);
 
   useEffect(() => {
-    if (!authorUid) return;
+    if (!targetAuthorUid) return;
 
-    const unsub = onSnapshot(doc(db, 'users', authorUid), (snap) => {
+    const unsub = onSnapshot(doc(db, 'users', targetAuthorUid), (snap) => {
       if (snap.exists()) {
         setLiveAuthorProfile(snap.data());
       }
     }, (err) => console.error('Error listening to post author profile:', err));
 
     return () => unsub();
-  }, [authorUid]);
+  }, [targetAuthorUid]);
 
-  const authorAvatar = (isActualPostOwner && user?.avatar) || liveAuthorProfile?.avatar || post.author?.avatar;
-  const authorName = (isActualPostOwner && user?.name) || liveAuthorProfile?.name || post.author?.name || 'Student';
+  const authorAvatar = isCohortOfficialPost
+    ? (liveAuthorProfile?.avatar || post.author?.avatar)
+    : ((isActualPostOwner && user?.avatar) || liveAuthorProfile?.avatar || post.author?.avatar);
+
+  const authorName = isCohortOfficialPost
+    ? 'Cohort'
+    : ((isActualPostOwner && user?.name) || liveAuthorProfile?.name || post.author?.name || 'Student');
 
   const handleSaveInlineEdit = async () => {
     if (!editPostContent.trim()) return;
@@ -630,12 +643,7 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
 
   const topLevelComments = comments.filter(c => !c.parentId);
 
-  const isCohortOfficialPost =
-    (authorName || '').toLowerCase() === 'cohort' ||
-    (post.author?.name || '').toLowerCase() === 'cohort' ||
-    (post.author?.username || '').toLowerCase() === 'cohort' ||
-    post.authorUid === 'cohort_official' ||
-    post.author?.uid === 'cohort_official';
+
 
   return (
     <Card
@@ -804,11 +812,11 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
       )}
 
       {post.imageUrl && (
-        <div className="mb-xl rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40">
+        <div className="mb-xl rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800/80 bg-neutral-950/20 dark:bg-neutral-950/60 flex items-center justify-center">
           <img
             src={post.imageUrl}
             alt="Post attachment"
-            className="w-full h-auto object-cover max-h-96 hover:scale-[1.01] transition-transform duration-300"
+            className="w-full h-auto max-h-[700px] object-contain rounded-2xl transition-transform duration-300 hover:scale-[1.005]"
           />
         </div>
       )}

@@ -89,11 +89,11 @@ export default function SavedPosts() {
                   </p>
 
                   {post.imageUrl && (
-                    <div className="mb-lg rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40">
+                    <div className="mb-lg rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-950/40 flex items-center justify-center">
                       <img
                         src={post.imageUrl}
                         alt="Post attachment"
-                        className="w-full h-auto object-cover max-h-96"
+                        className="w-full h-auto max-h-[700px] object-contain rounded-2xl"
                       />
                     </div>
                   )}

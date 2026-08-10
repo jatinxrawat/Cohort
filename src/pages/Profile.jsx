@@ -722,6 +722,10 @@ export default function Profile() {
   };
 
   const handleSaveOfficialProfile = async () => {
+    if (!isOfficialLoggedIn) {
+      showError('Unauthorized: Only official account administrators can edit this profile.');
+      return;
+    }
     setIsSavingOfficial(true);
     try {
       const updatedBio = officialBioInput.trim();
@@ -972,7 +976,7 @@ export default function Profile() {
               name={profileUser?.name || 'User'}
               className="w-24 h-24 rounded-full border-4 border-white dark:border-neutral-900 shadow-md object-cover"
             />
-            {isOfficialCohortAccount && (
+            {isOfficialCohortAccount && isOfficialLoggedIn && (
               <button
                 type="button"
                 onClick={() => setIsEditOfficialModalOpen(true)}
@@ -1040,14 +1044,16 @@ export default function Profile() {
             <div className="flex gap-md flex-wrap items-center">
               {isOfficialCohortAccount ? (
                 <>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="flex items-center gap-xs border-purple-500/40 text-purple-600 dark:text-purple-300 hover:bg-purple-500/10 font-bold"
-                    onClick={() => setIsEditOfficialModalOpen(true)}
-                  >
-                    <Edit className="w-4 h-4 text-purple-500" /> Edit Profile
-                  </Button>
+                  {isOfficialLoggedIn && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex items-center gap-xs border-purple-500/40 text-purple-600 dark:text-purple-300 hover:bg-purple-500/10 font-bold"
+                      onClick={() => setIsEditOfficialModalOpen(true)}
+                    >
+                      <Edit className="w-4 h-4 text-purple-500" /> Edit Profile
+                    </Button>
+                  )}
 
                   <div className="py-2 px-4 rounded-xl bg-white/5 border border-white/10 text-neutral-300 text-xs font-semibold flex items-center gap-1.5">
                     <Check className="w-4 h-4 text-neutral-400 stroke-[2.5]" />
@@ -1270,11 +1276,11 @@ export default function Profile() {
                               {post.content}
                             </p>
                             {post.imageUrl && (
-                              <div className="mt-md rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40 max-w-md">
+                              <div className="mt-md rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-950/40 flex items-center justify-center">
                                 <img
                                   src={post.imageUrl}
                                   alt="Post attachment"
-                                  className="w-full h-auto object-cover max-h-60"
+                                  className="w-full h-auto max-h-[700px] object-contain rounded-2xl"
                                 />
                               </div>
                             )}
@@ -2103,7 +2109,7 @@ export default function Profile() {
       )}
 
       {/* Modal to Edit Cohort Official Account */}
-      {isEditOfficialModalOpen && (
+      {isEditOfficialModalOpen && isOfficialLoggedIn && (
         <Modal
           isOpen={isEditOfficialModalOpen}
           onClose={() => setIsEditOfficialModalOpen(false)}
