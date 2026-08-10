@@ -48,7 +48,6 @@ export const PublicOnlyRoute = ({ children }) => {
 
   return (
     <>
-      <SEO noindex={true} />
       {children}
     </>
   );

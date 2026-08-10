@@ -7,6 +7,18 @@
     <changefreq>daily</changefreq>
   </url>
 
+  <!-- Authentication Pages -->
+  <url>
+    <loc>https://cohortnow.online/login</loc>
+    <priority>0.9</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://cohortnow.online/signup</loc>
+    <priority>0.9</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
   <!-- Info Pages -->
   
   <url>
