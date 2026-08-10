@@ -249,11 +249,11 @@ export default function Carousel({
   const dragProps = loop
     ? {}
     : {
-        dragConstraints: {
-          left: -trackItemOffset * Math.max(itemsForRender.length - 1, 0),
-          right: 0
-        }
-      };
+      dragConstraints: {
+        left: -trackItemOffset * Math.max(itemsForRender.length - 1, 0),
+        right: 0
+      }
+    };
 
   const activeIndex =
     items.length === 0 ? 0 : loop ? (position - 1 + items.length) % items.length : Math.min(position, items.length - 1);
