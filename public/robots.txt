@@ -8,10 +8,10 @@ Allow: /help
 Allow: /privacy
 Allow: /terms
 Allow: /colleges/
+Allow: /login
+Allow: /signup
 
 # Disallow crawling of authentication and private dashboard spaces
-Disallow: /login
-Disallow: /signup
 Disallow: /forgot-password
 Disallow: /home
 Disallow: /anonymous
