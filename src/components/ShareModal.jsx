@@ -293,49 +293,6 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
       case 'whatsapp':
         window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
         break;
-      case 'whatsapp-status': {
-        showSuccess('Opening WhatsApp Status share...');
-        const mediaUrl = post?.image || post?.imageUrl || post?.mediaUrl || post?.photo || post?.media || post?.coverImage;
-        const formattedStatusText = `${shareTitle}\n"${shareText}"\n\n👇 View post on Cohort:\n${shareUrl}`;
-
-        // 1. Mobile Web Share API with image file if available
-        if (navigator.canShare && mediaUrl) {
-          try {
-            const resp = await fetch(mediaUrl);
-            const blob = await resp.blob();
-            const file = new File([blob], 'cohort_post.jpg', { type: blob.type || 'image/jpeg' });
-
-            if (navigator.canShare({ files: [file] })) {
-              await navigator.share({
-                title: shareTitle,
-                text: formattedStatusText,
-                files: [file]
-              });
-              break;
-            }
-          } catch (err) {
-            console.warn('Native status image share failed, falling back:', err);
-          }
-        }
-
-        // 2. Native Web Share API text fallback
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              title: shareTitle,
-              text: formattedStatusText,
-              url: shareUrl
-            });
-            break;
-          } catch (err) {
-            console.warn('Native share error:', err);
-          }
-        }
-
-        // 3. WhatsApp protocol fallback
-        window.location.href = `whatsapp://send?text=${encodeURIComponent(formattedStatusText)}`;
-        break;
-      }
       case 'instagram':
         navigator.clipboard.writeText(shareUrl);
         showSuccess('Link copied! Opening Instagram...');
@@ -539,26 +496,6 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
                 </div>
                 <span className="text-[10px] font-bold text-neutral-500 dark:text-zinc-400 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
                   WhatsApp
-                </span>
-              </button>
-
-              {/* WhatsApp Status (Mobile Devices Only) */}
-              <button
-                onClick={() => handleSocialShare('whatsapp-status')}
-                className="flex sm:hidden flex-col items-center gap-1.5 flex-shrink-0 group cursor-pointer"
-              >
-                <div className="w-12 h-12 rounded-full bg-neutral-100 dark:bg-zinc-800 text-neutral-800 dark:text-zinc-200 flex items-center justify-center border border-neutral-200 dark:border-zinc-700/80 group-hover:bg-neutral-200 dark:group-hover:bg-zinc-700 group-hover:text-neutral-900 dark:group-hover:text-white group-hover:scale-105 transition-all shadow-xs relative">
-                  <div className="relative flex items-center justify-center">
-                    <svg className="w-6 h-6 text-emerald-500 fill-none stroke-current stroke-[2.2]" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="9" strokeDasharray="3 2" />
-                    </svg>
-                    <svg className="w-3.5 h-3.5 fill-current text-neutral-800 dark:text-white absolute" viewBox="0 0 24 24">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.447-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.572-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
-                    </svg>
-                  </div>
-                </div>
-                <span className="text-[10px] font-bold text-neutral-500 dark:text-zinc-400 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
-                  WA Status
                 </span>
               </button>
 
