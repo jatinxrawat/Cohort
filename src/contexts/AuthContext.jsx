@@ -161,7 +161,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     const unsub = onSnapshot(collection(db, 'messages'), (snapshot) => {
-      let totalUnread = 0;
+      const threads = [];
 
       snapshot.forEach(d => {
         const data = d.data();
@@ -170,17 +170,45 @@ export const AuthProvider = ({ children }) => {
                               data.createdBy === user.uid;
 
         if (isParticipant && data.hiddenFor?.[user.uid] !== true) {
-          const msgs = data.messages || [];
-          const unreadMsgsInThread = msgs.filter(m => {
-            if (!m) return false;
-            const isFromOther = m.senderUid ? m.senderUid !== user.uid : m.senderName !== (user?.name || user?.email?.split('@')[0]);
-            const isRead = Array.isArray(m.readBy) && m.readBy.includes(user.uid);
-            const isDeleted = Array.isArray(m.deletedFor) && m.deletedFor.includes(user.uid);
-            return isFromOther && !isRead && !isDeleted;
-          }).length;
-
-          totalUnread += unreadMsgsInThread;
+          threads.push({
+            id: d.id,
+            ...data
+          });
         }
+      });
+
+      // Deduplicate conversation threads for the same user pair (matching Messages.jsx logic)
+      const uniqueThreadsMap = new Map();
+      threads.forEach(t => {
+        const otherUid = (t.participants || []).find(p => p !== user.uid) || t.recipientUid;
+        const key = otherUid || t.name || t.id;
+        if (!uniqueThreadsMap.has(key)) {
+          uniqueThreadsMap.set(key, t);
+        } else {
+          const prev = uniqueThreadsMap.get(key);
+          const tMsgCount = t.messages?.length || 0;
+          const prevMsgCount = prev.messages?.length || 0;
+          if (tMsgCount > prevMsgCount) {
+            uniqueThreadsMap.set(key, t);
+          }
+        }
+      });
+
+      let totalUnread = 0;
+      uniqueThreadsMap.forEach(t => {
+        const msgs = t.messages || [];
+        const unreadMsgsInThread = msgs.filter(m => {
+          if (!m) return false;
+          const senderId = m.senderUid || m.sender?.uid || m.uid || m.authorUid;
+          const isFromOther = senderId
+            ? senderId !== user.uid
+            : (m.senderName && m.senderName !== user?.name);
+          const isRead = Array.isArray(m.readBy) && m.readBy.includes(user.uid);
+          const isDeleted = Array.isArray(m.deletedFor) && m.deletedFor.includes(user.uid);
+          return isFromOther && !isRead && !isDeleted;
+        }).length;
+
+        totalUnread += unreadMsgsInThread;
       });
 
       setUnreadCount(totalUnread);

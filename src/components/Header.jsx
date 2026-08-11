@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon, Sparkles, Users, Bookmark, Settings as SettingsIcon, BookOpen } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon, Sparkles, Users, Bookmark, Settings as SettingsIcon, BookOpen, Send, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/Button';
@@ -10,10 +10,16 @@ import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 
 export const Header = () => {
+  const location = useLocation();
+  const isProfilePage = location.pathname.startsWith('/profile');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated, logout, user, hasUnreadMessages, unreadCount } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [unreadNotifs, setUnreadNotifs] = useState(0);
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -120,7 +126,7 @@ export const Header = () => {
                 aria-label="Messages"
                 title="Messages"
               >
-                <MessageSquare className="w-5 h-5" />
+                <Send className="w-6 h-6 rotate-12 stroke-[2.2]" />
                 {unreadCount > 0 && (
                   <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 bg-sky-500 text-white font-extrabold text-[9px] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-950 animate-pulse shadow-sm">
                     {unreadCount > 99 ? '99+' : unreadCount}
@@ -169,23 +175,25 @@ export const Header = () => {
             </div>
           )}
 
-          {/* Mobile Menu Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 text-neutral-700 dark:text-neutral-300 hover:text-sky-500 dark:hover:text-sky-400 bg-neutral-100/80 dark:bg-neutral-900/80 hover:bg-neutral-200/60 dark:hover:bg-neutral-800/80 border border-neutral-200/60 dark:border-neutral-800/80 rounded-full transition-all duration-300 cursor-pointer shadow-xs active:scale-90 flex items-center justify-center ml-1"
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? (
-              <X className="w-5 h-5 transition-transform duration-300 rotate-90" />
-            ) : (
-              <Menu className="w-5 h-5 transition-transform duration-300" />
-            )}
-          </button>
+          {/* Mobile Menu Toggle Button - only shown on Profile page */}
+          {isProfilePage && (
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 text-neutral-700 dark:text-neutral-300 hover:text-sky-500 dark:hover:text-sky-400 bg-neutral-100/80 dark:bg-neutral-900/80 hover:bg-neutral-200/60 dark:hover:bg-neutral-800/80 border border-neutral-200/60 dark:border-neutral-800/80 rounded-full transition-all duration-300 cursor-pointer shadow-xs active:scale-90 flex items-center justify-center ml-1"
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? (
+                <X className="w-5 h-5 transition-transform duration-300 rotate-90" />
+              ) : (
+                <Menu className="w-5 h-5 transition-transform duration-300" />
+              )}
+            </button>
+          )}
         </div>
 
         {/* Translucent Glass Mobile Dropdown Overlay */}
-        {isMenuOpen && (
+        {isProfilePage && isMenuOpen && (
           <div className="absolute top-full left-0 right-0 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl border-b border-neutral-200/80 dark:border-neutral-800/80 shadow-2xl md:hidden animate-in fade-in slide-in-from-top-3 duration-200 rounded-b-3xl">
             <div className="p-4 space-y-1.5">
               {isAuthenticated ? (
@@ -207,14 +215,12 @@ export const Header = () => {
                     <span>Saved Posts</span>
                   </Link>
                   <Link
-                    to="/profile"
+                    to="/marketplace"
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center gap-3 p-3 text-neutral-700 dark:text-neutral-200 hover:bg-emerald-500/10 hover:text-emerald-500 dark:hover:text-emerald-400 rounded-2xl transition-all font-medium text-sm"
                   >
-                    <div className="w-6 h-6 bg-gradient-to-r from-sky-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-xs">
-                      {user?.name?.charAt(0) || 'U'}
-                    </div>
-                    <span>My Profile</span>
+                    <ShoppingBag className="w-5 h-5 text-emerald-500" />
+                    <span>Marketplace</span>
                   </Link>
                   <Link
                     to="/settings"

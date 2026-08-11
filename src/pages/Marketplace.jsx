@@ -235,43 +235,43 @@ export default function Marketplace() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-md mb-lg">
         <div>
-          <h1 className="text-3xl font-heading font-bold flex items-center gap-sm">
+          <h1 className="text-3xl font-heading font-extrabold tracking-tight flex items-center gap-sm text-neutral-900 dark:text-white">
             Campus Marketplace
-            <Tag className="w-6 h-6 text-primary-500" />
+            <Tag className="w-5 h-5 text-neutral-400 dark:text-neutral-500 flex-shrink-0" />
           </h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-xs">
+          <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mt-xs leading-relaxed">
             Buy and sell textbooks, devices, cycles, and room gear directly with fellow students.
           </p>
         </div>
 
-        <Button
-          variant="primary"
-          size="md"
+        <button
+          type="button"
           onClick={() => setIsSellOpen(true)}
-          className="self-start md:self-auto flex items-center gap-sm shadow-md"
+          className="self-start md:self-auto px-5 py-2.5 rounded-2xl bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-extrabold text-sm shadow-[0_0_18px_rgba(14,165,233,0.3)] hover:shadow-[0_0_24px_rgba(14,165,233,0.45)] active:scale-95 transition-all duration-300 flex items-center gap-2 cursor-pointer border border-sky-400/30 tracking-wide"
         >
-          <Plus className="w-5 h-5" /> Sell an Item
-        </Button>
+          <Plus className="w-5 h-5 stroke-[2.5]" />
+          <span>Sell an Item</span>
+        </button>
       </div>
 
       {/* Safety Notice */}
-      <div className="mb-lg p-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl flex items-center gap-md text-xs text-amber-800 dark:text-amber-300">
-        <ShieldAlert className="w-5 h-5 flex-shrink-0 text-amber-500" />
+      <div className="mb-md flex items-center gap-1.5 text-[11px] text-neutral-500 dark:text-neutral-400">
+        <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0 text-neutral-400 dark:text-neutral-500" />
         <span>
-          <strong>Campus Safety Tip:</strong> Always meet buyers/sellers in public campus spots like libraries or food courts. Pay on inspection.
+          <strong className="font-semibold text-neutral-700 dark:text-neutral-300">Safety Tip:</strong> Meet in public campus spots (library/food court). Pay on inspection.
         </span>
       </div>
 
       {/* Search & Category Filter Bar */}
       <div className="flex flex-col md:flex-row gap-md mb-xl">
         <div className="relative flex-1">
-          <Search className="absolute left-lg top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 dark:text-neutral-500" />
           <input
             type="text"
             placeholder="Search textbook name, cycle, study desk, laptop..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="input-base pl-3xl py-md text-sm"
+            className="w-full bg-white/90 dark:bg-neutral-900/90 border border-neutral-200/80 dark:border-neutral-800 focus:border-sky-500/50 focus:ring-2 focus:ring-sky-500/20 rounded-2xl pl-10 pr-4 py-2.5 text-sm outline-none text-neutral-900 dark:text-white transition-all shadow-xs placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
           />
         </div>
 
@@ -280,10 +280,10 @@ export default function Marketplace() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-lg py-md rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer ${
                 selectedCategory === cat
-                  ? 'bg-primary-500 text-white shadow-sm'
-                  : 'bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800'
+                  ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white font-extrabold shadow-[0_0_12px_rgba(14,165,233,0.3)] scale-[1.02] border border-sky-400/30'
+                  : 'bg-white/80 dark:bg-neutral-900/80 border border-neutral-200/80 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:border-sky-500/30 hover:text-sky-500 dark:hover:text-sky-400'
               }`}
             >
               {cat}
@@ -296,7 +296,7 @@ export default function Marketplace() {
       {loading ? (
         <div className="grid md:grid-cols-3 gap-lg">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-64 skeleton rounded-2xl" />
+            <div key={i} className="h-64 skeleton rounded-3xl" />
           ))}
         </div>
       ) : filteredItems.length > 0 ? (
@@ -304,37 +304,37 @@ export default function Marketplace() {
           {filteredItems.map(item => {
             const userIsOwner = isOwner(item);
             return (
-              <Card key={item.id} className="overflow-hidden p-0 border-neutral-100 dark:border-neutral-800 flex flex-col group hover:shadow-lg transition-all duration-200 relative">
+              <div key={item.id} className="group border border-neutral-200/80 dark:border-neutral-800/80 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl rounded-3xl overflow-hidden shadow-xs hover:shadow-[0_12px_35px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_12px_35px_rgba(0,0,0,0.6)] hover:border-sky-500/40 transition-all duration-300 flex flex-col relative">
                 {/* Product Visual Banner or Photo */}
-                <div className="h-48 relative overflow-hidden bg-neutral-900">
+                <div className="h-52 relative overflow-hidden bg-neutral-950/80 flex items-center justify-center">
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
                       alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <div className={`w-full h-full bg-gradient-to-r ${item.gradient || 'from-primary-500 to-blue-600'} p-lg flex flex-col justify-between`}>
+                    <div className={`w-full h-full bg-gradient-to-br ${item.gradient || 'from-sky-600 via-blue-700 to-indigo-800'} p-lg flex flex-col justify-between`}>
                       <div className="text-white mt-auto">
-                        <span className="text-xs opacity-90">Listed price</span>
-                        <p className="text-2xl font-bold font-heading">₹{item.price}</p>
+                        <span className="text-[11px] font-semibold opacity-90 tracking-wide uppercase">Listed price</span>
+                        <p className="text-3xl font-black font-heading tracking-tight">₹{item.price}</p>
                       </div>
                     </div>
                   )}
 
                   {/* Category Badges Overlay */}
-                  <div className="absolute top-3 left-3 right-3 flex justify-between items-start pointer-events-none">
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-black/50 backdrop-blur-md text-white px-md py-xs rounded-full border border-white/10">
+                  <div className="absolute top-3 left-3 right-3 flex justify-between items-start pointer-events-none z-10">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-full border border-white/10 shadow-sm">
                       {item.category}
                     </span>
-                    <span className="text-[10px] font-semibold bg-black/50 backdrop-blur-md text-white px-md py-xs rounded-full border border-white/10">
+                    <span className="text-[10px] font-bold bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-full border border-white/10 shadow-sm">
                       {item.condition}
                     </span>
                   </div>
 
                   {/* Price Tag overlay for image items */}
                   {item.imageUrl && (
-                    <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md px-md py-xs rounded-lg text-white font-mono font-bold text-lg shadow-sm border border-white/10">
+                    <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-md px-3.5 py-1 rounded-xl text-sky-400 font-mono font-black text-lg shadow-md border border-sky-500/30">
                       ₹{item.price}
                     </div>
                   )}
@@ -344,14 +344,14 @@ export default function Marketplace() {
                     <div className="absolute top-3 right-3 flex items-center gap-xs z-10">
                       <button
                         onClick={(e) => { e.stopPropagation(); setEditingItem(item); }}
-                        className="p-2 bg-black/60 hover:bg-primary-500 text-white rounded-full backdrop-blur-md transition-all shadow-md"
+                        className="p-2 bg-black/75 hover:bg-sky-500 text-white rounded-full backdrop-blur-md transition-all shadow-md cursor-pointer"
                         title="Edit Listing"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); setDeletingItem(item); }}
-                        className="p-2 bg-black/60 hover:bg-rose-500 text-white rounded-full backdrop-blur-md transition-all shadow-md"
+                        className="p-2 bg-black/75 hover:bg-rose-500 text-white rounded-full backdrop-blur-md transition-all shadow-md cursor-pointer"
                         title="Delete Listing"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -361,73 +361,80 @@ export default function Marketplace() {
                 </div>
 
                 {/* Card Body */}
-                <div className="p-lg flex-1 flex flex-col justify-between">
+                <div className="p-5 flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="font-bold text-base text-neutral-900 dark:text-white group-hover:text-primary-500 transition-colors line-clamp-1">
+                    <h3 className="font-extrabold text-base text-neutral-900 dark:text-white group-hover:text-sky-400 transition-colors line-clamp-1">
                       {item.name}
                     </h3>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-xs mb-md">
-                      Used • {item.age} • listed by {userIsOwner ? 'You' : item.seller}
+                    <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mt-1 mb-3">
+                      Used • {item.age} • listed by <strong className="text-neutral-700 dark:text-neutral-200 font-semibold">{userIsOwner ? 'You' : item.seller}</strong>
                     </p>
-                    <p className="text-xs text-neutral-600 dark:text-neutral-300 line-clamp-2 leading-relaxed mb-lg">
+                    <p className="text-xs text-neutral-600 dark:text-neutral-300 line-clamp-2 leading-relaxed mb-4">
                       {item.desc}
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between pt-md border-t border-neutral-100 dark:border-neutral-800">
-                    <span className="text-lg font-bold text-neutral-900 dark:text-white font-mono">₹{item.price}</span>
-                    <div className="flex items-center gap-xs">
+                  <div className="flex items-center justify-between pt-3 border-t border-neutral-100 dark:border-neutral-800/80">
+                    <span className="text-xl font-black text-neutral-900 dark:text-white font-mono">₹{item.price}</span>
+                    <div className="flex items-center gap-2">
                       {userIsOwner ? (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className="flex items-center gap-xs text-xs"
+                        <button
+                          type="button"
+                          className="px-3.5 py-2 rounded-xl bg-neutral-100 dark:bg-neutral-800/90 hover:bg-neutral-200 dark:hover:bg-neutral-700/90 text-neutral-800 dark:text-neutral-200 font-bold text-xs border border-neutral-200/80 dark:border-neutral-700/80 transition-all flex items-center gap-1.5 cursor-pointer"
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate('/messages');
                           }}
                         >
-                          <MessageCircleCode className="w-3.5 h-3.5 text-primary-500" /> My DMs
-                        </Button>
+                          <MessageCircleCode className="w-3.5 h-3.5 text-neutral-400" />
+                          <span>My DMs</span>
+                        </button>
                       ) : (
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          className="flex items-center gap-xs text-xs"
+                        <button
+                          type="button"
+                          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs shadow-[0_0_12px_rgba(14,165,233,0.3)] active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer border border-sky-400/30"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleContactSeller(item.seller, item.name, item.sellerUid);
                           }}
                         >
-                          <MessageCircleCode className="w-3.5 h-3.5" /> DM Seller
-                        </Button>
+                          <MessageCircleCode className="w-3.5 h-3.5" />
+                          <span>DM Seller</span>
+                        </button>
                       )}
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="flex items-center gap-xs text-xs"
+                      <button
+                        type="button"
+                        className="px-3 py-2 rounded-xl bg-neutral-100 dark:bg-neutral-800/90 hover:bg-neutral-200 dark:hover:bg-neutral-700/90 text-neutral-800 dark:text-neutral-200 font-bold text-xs border border-neutral-200/80 dark:border-neutral-700/80 transition-all flex items-center gap-1 cursor-pointer"
                         onClick={() => setSelectedItem(item)}
                       >
-                        Details <ArrowRight className="w-3.5 h-3.5" />
-                      </Button>
+                        <span>Details</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-neutral-400" />
+                      </button>
                     </div>
                   </div>
                 </div>
-              </Card>
+              </div>
             );
           })}
         </div>
       ) : (
-        <Card className="text-center py-5xl">
-          <ShoppingBag className="w-12 h-12 text-neutral-300 dark:text-neutral-700 mx-auto mb-md" />
-          <h3 className="font-bold text-lg mb-xs">No items listed yet</h3>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-lg">
+        <div className="border border-neutral-200/80 dark:border-neutral-800/80 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl rounded-3xl p-10 text-center shadow-lg">
+          <div className="w-14 h-14 rounded-2xl bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-200/80 dark:border-neutral-700/80 text-neutral-400 dark:text-neutral-400 flex items-center justify-center mx-auto mb-4">
+            <ShoppingBag className="w-7 h-7" />
+          </div>
+          <h3 className="font-heading font-extrabold text-xl text-neutral-900 dark:text-white mb-2">No items listed yet</h3>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-6 max-w-sm mx-auto leading-relaxed">
             Be the first student to list a textbook, cycle, or room essential!
           </p>
-          <Button variant="primary" size="sm" onClick={() => setIsSellOpen(true)}>
-            Sell an Item Now
-          </Button>
-        </Card>
+          <button
+            type="button"
+            onClick={() => setIsSellOpen(true)}
+            className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-extrabold text-sm shadow-[0_0_18px_rgba(14,165,233,0.3)] hover:shadow-[0_0_24px_rgba(14,165,233,0.45)] active:scale-95 transition-all duration-300 inline-flex items-center gap-2 cursor-pointer border border-sky-400/30 tracking-wide"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Sell an Item Now</span>
+          </button>
+        </div>
       )}
 
       {/* Item Detail Modal */}
@@ -664,9 +671,13 @@ export default function Marketplace() {
             <Button variant="secondary" className="flex-1" onClick={() => setIsSellOpen(false)}>
               Cancel
             </Button>
-            <Button variant="primary" type="submit" className="flex-1" disabled={imageUploading}>
+            <button
+              type="submit"
+              disabled={imageUploading}
+              className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold text-sm shadow-[0_0_15px_rgba(14,165,233,0.3)] active:scale-95 transition-all cursor-pointer border border-sky-400/30 disabled:opacity-50"
+            >
               Publish Listing
-            </Button>
+            </button>
           </div>
         </form>
       </Modal>
@@ -807,9 +818,13 @@ export default function Marketplace() {
               <Button variant="secondary" className="flex-1" onClick={() => setEditingItem(null)}>
                 Cancel
               </Button>
-              <Button variant="primary" type="submit" className="flex-1" disabled={imageUploading}>
+              <button
+                type="submit"
+                disabled={imageUploading}
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold text-sm shadow-[0_0_15px_rgba(14,165,233,0.3)] active:scale-95 transition-all cursor-pointer border border-sky-400/30 disabled:opacity-50"
+              >
                 Save Changes
-              </Button>
+              </button>
             </div>
           </form>
         </Modal>
