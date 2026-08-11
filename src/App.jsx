@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
@@ -36,6 +36,22 @@ const NotFound = lazy(() => import('@/pages/NotFound'));
 import { SplashScreen as CapacitorSplashScreen } from '@capacitor/splash-screen';
 import { SplashScreen } from '@/components/SplashScreen';
 import { Capacitor } from '@capacitor/core';
+
+// Track page views on route change using Google Analytics (GA4)
+function AnalyticsTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Only send analytics page views in production to prevent local development pollution
+    if (import.meta.env.PROD && typeof window.gtag === 'function') {
+      window.gtag('config', 'G-P06KWK4X10', {
+        page_path: location.pathname + location.search,
+      });
+    }
+  }, [location]);
+
+  return null;
+}
 
 function App() {
   const isNative = Capacitor.isNativePlatform();
@@ -102,6 +118,7 @@ function App() {
             )}
           </AnimatePresence>
           <BrowserRouter>
+            <AnalyticsTracker />
             <Layout>
               <Suspense fallback={null}>
                 <Routes>
