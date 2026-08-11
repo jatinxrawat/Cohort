@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -117,6 +117,19 @@ export default function Uncut() {
   // Newsletter state
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+
+  // Auto scroll to form if link contains #submit-story-form or ?submit=true
+  useEffect(() => {
+    if (window.location.hash === '#submit-story-form' || window.location.search.includes('submit=true')) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('submit-story-form');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   // Handle claps
   const handleClap = (id, e) => {
@@ -344,18 +357,8 @@ export default function Uncut() {
         </div>
 
         {/* --- INTERACTIVE STORY WRITING CORNER --- */}
-        <section className="pt-12 w-full">
-          <BorderGlow
-            borderRadius={32}
-            backgroundColor={isDark ? '#0f0e16' : '#fffdfa'}
-            glowColor="325 80 60"
-            glowRadius={50}
-            glowIntensity={1.1}
-            coneSpread={30}
-            animated={true}
-            colors={['#FF2A85', '#963BFF']}
-            className="w-full"
-          >
+        <section id="submit-story-form" className="pt-12 w-full">
+          <div className="w-full rounded-[32px] bg-white dark:bg-[#0f0e16] border border-neutral-200 dark:border-neutral-800/80 shadow-xl overflow-hidden">
             <div className="p-6 sm:p-10 text-left relative overflow-hidden space-y-6">
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="space-y-1.5">
@@ -547,7 +550,7 @@ export default function Uncut() {
                 )}
               </AnimatePresence>
             </div>
-          </BorderGlow>
+          </div>
         </section>
 
         {/* --- NEWSLETTER SUBSCRIPTION --- */}
