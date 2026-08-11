@@ -292,27 +292,6 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
 
     switch (platform) {
       case 'whatsapp': {
-        // If native mobile file share is supported and post has a real photo, share the image file directly
-        if (navigator.canShare && postMediaUrl) {
-          try {
-            const resp = await fetch(postMediaUrl);
-            const blob = await resp.blob();
-            const file = new File([blob], 'cohort_post.jpg', { type: blob.type || 'image/jpeg' });
-
-            if (navigator.canShare({ files: [file] })) {
-              await navigator.share({
-                title: shareTitle,
-                text: `${shareTitle}: ${shareText}\n${shareUrl}`,
-                files: [file]
-              });
-              break;
-            }
-          } catch (err) {
-            console.warn('Native image share fallback:', err);
-          }
-        }
-
-        // WhatsApp Web / App share fallback with clean URL (prevents text dump below card)
         window.open(`https://api.whatsapp.com/send?text=${cleanShareUrlMsg}`, '_blank');
         break;
       }
