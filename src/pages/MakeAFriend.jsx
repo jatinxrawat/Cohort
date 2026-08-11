@@ -368,19 +368,39 @@ export default function MakeAFriend() {
       }
 
       const usersSnap = await getDocs(collection(db, 'users'));
-      const list = [];
+      const rawList = [];
       usersSnap.forEach((d) => {
         const uid = d.id;
         if (likedUids.includes(uid)) {
           const data = d.data();
-          list.push({
+          rawList.push({
             uid,
             name: data.name || 'Anonymous Student',
-            avatar: data.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(uid)}`
+            avatar: data.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(uid)}`,
+            email: data.email,
+            updatedAt: data.updatedAt || data.joinedDate || 0
           });
         }
       });
-      setLikedProfiles(list);
+
+      // Deduplicate liked profiles by normalized name or email to avoid duplicate user accounts
+      const uniqueMap = new Map();
+      rawList.forEach((item) => {
+        const normName = item.name.toLowerCase().trim();
+        const firstName = normName.split(' ')[0];
+        const key = item.email ? item.email.toLowerCase() : firstName;
+
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, item);
+        } else {
+          const existing = uniqueMap.get(key);
+          if (item.name.length > existing.name.length || item.updatedAt > existing.updatedAt) {
+            uniqueMap.set(key, item);
+          }
+        }
+      });
+
+      setLikedProfiles(Array.from(uniqueMap.values()));
     } catch (err) {
       console.error('Error fetching liked profiles:', err);
     }
@@ -939,7 +959,7 @@ export default function MakeAFriend() {
                 </div>
                 
                 {likedProfiles.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-3 overflow-y-auto pr-1 flex-1 max-h-[400px] items-start scrollbar-thin">
+                  <div className="flex flex-col gap-2.5 overflow-y-auto pr-1 flex-1 justify-start items-stretch scrollbar-thin">
                     {likedProfiles.map((lp) => (
                       <div
                         key={lp.uid}
