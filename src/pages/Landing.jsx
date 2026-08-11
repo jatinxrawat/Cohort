@@ -20,8 +20,6 @@ import {
   CheckCircle2,
   ArrowRight,
   Search,
-  ChevronUp,
-  ChevronDown,
   X,
   Layers,
   BarChart3,
@@ -32,7 +30,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogoIcon, LogoText } from '@/components/Logo';
-import OptionWheel from '@/components/OptionWheel';
+import Carousel from '@/components/Carousel';
 import Topography from '@/components/Topography';
 import Aurora from '@/components/Aurora';
 import { COLLEGES } from '@/utils/colleges';
@@ -43,34 +41,51 @@ import BorderGlow from '@/components/BorderGlow';
 // --- MOCK UNIVERSITY DATA ---
 // Static COLLEGES data imported from utils/colleges
 
-const FEATURE_ITEMS = [
-  'Anonymous Confessions',
-  'Campus Community',
-  'Campus Marketplace',
-  'Make a Friend',
-  'Vanish Gossip Mode',
-  'Student Vibe Match',
-  'Campus Polls & News',
-  'Verified Peer Circles'
-];
+// Measures its container and passes the width down to Carousel so it fills the full card
+function CarouselCard() {
+  const wrapRef = useRef(null);
+  const [cardWidth, setCardWidth] = useState(400);
+
+  useEffect(() => {
+    if (!wrapRef.current) return;
+    const ro = new ResizeObserver(([entry]) => {
+      setCardWidth(entry.contentRect.width);
+    });
+    ro.observe(wrapRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div ref={wrapRef} id="feature-carousel-section" style={{ width: '100%', height: '100%', minHeight: 420 }}>
+      <Carousel
+        autoplay={true}
+        autoplayDelay={3000}
+        pauseOnHover={true}
+        loop={true}
+        round={false}
+        baseWidth={cardWidth}
+      />
+    </div>
+  );
+}
+
 
 const VIBE_TAGS = [
-  { label: 'CONFESSION', color: 'bg-rose-500/20 text-rose-300 border-rose-500/40', icon: Flame },
-  { label: 'CRUSH', color: 'bg-pink-500/20 text-pink-300 border-pink-500/40', icon: Heart },
-  { label: 'LOST & FOUND', color: 'bg-amber-500/20 text-amber-300 border-amber-500/40', icon: Sparkles },
-  { label: 'STORY TIME', color: 'bg-purple-500/20 text-purple-300 border-purple-500/40', icon: MessageCircle },
-  { label: 'PSA', color: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40', icon: Zap },
-  { label: 'FIT CHECK', color: 'bg-blue-500/20 text-blue-300 border-blue-500/40', icon: Users },
-  { label: 'DM ME', color: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40', icon: Send },
-  { label: 'EVENTS', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', icon: Calendar },
-  { label: 'CAREER', color: 'bg-violet-500/20 text-violet-300 border-violet-500/40', icon: Briefcase },
-  { label: 'MARKETPLACE', color: 'bg-teal-500/20 text-teal-300 border-teal-500/40', icon: ShoppingBag },
+  { label: 'CONFESSION', icon: Flame },
+  { label: 'CRUSH', icon: Heart },
+  { label: 'LOST & FOUND', icon: Sparkles },
+  { label: 'STORY TIME', icon: MessageCircle },
+  { label: 'PSA', icon: Zap },
+  { label: 'FIT CHECK', icon: Users },
+  { label: 'DM ME', icon: Send },
+  { label: 'EVENTS', icon: Calendar },
+  { label: 'CAREER', icon: Briefcase },
+  { label: 'MARKETPLACE', icon: ShoppingBag },
 ];
 
 export default function Landing() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const optionWheelRef = useRef(null);
 
   // Inject WebSite JSON-LD Structured Data on Homepage mount
   useEffect(() => {
@@ -179,6 +194,13 @@ export default function Landing() {
               <a href="#vibe-hubs" className="text-neutral-200 hover:text-white transition-colors">Vibe Hubs</a>
               <a href="#feature-wheel-section" className="text-neutral-200 hover:text-white transition-colors">Features Wheel</a>
               <a href="#features-deck" className="text-neutral-200 hover:text-white transition-colors">What's Inside</a>
+              <Link to="/uncut" className="text-neutral-200 hover:text-white transition-colors flex items-center gap-1.5 group/nav">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
+                </span>
+                <span className="group-hover/nav:text-pink-400 transition-colors">Cohort Uncut</span>
+              </Link>
             </nav>
 
           {/* Action Button */}
@@ -407,14 +429,15 @@ export default function Landing() {
           glowRadius={50}
           glowIntensity={1.2}
           coneSpread={30}
-          animated={true}
+          animated={false}
+          disableGlow={true}
           colors={['#c084fc', '#f472b6', '#38bdf8']}
           className="h-full"
         >
           <div className="p-6 sm:p-8 flex flex-col justify-between space-y-6 text-left h-full">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold mb-3">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-neutral-400 text-xs font-bold mb-3">
+                <span className="w-2 h-2 rounded-full bg-purple-400" />
                 NEARBY VIBES
               </div>
               <h2 className="text-2xl sm:text-4xl font-display font-black text-white tracking-tight">
@@ -434,9 +457,11 @@ export default function Landing() {
                   <button
                     key={idx}
                     onClick={() => setSelectedVibe(tag.label)}
-                    className={`px-4 py-2 rounded-full border text-xs font-black tracking-wide flex items-center gap-1.5 transition-all cursor-pointer ${
-                      tag.color
-                    } ${isSelected ? 'scale-105 shadow-md ring-2 ring-white/30' : 'hover:scale-105'}`}
+                    className={`px-4 py-2 rounded-full border text-xs font-bold tracking-wide flex items-center gap-1.5 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-purple-500/15 text-purple-300 border-purple-500/40 scale-105'
+                        : 'bg-white/5 text-neutral-400 border-white/10 hover:bg-white/8 hover:text-neutral-200 hover:border-white/20'
+                    }`}
                   >
                     <IconComp className="w-3.5 h-3.5" />
                     <span>{tag.label}</span>
@@ -467,80 +492,9 @@ export default function Landing() {
           </div>
         </BorderGlow>
 
-        {/* RIGHT CARD: 3D FEATURE OPTION WHEEL (Hidden on Mobile) */}
-        <div className="hidden lg:block h-full">
-          <BorderGlow
-            borderRadius={36}
-            backgroundColor="#120F17"
-            glowColor="310 85 75"
-            glowRadius={50}
-            glowIntensity={1.2}
-            coneSpread={30}
-            animated={true}
-            colors={['#f472b6', '#c084fc', '#eab308']}
-            className="h-full"
-          >
-            <div className="p-6 sm:p-8 flex flex-col justify-between space-y-4 text-left min-h-[420px] sm:min-h-[460px] relative overflow-hidden h-full" id="feature-wheel-section">
-              <div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-bold mb-2.5">
-                  ✦ FEATURE WHEEL
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-display font-black text-white tracking-tight">
-                  Explore Cohort Features
-                </h2>
-                <p className="text-xs sm:text-sm text-neutral-400 font-medium mt-0.5">
-                  Use controls or scroll to discover features
-                </p>
-              </div>
-
-              {/* Full Card 3D OptionWheel Container */}
-              <div className="relative h-72 sm:h-80 bg-neutral-950/90 border border-neutral-800 rounded-3xl overflow-hidden shadow-inner flex items-center justify-center p-2">
-                <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-neutral-950 via-neutral-950/80 to-transparent pointer-events-none z-10" />
-                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-neutral-950 via-neutral-950/80 to-transparent pointer-events-none z-10" />
-                
-                {/* Step Controls (Up / Down Arrows) */}
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-2">
-                  <button
-                    type="button"
-                    onClick={() => optionWheelRef.current?.stepPrev()}
-                    className="w-9 h-9 rounded-full bg-neutral-900/90 hover:bg-purple-600 border border-neutral-700 hover:border-purple-400 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-lg active:scale-90"
-                    aria-label="Previous feature"
-                    title="Previous feature"
-                  >
-                    <ChevronUp className="w-5 h-5 stroke-[2.5]" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => optionWheelRef.current?.stepNext()}
-                    className="w-9 h-9 rounded-full bg-neutral-900/90 hover:bg-purple-600 border border-neutral-700 hover:border-purple-400 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-lg active:scale-90"
-                    aria-label="Next feature"
-                    title="Next feature"
-                  >
-                    <ChevronDown className="w-5 h-5 stroke-[2.5]" />
-                  </button>
-                </div>
-
-                <OptionWheel
-                  ref={optionWheelRef}
-                  items={FEATURE_ITEMS}
-                  defaultSelected={0}
-                  textColor="#737373"
-                  activeColor="#c084fc"
-                  side="left"
-                  fontSize={1.75}
-                  spacing={1.65}
-                  curve={1.1}
-                  tilt={9}
-                  blur={0}
-                  fade={0.35}
-                  smoothing={200}
-                  inset={32}
-                  loop={true}
-                  draggable={true}
-                />
-              </div>
-            </div>
-          </BorderGlow>
+        {/* RIGHT CARD: FEATURE CAROUSEL (Hidden on Mobile) */}
+        <div className="hidden lg:block h-full bg-[#120F17] border border-neutral-800 rounded-[36px] overflow-hidden">
+          <CarouselCard />
         </div>
 
       </div>
@@ -603,6 +557,93 @@ export default function Landing() {
           </div>
 
         </div>
+      </div>
+
+      {/* --- COHORT UNCUT PROMOTIONAL SECTION --- */}
+      <div className="relative w-full max-w-[1440px] mx-auto py-2">
+        <BorderGlow
+          borderRadius={36}
+          backgroundColor="#0e0c15"
+          glowColor="325 90 70"
+          glowRadius={60}
+          glowIntensity={1.3}
+          coneSpread={35}
+          animated={true}
+          colors={['#FF2A85', '#963BFF', '#00F0FF']}
+          className="w-full"
+        >
+          <div className="p-8 sm:p-12 lg:p-14 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12 text-left relative overflow-hidden">
+            {/* Background elements */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+
+            {/* Left Content */}
+            <div className="space-y-5 max-w-2xl z-10">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pink-500/10 border border-pink-500/30 backdrop-blur-md text-[10px] font-black tracking-wider uppercase text-pink-400 animate-pulse">
+                <Sparkles className="w-3.5 h-3.5 text-pink-400" />
+                <span>NEW STORY CORNER</span>
+              </div>
+              <h2 className="font-display font-black text-3xl sm:text-5xl tracking-tight text-white leading-tight">
+                Read campus stories on <br />
+                <span className="bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 bg-clip-text text-transparent">Cohort Uncut</span>
+              </h2>
+              <p className="text-neutral-300 text-sm sm:text-base leading-relaxed font-medium">
+                No boring articles or stuffy journals here. Dive into fresh, engaging college stories about love, late-night campus trauma, heartbreak, sacrifice, exam failure, and all the unwritten rules we silently live by.
+              </p>
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <Link
+                  to="/uncut"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-850 border border-neutral-800 hover:border-pink-500/40 text-pink-400 hover:text-pink-300 text-xs font-extrabold shadow-md transition-all hover:scale-[1.02] active:scale-95 cursor-pointer"
+                >
+                  <span>Publish your campus story</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-pink-500 stroke-[2.5]" />
+                </Link>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <span className="px-3.5 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs font-bold text-neutral-400">
+                  #LateNightThoughts
+                </span>
+                <span className="px-3.5 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs font-bold text-neutral-400">
+                  #CampusPsychology
+                </span>
+                <span className="px-3.5 py-1.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs font-bold text-neutral-400">
+                  #DormRoomVibes
+                </span>
+              </div>
+            </div>
+
+            {/* Right Card / Visual Teaser */}
+            <div className="w-full lg:w-96 flex-shrink-0 z-10">
+              <div className="bg-neutral-900/90 backdrop-blur-xl border border-neutral-800/80 rounded-3xl p-6 shadow-2xl text-left hover:border-pink-500/40 transition-all duration-300 relative group overflow-hidden">
+                {/* Glow bar */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 to-purple-500" />
+                
+                <span className="text-[10px] font-bold text-pink-400 tracking-widest uppercase">
+                  Featured Story
+                </span>
+                
+                <h3 className="font-display font-black text-base text-white mt-2 mb-3 leading-snug group-hover:text-pink-400 transition-colors">
+                  College, Love Stories and the Dilemma
+                </h3>
+                
+                <p className="text-xs text-neutral-400 line-clamp-3 mb-4 leading-relaxed">
+                  Why falling in love in college feels like choosing between who you are, who you want to become, and who you want beside you.
+                </p>
+                
+                <div className="flex items-center justify-between text-[11px] text-neutral-500 font-bold border-t border-neutral-800/85 pt-3">
+                  <span>6 min read</span>
+                  <div className="flex items-center gap-1.5 text-pink-400">
+                    <span>Read Article</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+
+                {/* Cover Link to /uncut/college-love */}
+                <Link to="/uncut/college-love" className="absolute inset-0 z-20 cursor-pointer" aria-label="Read full article" />
+              </div>
+            </div>
+          </div>
+        </BorderGlow>
       </div>
 
       {/* --- BOTTOM CALL-TO-ACTION FIZZ PURPLE CARD --- */}

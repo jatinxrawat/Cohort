@@ -53,19 +53,19 @@ export const Sidebar = () => {
             className={`flex items-center gap-md px-md py-md rounded-xl transition-all relative ${
               isActive(path)
                 ? special
-                  ? 'bg-purple-600 text-white font-bold shadow-[0_0_15px_rgba(168,85,247,0.4)]'
+                  ? 'bg-purple-500/20 dark:bg-purple-500/25 text-purple-300 border border-purple-500/40 font-bold shadow-[0_0_15px_rgba(168,85,247,0.25)] backdrop-blur-md'
                   : specialConfession
-                  ? 'bg-rose-600 text-white font-bold shadow-[0_0_15px_rgba(244,63,94,0.4)]'
+                  ? 'bg-rose-500/20 dark:bg-rose-500/25 text-rose-300 border border-rose-500/40 font-bold shadow-[0_0_15px_rgba(244,63,94,0.25)] backdrop-blur-md'
                   : specialFriend
-                  ? 'bg-gradient-to-r from-vandal-pink to-topic-violet text-white font-bold shadow-[0_0_15px_rgba(255,42,133,0.4)]'
-                  : 'bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400 font-semibold'
+                  ? 'bg-gradient-to-r from-pink-500/25 via-rose-500/20 to-purple-500/25 text-pink-300 border border-pink-500/40 font-bold shadow-[0_0_18px_rgba(236,72,153,0.3)] backdrop-blur-md'
+                  : 'bg-primary-500/15 dark:bg-primary-500/20 text-primary-600 dark:text-primary-300 border border-primary-500/30 font-semibold backdrop-blur-md'
                 : special
-                ? 'text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/40 font-semibold'
+                ? 'text-purple-300 dark:text-purple-300 hover:bg-purple-500/10 font-semibold'
                 : specialConfession
-                ? 'text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-semibold'
+                ? 'text-rose-400 dark:text-rose-400 hover:bg-rose-500/10 font-semibold'
                 : specialFriend
-                ? 'text-vandal-pink hover:bg-vandal-pink/5 dark:hover:bg-vandal-pink/10 font-bold'
-                : 'text-neutral-700 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                ? 'text-pink-400 dark:text-pink-300 hover:bg-pink-500/10 font-bold'
+                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
             } ${!isExpanded ? 'justify-center' : ''}`}
           >
             <div className="relative flex items-center justify-center flex-shrink-0">

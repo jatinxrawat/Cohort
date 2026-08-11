@@ -23,6 +23,7 @@ export default function Navbar() {
     { label: 'Communities', href: '#communities' },
     { label: 'Marketplace', href: '#marketplace' },
     { label: 'About', href: '#about' },
+    { label: 'Cohort Uncut', href: '/uncut', isPage: true },
   ];
 
   return (
@@ -41,16 +42,25 @@ export default function Navbar() {
           {/* Logo */}
           <Logo isLanding={false} iconSize="w-8 h-8" textSize="text-lg" />
 
-          {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="px-4 py-2 rounded-xl text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-200"
-              >
-                {link.label}
-              </a>
+              link.isPage ? (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  className="px-4 py-2 rounded-xl text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-200"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="px-4 py-2 rounded-xl text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-200"
+                >
+                  {link.label}
+                </a>
+              )
             ))}
           </nav>
 
@@ -115,14 +125,25 @@ export default function Navbar() {
             >
               <nav className="flex flex-col gap-1">
                 {navLinks.map((link) => (
-                  <a
-                    key={link.label}
-                    href={link.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="px-4 py-3 rounded-xl text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all"
-                  >
-                    {link.label}
-                  </a>
+                  link.isPage ? (
+                    <Link
+                      key={link.label}
+                      to={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="px-4 py-3 rounded-xl text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+                    >
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="px-4 py-3 rounded-xl text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+                    >
+                      {link.label}
+                    </a>
+                  )
                 ))}
               </nav>
 

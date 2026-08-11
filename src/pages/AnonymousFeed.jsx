@@ -112,6 +112,8 @@ export default function AnonymousFeed({ defaultTab }) {
   useEffect(() => {
     if (location.pathname === '/confessions') {
       setActiveTab('confessions');
+      setCardSelectedImage(null);
+      setModalSelectedImage(null);
     } else if (location.pathname === '/anonymous') {
       setActiveTab('feed');
     } else if (defaultTab) {
@@ -190,7 +192,7 @@ export default function AnonymousFeed({ defaultTab }) {
           authorUid: user?.uid || 'anonymous_guest',
           gender: user?.gender || 'Prefer not to say',
           text: cardInputText.trim(),
-          imageUrl: cardSelectedImage || null,
+          imageUrl: null,
           createdAt: now,
           expiresAt: expiresAt,
           likes: 0,
@@ -577,7 +579,7 @@ export default function AnonymousFeed({ defaultTab }) {
           authorUid: user?.uid || 'anonymous_guest',
           gender: user?.gender || 'Prefer not to say',
           text: inputText.trim(),
-          imageUrl: modalSelectedImage || null,
+          imageUrl: null,
           createdAt: now,
           expiresAt: expiresAt,
           likes: 0,
@@ -773,11 +775,17 @@ export default function AnonymousFeed({ defaultTab }) {
         {/* Inline Create Post Card */}
         <div className="border border-neutral-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl p-4 sm:p-5 shadow-lg shadow-black/5 dark:shadow-black/30 transition-all">
           <div className="flex gap-3 sm:gap-4">
-            {/* Batman / Anonymous Avatar Badge */}
-            <div className="w-11 h-11 rounded-full bg-neutral-900 dark:bg-zinc-800 border border-neutral-700/60 dark:border-zinc-700/60 flex items-center justify-center flex-shrink-0 text-zinc-200 shadow-md">
-              <svg className="w-6 h-6 fill-current text-zinc-300 dark:text-zinc-200" viewBox="0 0 512 512">
-                <path d="M256,152c-15.1,0-28.7,6.8-38,17.4C203.4,158.8,187,152,168,152c-48.6,0-88,39.4-88,88c0,11.3,2.2,22.1,6.1,32c-31-8.2-56.1-30.8-66.1-60c-2.6-7.6-13.4-6.4-14,1.6C1,273.7,35,324.5,88.7,338.8C108.6,344.1,130,341,148,332c14.2-7.1,26.4-18,36-31.2c8,11.6,18.9,20.8,32,26.4c12.2,5.2,25.8,5.2,38,0c13.1-5.6,24-14.8,32-26.4c9.6,13.2,21.8,24.1,36,31.2c18,9,39.4,12.1,59.3,6.8C477,324.5,511,273.7,506,213.6c-0.6-8-11.4-9.2-14-1.6c-10,29.2-35.1,51.8-66.1,60c3.9-9.9,6.1-20.7,6.1-32c0-48.6-39.4-88-88-88c-19,0-35.4,6.8-50,17.4C284.7,158.8,271.1,152,256,152z"/>
-              </svg>
+            {/* Anonymous / Confession Avatar Badge */}
+            <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 shadow-md transition-all ${
+              activeTab === 'confessions'
+                ? 'bg-rose-500/10 border border-rose-500/30 text-rose-400'
+                : 'bg-sky-500/10 border border-sky-500/30 text-sky-400'
+            }`}>
+              {activeTab === 'confessions' ? (
+                <Flame className="w-5 h-5 text-rose-400 fill-rose-500/20" />
+              ) : (
+                <EyeOff className="w-5 h-5 text-sky-400" />
+              )}
             </div>
 
             {/* Seamless Input Textarea */}
@@ -795,7 +803,7 @@ export default function AnonymousFeed({ defaultTab }) {
               />
 
               {/* Photo Attachment Preview */}
-              {cardSelectedImage && (
+              {cardSelectedImage && activeTab !== 'confessions' && (
                 <div className="relative mt-3 rounded-2xl overflow-hidden border border-neutral-200 dark:border-zinc-800 max-h-56 shadow-md group">
                   <img src={cardSelectedImage} alt="Attachment preview" className="w-full max-h-56 object-cover" />
                   <button
@@ -815,31 +823,35 @@ export default function AnonymousFeed({ defaultTab }) {
           <div className="border-t border-neutral-100 dark:border-zinc-800/80 pt-3 mt-3 flex items-center justify-between">
             {/* Left Action Tools */}
             <div className="flex items-center gap-2 relative">
-              <input
-                type="file"
-                ref={cardFileInputRef}
-                accept="image/*"
-                onChange={handleCardImageSelect}
-                className="hidden"
-              />
+              {activeTab !== 'confessions' && (
+                <>
+                  <input
+                    type="file"
+                    ref={cardFileInputRef}
+                    accept="image/*"
+                    onChange={handleCardImageSelect}
+                    className="hidden"
+                  />
 
-              {/* Cool Add Photos Toggle Button */}
-              <button
-                type="button"
-                onClick={() => cardFileInputRef.current?.click()}
-                className={`px-3.5 py-1.5 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 text-xs font-semibold ${
-                  cardSelectedImage
-                    ? 'bg-sky-500/15 text-sky-500 dark:text-sky-400 border border-sky-500/30 shadow-[0_0_12px_rgba(56,189,248,0.2)] scale-[1.02]'
-                    : 'bg-neutral-100 dark:bg-zinc-800/80 text-neutral-600 dark:text-zinc-300 hover:bg-sky-500/10 hover:text-sky-500 dark:hover:text-sky-400 border border-transparent hover:border-sky-500/20'
-                }`}
-                title="Add Photos"
-              >
-                <ImageIcon className={`w-4 h-4 transition-transform duration-300 ${cardSelectedImage ? 'scale-110 text-sky-500' : ''}`} />
-                <span>Add Photos</span>
-                {cardSelectedImage && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
-                )}
-              </button>
+                  {/* Cool Add Photos Toggle Button */}
+                  <button
+                    type="button"
+                    onClick={() => cardFileInputRef.current?.click()}
+                    className={`px-3.5 py-1.5 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 text-xs font-semibold ${
+                      cardSelectedImage
+                        ? 'bg-sky-500/15 text-sky-500 dark:text-sky-400 border border-sky-500/30 shadow-[0_0_12px_rgba(56,189,248,0.2)] scale-[1.02]'
+                        : 'bg-neutral-100 dark:bg-zinc-800/80 text-neutral-600 dark:text-zinc-300 hover:bg-sky-500/10 hover:text-sky-500 dark:hover:text-sky-400 border border-transparent hover:border-sky-500/20'
+                    }`}
+                    title="Add Photos"
+                  >
+                    <ImageIcon className={`w-4 h-4 transition-transform duration-300 ${cardSelectedImage ? 'scale-110 text-sky-500' : ''}`} />
+                    <span>Add Photos</span>
+                    {cardSelectedImage && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+                    )}
+                  </button>
+                </>
+              )}
             </div>
 
             <button
@@ -967,11 +979,11 @@ export default function AnonymousFeed({ defaultTab }) {
 
                     {/* Attached Photo Image Display */}
                     {post.imageUrl && (
-                      <div className="my-sm rounded-2xl overflow-hidden border border-neutral-200 dark:border-zinc-800/80 max-h-96 w-full bg-zinc-950/40 flex items-center justify-center">
+                      <div className="my-sm rounded-2xl overflow-hidden border border-neutral-200 dark:border-zinc-800/80 w-full bg-zinc-950/40 flex items-center justify-center">
                         <img
                           src={post.imageUrl}
                           alt="Post attachment"
-                          className="w-full max-h-96 object-cover hover:scale-[1.01] transition-transform duration-300 cursor-pointer"
+                          className="w-full h-auto max-h-[700px] object-contain rounded-2xl hover:scale-[1.005] transition-transform duration-300 cursor-pointer"
                           onClick={() => setExpandedImage(post.imageUrl)}
                         />
                       </div>
@@ -1266,7 +1278,7 @@ export default function AnonymousFeed({ defaultTab }) {
                     key={confession.id}
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="relative rounded-3xl p-xl bg-gradient-to-br from-white via-violet-50/40 to-white dark:from-zinc-900 dark:via-violet-950/30 dark:to-zinc-900 border border-violet-200 dark:border-violet-500/30 shadow-md dark:shadow-[0_0_25px_rgba(139,92,246,0.15)] hover:border-violet-400/50 hover:shadow-lg dark:hover:shadow-[0_0_35px_rgba(139,92,246,0.25)] space-y-lg transition-all duration-300"
+                    className="relative rounded-3xl p-xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-rose-200 dark:border-rose-500/30 shadow-md dark:shadow-[0_4px_20px_rgba(244,63,94,0.08)] hover:border-rose-400/50 space-y-lg transition-all duration-300"
                   >
                     {/* Header Badges */}
                     <div className="flex items-center justify-between text-xs">
@@ -1283,9 +1295,9 @@ export default function AnonymousFeed({ defaultTab }) {
                       </div>
 
                       <div className="flex items-center gap-sm">
-                        <span className="text-[11px] font-mono font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-xs bg-amber-500/10 px-md py-xs rounded-full border border-amber-500/20">
-                          <Clock className="w-3.5 h-3.5" />
-                          {getRemainingTimeStr(confession.expiresAtMs)}
+                        <span className="text-xs font-mono font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1.5 bg-amber-500/10 dark:bg-[#18140e] px-3 py-1 rounded-full border border-amber-500/30 dark:border-amber-600/40 shadow-xs dark:shadow-inner">
+                          <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
+                          <span>{getRemainingTimeStr(confession.expiresAtMs)}</span>
                         </span>
 
                         {isConfessionOwner && (
@@ -1320,7 +1332,7 @@ export default function AnonymousFeed({ defaultTab }) {
 
                     {/* Centered Confession Text */}
                     <div className="py-md text-center">
-                      <p className="text-lg md:text-xl font-heading font-semibold text-neutral-900 dark:text-zinc-100 leading-relaxed px-sm whitespace-pre-wrap break-words">
+                      <p className="text-lg md:text-xl font-heading font-medium text-neutral-800 dark:text-zinc-200 leading-relaxed px-sm whitespace-pre-wrap break-words">
                         "{confession.text}"
                       </p>
                       {confession.imageUrl && (
@@ -1346,26 +1358,7 @@ export default function AnonymousFeed({ defaultTab }) {
                           <span>{confession.comments || 0}</span>
                         </button>
 
-                        {!isConfessionOwner && (
-                          <button
-                            onClick={() => {
-                              if (isResharedByMe) {
-                                handleUnreshare(confession);
-                              } else {
-                                handleOpenReshare(confession);
-                              }
-                            }}
-                            className={`flex items-center gap-xs px-md py-xs rounded-full transition-all cursor-pointer ${
-                              isResharedByMe
-                                ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold'
-                                : 'text-neutral-500 dark:text-zinc-400 hover:text-emerald-500 hover:bg-neutral-100 dark:hover:bg-zinc-800/60'
-                            }`}
-                            title={isResharedByMe ? "Click to unreshare" : "Reshare confession"}
-                          >
-                            <Repeat className="w-4 h-4" />
-                            <span>{reshareCount}</span>
-                          </button>
-                        )}
+
                       </div>
 
                       <button
@@ -1592,8 +1585,9 @@ export default function AnonymousFeed({ defaultTab }) {
       >
         <form onSubmit={handleCreateSubmit} className="space-y-lg">
           {activeTab === 'confessions' && (
-            <p className="text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/20 p-xs rounded-lg font-medium text-center flex items-center justify-center gap-xs">
-              <Clock className="w-3.5 h-3.5" /> This confession disappears automatically after 24 hours.
+            <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-500/10 dark:bg-[#18140e] border border-amber-500/30 dark:border-amber-600/40 p-2.5 rounded-xl font-mono font-medium text-center flex items-center justify-center gap-2 shadow-xs dark:shadow-inner">
+              <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+              <span>This confession disappears automatically after 24 hours.</span>
             </p>
           )}
 
@@ -1611,38 +1605,42 @@ export default function AnonymousFeed({ defaultTab }) {
             />
 
             {/* Photo Attachment inside Modal */}
-            <div className="flex items-center justify-between pt-xs">
-              <input
-                type="file"
-                ref={modalFileInputRef}
-                accept="image/*"
-                onChange={handleModalImageSelect}
-                className="hidden"
-              />
-              <button
-                type="button"
-                onClick={() => modalFileInputRef.current?.click()}
-                className="flex items-center gap-2 text-xs font-semibold text-zinc-400 hover:text-zinc-200 p-2 hover:bg-zinc-800 rounded-xl transition-colors cursor-pointer"
-              >
-                <ImageIcon className="w-4 h-4 text-violet-400" />
-                <span>{modalSelectedImage ? 'Change Photo' : 'Attach Photo'}</span>
-              </button>
+            {activeTab !== 'confessions' && postType !== 'confession' && (
+              <>
+                <div className="flex items-center justify-between pt-xs">
+                  <input
+                    type="file"
+                    ref={modalFileInputRef}
+                    accept="image/*"
+                    onChange={handleModalImageSelect}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => modalFileInputRef.current?.click()}
+                    className="flex items-center gap-2 text-xs font-semibold text-zinc-400 hover:text-zinc-200 p-2 hover:bg-zinc-800 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <ImageIcon className="w-4 h-4 text-violet-400" />
+                    <span>{modalSelectedImage ? 'Change Photo' : 'Attach Photo'}</span>
+                  </button>
 
-              {modalSelectedImage && (
-                <button
-                  type="button"
-                  onClick={() => setModalSelectedImage(null)}
-                  className="text-xs text-rose-400 hover:text-rose-300 cursor-pointer font-medium"
-                >
-                  Remove Photo
-                </button>
-              )}
-            </div>
+                  {modalSelectedImage && (
+                    <button
+                      type="button"
+                      onClick={() => setModalSelectedImage(null)}
+                      className="text-xs text-rose-400 hover:text-rose-300 cursor-pointer font-medium"
+                    >
+                      Remove Photo
+                    </button>
+                  )}
+                </div>
 
-            {modalSelectedImage && (
-              <div className="relative mt-2 rounded-xl overflow-hidden border border-zinc-800 max-h-48">
-                <img src={modalSelectedImage} alt="Modal attachment preview" className="w-full h-48 object-cover" />
-              </div>
+                {modalSelectedImage && (
+                  <div className="relative mt-2 rounded-xl overflow-hidden border border-zinc-800 max-h-48">
+                    <img src={modalSelectedImage} alt="Modal attachment preview" className="w-full h-48 object-cover" />
+                  </div>
+                )}
+              </>
             )}
           </div>
 

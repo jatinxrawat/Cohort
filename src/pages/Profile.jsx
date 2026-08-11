@@ -405,10 +405,22 @@ export default function Profile() {
       try {
         let activeProfile = null;
 
+        // First: check if the target UID itself points to a cohort-named account
+        let targetData = null;
+        if (targetUid && targetUid !== 'cohort_official') {
+          const preCheck = await getDoc(doc(db, 'users', targetUid));
+          if (preCheck.exists()) {
+            targetData = preCheck.data();
+          }
+        }
+
         const isCohortTarget =
           targetUid === 'cohort_official' ||
           (targetName || '').toLowerCase() === 'cohort' ||
-          (isOwnProfile && isOfficialLoggedIn);
+          (isOwnProfile && isOfficialLoggedIn) ||
+          (targetData?.username || '').toLowerCase() === 'cohort' ||
+          (targetData?.name || '').toLowerCase() === 'cohort' ||
+          targetData?.isOfficial === true;
 
         if (isCohortTarget) {
           const cohortDocRef = doc(db, 'users', 'cohort_official');
@@ -710,6 +722,10 @@ export default function Profile() {
   };
 
   const handleSaveOfficialProfile = async () => {
+    if (!isOfficialLoggedIn) {
+      showError('Unauthorized: Only official account administrators can edit this profile.');
+      return;
+    }
     setIsSavingOfficial(true);
     try {
       const updatedBio = officialBioInput.trim();
@@ -928,24 +944,22 @@ export default function Profile() {
         <div className="relative mb-lg">
           {isOfficialCohortAccount ? (
             <div className="h-44 bg-neutral-950 rounded-2xl shadow-2xl relative overflow-hidden border border-purple-500/30 flex items-center justify-center">
-              {/* Radial Glowing Background Accents */}
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/30 via-pink-900/15 to-transparent pointer-events-none" />
-              <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute -left-10 -top-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+              {/* Subtle vignette */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_40%,_rgba(0,0,0,0.6))] pointer-events-none" />
 
               {/* Large Stylized "Cohort." Logo Banner */}
               <div className="relative z-10 select-none flex items-baseline tracking-tighter">
                 <span className="text-4xl sm:text-5xl md:text-6xl font-heading font-black text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.2)]">
                   Cohort
                 </span>
-                <span className="text-4xl sm:text-5xl md:text-6xl font-heading font-black text-pink-500 drop-shadow-[0_0_20px_rgba(236,72,153,0.9)] animate-pulse">
+                <span className="text-4xl sm:text-5xl md:text-6xl font-heading font-black text-neutral-400">
                   .
                 </span>
               </div>
 
               {/* Official Account Pill Badge */}
-              <div className="absolute top-4 right-4 text-xs font-black bg-neutral-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-purple-200 border border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.3)] flex items-center gap-1.5 z-20">
-                <ShieldCheck className="w-4 h-4 text-purple-400 fill-purple-500/30 stroke-[2.5]" />
+              <div className="absolute top-4 right-4 text-xs font-semibold bg-neutral-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-neutral-300 border border-neutral-700 flex items-center gap-1.5 z-20">
+                <ShieldCheck className="w-4 h-4 text-neutral-400 stroke-[2]" />
                 <span>Official Platform Account</span>
               </div>
             </div>
@@ -963,7 +977,7 @@ export default function Profile() {
               name={profileUser?.name || 'User'}
               className="w-24 h-24 rounded-full border-4 border-white dark:border-neutral-900 shadow-md object-cover"
             />
-            {isOfficialCohortAccount && (
+            {isOfficialCohortAccount && isOfficialLoggedIn && (
               <button
                 type="button"
                 onClick={() => setIsEditOfficialModalOpen(true)}
@@ -985,17 +999,15 @@ export default function Profile() {
                   <h1 className="text-3xl font-heading font-black text-neutral-900 dark:text-white tracking-tight">
                     Cohort
                   </h1>
-                  <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-purple-600/30 via-fuchsia-600/30 to-pink-600/30 border border-purple-500/60 text-purple-300 dark:text-purple-200 text-xs font-black shadow-[0_0_15px_rgba(168,85,247,0.4)] backdrop-blur-md">
-                    <ShieldCheck className="w-4 h-4 text-purple-400 fill-purple-500/40 stroke-[2.5]" />
+                  <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/5 border border-white/10 text-neutral-300 text-xs font-bold">
+                    <ShieldCheck className="w-3.5 h-3.5 text-neutral-400 stroke-[2]" />
                     <span className="tracking-wider">OFFICIAL TEAM</span>
                   </div>
                 </div>
 
-                <p className="mt-xs text-sm font-black font-mono flex items-center gap-xs">
-                  <AtSign className="w-4 h-4 text-purple-400 stroke-[2.5]" />
-                  <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-sky-400 bg-clip-text text-transparent tracking-wider">
-                    cohort
-                  </span>
+                <p className="mt-xs text-sm font-bold font-mono flex items-center gap-xs text-neutral-400">
+                  <AtSign className="w-4 h-4 stroke-[2]" />
+                  <span className="tracking-wider">cohort</span>
                 </p>
 
                 {renderFormattedBio(
@@ -1033,22 +1045,24 @@ export default function Profile() {
             <div className="flex gap-md flex-wrap items-center">
               {isOfficialCohortAccount ? (
                 <>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="flex items-center gap-xs border-purple-500/40 text-purple-600 dark:text-purple-300 hover:bg-purple-500/10 font-bold"
-                    onClick={() => setIsEditOfficialModalOpen(true)}
-                  >
-                    <Edit className="w-4 h-4 text-purple-500" /> Edit Profile
-                  </Button>
+                  {isOfficialLoggedIn && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex items-center gap-xs border-purple-500/40 text-purple-600 dark:text-purple-300 hover:bg-purple-500/10 font-bold"
+                      onClick={() => setIsEditOfficialModalOpen(true)}
+                    >
+                      <Edit className="w-4 h-4 text-purple-500" /> Edit Profile
+                    </Button>
+                  )}
 
-                  <div className="py-2 px-4 rounded-xl bg-gradient-to-r from-purple-600/20 to-sky-600/20 border border-sky-400/40 text-sky-600 dark:text-sky-300 text-xs font-extrabold flex items-center gap-1.5 shadow-md">
-                    <Check className="w-4 h-4 text-sky-400 stroke-[3]" />
+                  <div className="py-2 px-4 rounded-xl bg-white/5 border border-white/10 text-neutral-300 text-xs font-semibold flex items-center gap-1.5">
+                    <Check className="w-4 h-4 text-neutral-400 stroke-[2.5]" />
                     <span>Following Official Account</span>
                   </div>
 
                   <Button
-                    variant="primary"
+                    variant="secondary"
                     size="sm"
                     className="flex items-center gap-xs"
                     onClick={handleSendMessage}
@@ -1133,7 +1147,7 @@ export default function Profile() {
           {/* Stats Row */}
           <div className="grid grid-cols-3 gap-lg pt-lg border-t border-neutral-100 dark:border-neutral-800">
             <div className="text-center py-1">
-              <p className="text-2xl font-bold text-primary-500">{userPosts.length}</p>
+              <p className="text-2xl font-bold text-white">{userPosts.length}</p>
               <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-xs font-semibold uppercase tracking-wider">Posts</p>
             </div>
 
@@ -1141,7 +1155,7 @@ export default function Profile() {
               onClick={() => { setActiveTab('followers'); setConnectionsModalOpen(true); }}
               className="text-center py-1 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800/80 transition-all cursor-pointer group"
             >
-              <p className="text-2xl font-bold text-primary-500 group-hover:scale-105 transition-transform">
+              <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform">
                 {profileUser?.followers?.length || 0}
               </p>
               <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-xs font-semibold uppercase tracking-wider">
@@ -1153,7 +1167,7 @@ export default function Profile() {
               onClick={() => { setActiveTab('following'); setConnectionsModalOpen(true); }}
               className="text-center py-1 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800/80 transition-all cursor-pointer group"
             >
-              <p className="text-2xl font-bold text-primary-500 group-hover:scale-105 transition-transform">
+              <p className="text-2xl font-bold text-white group-hover:scale-105 transition-transform">
                 {profileUser?.following?.length || 0}
               </p>
               <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-xs font-semibold uppercase tracking-wider">
@@ -1263,11 +1277,11 @@ export default function Profile() {
                               {post.content}
                             </p>
                             {post.imageUrl && (
-                              <div className="mt-md rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40 max-w-md">
+                              <div className="mt-md rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-950/40 flex items-center justify-center">
                                 <img
                                   src={post.imageUrl}
                                   alt="Post attachment"
-                                  className="w-full h-auto object-cover max-h-60"
+                                  className="w-full h-auto max-h-[700px] object-contain rounded-2xl"
                                 />
                               </div>
                             )}
@@ -2096,7 +2110,7 @@ export default function Profile() {
       )}
 
       {/* Modal to Edit Cohort Official Account */}
-      {isEditOfficialModalOpen && (
+      {isEditOfficialModalOpen && isOfficialLoggedIn && (
         <Modal
           isOpen={isEditOfficialModalOpen}
           onClose={() => setIsEditOfficialModalOpen(false)}

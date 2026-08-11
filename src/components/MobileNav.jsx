@@ -8,7 +8,8 @@ import {
   Bookmark,
   ShoppingBag,
   Flame,
-  Sparkles
+  Sparkles,
+  BookOpen
 } from 'lucide-react';
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
@@ -19,7 +20,7 @@ const mainNavItems = [
   { path: '/anonymous', icon: EyeOff, label: 'Anonymous', special: true },
   { path: '/confessions', icon: Flame, label: 'Confessions', specialConfession: true },
   { path: '/make-friend', icon: Sparkles, label: 'Make Friend', specialFriend: true },
-  { path: '/messages', icon: MessageSquare, label: 'Messages', badge: true },
+  { path: '/uncut', icon: BookOpen, label: 'Uncut', specialUncut: true },
   { path: '/profile', icon: User, label: 'Profile', isProfile: true },
 ];
 
@@ -46,7 +47,7 @@ export const MobileNav = () => {
         <div className="flex items-center pointer-events-auto w-full">
           {/* Merged Single Floating Glass Bar */}
           <div className="w-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200/80 dark:border-neutral-800/80 rounded-full px-2 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6)] flex items-center justify-between transition-all">
-            {mainNavItems.map(({ path, icon: Icon, label, special, specialConfession, specialFriend, badge, isProfile }) => {
+            {mainNavItems.map(({ path, icon: Icon, label, special, specialConfession, specialFriend, specialUncut, badge, isProfile }) => {
               const active = isActive(path);
               return (
                 <Link
@@ -55,19 +56,23 @@ export const MobileNav = () => {
                   className={`flex-1 flex flex-col items-center justify-center gap-[2px] py-1 px-1 rounded-full transition-all duration-200 relative min-w-0 ${
                     active
                       ? special
-                        ? 'text-purple-600 dark:text-purple-400 font-bold scale-105'
+                        ? 'text-purple-400 dark:text-purple-300 font-bold scale-105'
                         : specialConfession
-                        ? 'text-rose-600 dark:text-rose-400 font-bold scale-105'
+                        ? 'text-rose-400 dark:text-rose-300 font-bold scale-105'
                         : specialFriend
                         ? 'text-vandal-pink font-bold scale-105'
+                        : specialUncut
+                        ? 'text-pink-400 dark:text-pink-300 font-bold scale-105'
                         : 'text-primary-600 dark:text-primary-400 font-bold scale-105'
                       : special
-                      ? 'text-purple-400/80 dark:text-purple-400/80 hover:text-purple-500'
+                      ? 'text-purple-300 dark:text-purple-300 hover:text-purple-200'
                       : specialConfession
-                      ? 'text-rose-400/80 dark:text-rose-400/80 hover:text-rose-500'
+                      ? 'text-rose-400 dark:text-rose-300 hover:text-rose-200'
                       : specialFriend
                       ? 'text-vandal-pink/80 hover:text-vandal-pink font-semibold'
-                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                      : specialUncut
+                      ? 'text-pink-400 dark:text-pink-300 hover:text-pink-200 font-semibold'
+                      : 'text-neutral-500 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white'
                   }`}
                   aria-label={label}
                 >
@@ -81,6 +86,8 @@ export const MobileNav = () => {
                           ? 'bg-rose-500'
                           : specialFriend
                           ? 'bg-vandal-pink'
+                          : specialUncut
+                          ? 'bg-pink-500'
                           : 'bg-primary-500'
                       }`}
                     />
