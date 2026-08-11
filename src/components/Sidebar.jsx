@@ -40,8 +40,8 @@ export const Sidebar = () => {
     <aside
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
-      className={`hidden lg:flex flex-col fixed left-0 top-16 h-[calc(100vh-64px)] bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-none z-40 transition-all duration-300 ease-in-out ${
-        isExpanded ? 'w-64 shadow-2xl ring-1 ring-black/5 dark:ring-white/5' : 'w-20'
+      className={`hidden lg:flex flex-col fixed left-0 top-16 h-[calc(100vh-64px)] bg-white dark:bg-black border-none z-40 transition-all duration-300 ease-in-out ${
+        isExpanded ? 'w-64 shadow-2xl' : 'w-20'
       }`}
     >
       <nav className="flex-1 p-md space-y-xs overflow-y-auto overflow-x-hidden">
@@ -95,7 +95,7 @@ export const Sidebar = () => {
       </nav>
 
       {/* Bottom Actions */}
-      <div className="border-t border-neutral-100 dark:border-neutral-800/80 p-md space-y-xs">
+      <div className="p-md space-y-xs">
         <Link
           to="/profile"
           title={!isExpanded ? 'Profile' : undefined}

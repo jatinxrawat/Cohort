@@ -68,7 +68,7 @@ export const Layout = ({ children }) => {
   } else if (isAuthPage) {
     wrapperClass = "h-screen w-screen overflow-hidden bg-black font-sans w-full";
   } else {
-    wrapperClass = `flex flex-col bg-white dark:bg-neutral-900 ${
+    wrapperClass = `flex flex-col bg-white dark:bg-black ${
       isChatRoute
         ? 'fixed inset-0 w-full h-full h-[100dvh] max-h-[100dvh] max-w-[100vw] z-10 overflow-hidden'
         : 'min-h-screen'
@@ -97,10 +97,13 @@ export const Layout = ({ children }) => {
           {children}
         </main>
       ) : (
-        <div className={`flex flex-1 max-w-full overflow-hidden ${isChatRoute ? 'overflow-hidden min-h-0 h-full w-full' : 'w-full'}`}>
+        <div className={`flex flex-1 max-w-full ${isChatRoute ? 'overflow-hidden min-h-0 h-full w-full' : 'w-full'}`}>
           {isAuthenticated && <Sidebar />}
           
-          <main className={`flex-1 min-w-0 w-full overflow-x-hidden ${isChatRoute ? 'overflow-hidden h-full w-full' : 'min-h-screen'} ${isAuthenticated ? 'lg:ml-20' : ''} ${isChatRoute ? 'pb-0' : 'pb-24 lg:pb-0'}`}>
+          <main
+            className={`flex-1 min-w-0 w-full ${isChatRoute ? 'overflow-hidden h-full w-full' : 'min-h-screen'} ${isAuthenticated ? 'lg:ml-20' : ''} ${isChatRoute ? 'pb-0' : 'pb-24 lg:pb-0'}`}
+            style={!isChatRoute ? { overflowX: 'clip' } : undefined}
+          >
             {children}
           </main>
         </div>

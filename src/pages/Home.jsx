@@ -11,6 +11,7 @@ import { useNotification } from '@/contexts/NotificationContext';
 import { UserAvatar } from '@/components/UserAvatar';
 import { uploadImageToCloudinary } from '@/utils/cloudinary';
 import SEO from '@/components/SEO';
+import HomeRightPanel from '@/components/HomeRightPanel';
 
 const FAKE_NAMES = [
   'priya sharma',
@@ -320,106 +321,113 @@ export default function Home() {
   };
 
   return (
-    <div className="section-container">
+    <div className="section-container !py-6 !px-4 xl:!px-6">
       <SEO title="Campus Feed" />
-      <div className="max-w-2xl mx-auto">
-        {/* Create Post */}
-        <div className="mb-lg p-4 sm:p-5 rounded-3xl bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200/80 dark:border-neutral-800/80 shadow-lg shadow-black/5 dark:shadow-black/30 transition-all">
-          <div className="flex gap-3 sm:gap-4">
-            <UserAvatar
-              src={user?.avatar}
-              name={user?.name || 'User'}
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shadow-sm ring-2 ring-neutral-200/50 dark:ring-neutral-700/50 flex-shrink-0"
-            />
-            <div className="flex-1 min-w-0">
-              <textarea
-                value={postContent}
-                onChange={(e) => setPostContent(e.target.value)}
-                placeholder="What's happening in your campus?"
-                className="w-full bg-transparent text-sm sm:text-base text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 resize-none outline-none border-none focus:ring-0 leading-relaxed p-1"
-                rows={3}
+      {/* Desktop: 2-column layout (feed + right panel) | Mobile: single column */}
+      <div className="flex gap-6 items-start w-full max-w-[1100px] ml-auto mr-2 xl:mr-4">
+        {/* Main Feed Column */}
+        <div className="flex-1 min-w-0 max-w-2xl">
+          {/* Create Post */}
+          <div className="mb-lg p-4 sm:p-5 rounded-3xl bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200/80 dark:border-neutral-800/80 shadow-lg shadow-black/5 dark:shadow-black/30 transition-all">
+            <div className="flex gap-3 sm:gap-4">
+              <UserAvatar
+                src={user?.avatar}
+                name={user?.name || 'User'}
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shadow-sm ring-2 ring-neutral-200/50 dark:ring-neutral-700/50 flex-shrink-0"
               />
-              {imagePreviewUrl && (
-                <div className="relative mt-3 rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-700 max-h-60 shadow-md group">
-                  <img src={imagePreviewUrl} alt="Preview" className="object-contain max-h-60 w-full" />
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="absolute top-2.5 right-2.5 bg-black/75 hover:bg-rose-600 text-white rounded-full p-1.5 transition-all shadow-lg backdrop-blur-xs cursor-pointer"
-                    title="Remove image"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
+              <div className="flex-1 min-w-0">
+                <textarea
+                  value={postContent}
+                  onChange={(e) => setPostContent(e.target.value)}
+                  placeholder="What's happening in your campus?"
+                  className="w-full bg-transparent text-sm sm:text-base text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 resize-none outline-none border-none focus:ring-0 leading-relaxed p-1"
+                  rows={3}
+                />
+                {imagePreviewUrl && (
+                  <div className="relative mt-3 rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-700 max-h-60 shadow-md group">
+                    <img src={imagePreviewUrl} alt="Preview" className="object-contain max-h-60 w-full" />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-2.5 right-2.5 bg-black/75 hover:bg-rose-600 text-white rounded-full p-1.5 transition-all shadow-lg backdrop-blur-xs cursor-pointer"
+                      title="Remove image"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center justify-between pt-3 mt-3 border-t border-neutral-100 dark:border-neutral-800/80">
-            <div className="flex items-center gap-2">
-              <input
-                type="file"
-                ref={imageInputRef}
-                onChange={handleImageChange}
-                accept="image/*"
-                className="hidden"
-              />
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-neutral-100 dark:border-neutral-800/80">
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  ref={imageInputRef}
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  className={`px-3.5 py-1.5 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 text-xs font-semibold ${
+                    imageFile
+                      ? 'bg-sky-500/15 text-sky-500 dark:text-sky-400 border border-sky-500/30 shadow-[0_0_12px_rgba(56,189,248,0.2)] scale-[1.02]'
+                      : 'bg-neutral-100 dark:bg-neutral-800/80 text-neutral-600 dark:text-neutral-300 hover:bg-sky-500/10 hover:text-sky-500 dark:hover:text-sky-400 border border-transparent hover:border-sky-500/20'
+                  }`}
+                  title="Add Photos"
+                >
+                  <Image className={`w-4 h-4 transition-transform duration-300 ${imageFile ? 'scale-110 text-sky-500' : ''}`} />
+                  <span>Add Photos</span>
+                  {imageFile && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+                  )}
+                </button>
+              </div>
               <button
                 type="button"
-                onClick={() => imageInputRef.current?.click()}
-                className={`px-3.5 py-1.5 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2 text-xs font-semibold ${
-                  imageFile
-                    ? 'bg-sky-500/15 text-sky-500 dark:text-sky-400 border border-sky-500/30 shadow-[0_0_12px_rgba(56,189,248,0.2)] scale-[1.02]'
-                    : 'bg-neutral-100 dark:bg-neutral-800/80 text-neutral-600 dark:text-neutral-300 hover:bg-sky-500/10 hover:text-sky-500 dark:hover:text-sky-400 border border-transparent hover:border-sky-500/20'
-                }`}
-                title="Add Photos"
+                onClick={handleCreatePost}
+                disabled={(!postContent.trim() && !imageFile) || isUploading}
+                className="px-6 py-2 rounded-full bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 text-white font-bold text-sm shadow-md shadow-sky-500/25 hover:shadow-sky-500/40 disabled:opacity-40 disabled:scale-100 disabled:shadow-none transition-all cursor-pointer flex items-center gap-1.5"
               >
-                <Image className={`w-4 h-4 transition-transform duration-300 ${imageFile ? 'scale-110 text-sky-500' : ''}`} />
-                <span>Add Photos</span>
-                {imageFile && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
-                )}
+                <span>{isUploading ? 'Posting...' : 'Post'}</span>
               </button>
             </div>
-            <button
-              type="button"
-              onClick={handleCreatePost}
-              disabled={(!postContent.trim() && !imageFile) || isUploading}
-              className="px-6 py-2 rounded-full bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 text-white font-bold text-sm shadow-md shadow-sky-500/25 hover:shadow-sky-500/40 disabled:opacity-40 disabled:scale-100 disabled:shadow-none transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              <span>{isUploading ? 'Posting...' : 'Post'}</span>
-            </button>
           </div>
+
+          {/* Feed */}
+          {loading ? (
+            <div className="space-y-md">
+              <div className="h-32 skeleton rounded-xl" />
+              <div className="h-32 skeleton rounded-xl" />
+            </div>
+          ) : posts.length > 0 ? (
+            <div>
+              {posts.map(post => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onVote={handleVote}
+                  onRepost={handleRepost}
+                  onSave={handleSave}
+                  isHighlighted={highlightedPostId === post.id || highlightedPostId === post.docId}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card className="text-center py-5xl">
+              <AlertCircle className="w-12 h-12 text-neutral-300 dark:text-neutral-700 mx-auto mb-lg" />
+              <h3 className="font-bold text-lg mb-xs">No posts yet</h3>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                Be the first one to share something with your campus community!
+              </p>
+            </Card>
+          )}
         </div>
 
-        {/* Feed */}
-        {loading ? (
-          <div className="space-y-md">
-            <div className="h-32 skeleton rounded-xl" />
-            <div className="h-32 skeleton rounded-xl" />
-          </div>
-        ) : posts.length > 0 ? (
-          <div>
-            {posts.map(post => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onVote={handleVote}
-                onRepost={handleRepost}
-                onSave={handleSave}
-                isHighlighted={highlightedPostId === post.id || highlightedPostId === post.docId}
-              />
-            ))}
-          </div>
-        ) : (
-          <Card className="text-center py-5xl">
-            <AlertCircle className="w-12 h-12 text-neutral-300 dark:text-neutral-700 mx-auto mb-lg" />
-            <h3 className="font-bold text-lg mb-xs">No posts yet</h3>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              Be the first one to share something with your campus community!
-            </p>
-          </Card>
-        )}
+        {/* Desktop Right Panel — hidden on mobile/tablet */}
+        <HomeRightPanel />
       </div>
     </div>
   );

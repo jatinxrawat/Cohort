@@ -30,6 +30,9 @@ const Terms = lazy(() => import('@/pages/Terms'));
 const Contact = lazy(() => import('@/pages/Contact'));
 const Uncut = lazy(() => import('@/pages/Uncut'));
 const CollegeLove = lazy(() => import('@/pages/uncut/CollegeLove'));
+const CoffeeClub = lazy(() => import('@/pages/uncut/CoffeeClub'));
+const IntrovertGuide = lazy(() => import('@/pages/uncut/IntrovertGuide'));
+const UnwrittenRules = lazy(() => import('@/pages/uncut/UnwrittenRules'));
 const CollegePublic = lazy(() => import('@/pages/CollegePublic'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
@@ -262,6 +265,9 @@ function App() {
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/uncut" element={<Uncut />} />
                   <Route path="/uncut/college-love" element={<CollegeLove />} />
+                  <Route path="/uncut/3am-coffee-club" element={<CoffeeClub />} />
+                  <Route path="/uncut/introvert-guide" element={<IntrovertGuide />} />
+                  <Route path="/uncut/unwritten-rules" element={<UnwrittenRules />} />
 
                   {/* College Pages */}
                   <Route path="/colleges/:collegeId" element={<CollegePublic />} />
