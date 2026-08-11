@@ -58,7 +58,8 @@ export default function CollegeLove() {
   };
 
   const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
+    const shareUrl = "https://cohortnow.online" + window.location.pathname + window.location.search;
+    navigator.clipboard.writeText(shareUrl);
     setShowShareTooltip(true);
     setTimeout(() => setShowShareTooltip(false), 2000);
   };
