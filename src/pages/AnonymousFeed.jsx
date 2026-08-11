@@ -31,6 +31,7 @@ import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
+import ShareModal from '@/components/ShareModal';
 import { formatRelativeTime } from '@/utils/helpers';
 import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, increment, arrayUnion, arrayRemove, getDocs, where } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
@@ -107,6 +108,7 @@ export default function AnonymousFeed({ defaultTab }) {
   const [activeTab, setActiveTab] = useState(getInitialTab);
   const [posts, setPosts] = useState([]);
   const [confessions, setConfessions] = useState([]);
+  const [sharingPost, setSharingPost] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -1035,12 +1037,8 @@ export default function AnonymousFeed({ defaultTab }) {
                         )}
 
                         <button
-                          onClick={() => {
-                            const shareUrl = "https://cohortnow.online" + window.location.pathname + window.location.search;
-                            navigator.clipboard.writeText(shareUrl);
-                            showSuccess('Post link copied!');
-                          }}
-                          className="flex items-center gap-xs px-md py-xs rounded-full text-neutral-500 dark:text-zinc-400 hover:text-violet-600 dark:hover:text-violet-300 hover:bg-neutral-100 dark:hover:bg-zinc-800/60 transition-all"
+                          onClick={() => setSharingPost(post)}
+                          className="flex items-center gap-xs px-md py-xs rounded-full text-neutral-500 dark:text-zinc-400 hover:text-violet-600 dark:hover:text-violet-300 hover:bg-neutral-100 dark:hover:bg-zinc-800/60 transition-all cursor-pointer"
                         >
                           <Share2 className="w-4 h-4" />
                           <span>Share</span>
@@ -1923,6 +1921,15 @@ export default function AnonymousFeed({ defaultTab }) {
           </div>
         </Modal>
       )}
+
+      {/* Instagram-style Share Modal */}
+      <ShareModal
+        isOpen={Boolean(sharingPost)}
+        onClose={() => setSharingPost(null)}
+        post={sharingPost}
+        shareUrl={sharingPost ? `https://cohortnow.online/confession/${sharingPost.id}` : ''}
+        title="Anonymous Confession"
+      />
     </div>
   );
 }

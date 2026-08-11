@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { collection, addDoc, doc, deleteDoc, updateDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 import { PostCard } from '@/components/PostCard';
@@ -32,9 +33,36 @@ const FAKE_NAMES = [
 export default function Home() {
   const { user } = useAuth();
   const { showSuccess, showError } = useNotification();
+  const { postId: paramPostId } = useParams();
+  const [searchParams] = useSearchParams();
+  const targetPostId = paramPostId || searchParams.get('post');
+  
   const [posts, setPosts] = useState([]);
   const [postContent, setPostContent] = useState('');
   const [loading, setLoading] = useState(true);
+  const [highlightedPostId, setHighlightedPostId] = useState(null);
+
+  // Trigger subtle corner highlight (0.7s) and smooth scroll for shared post
+  useEffect(() => {
+    if (targetPostId) {
+      setHighlightedPostId(targetPostId);
+      const timer = setTimeout(() => {
+        setHighlightedPostId(null);
+      }, 700);
+
+      const scrollTimer = setTimeout(() => {
+        const el = document.getElementById(`post-${targetPostId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 150);
+
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(scrollTimer);
+      };
+    }
+  }, [targetPostId]);
 
   // Image Upload States
   const [imageFile, setImageFile] = useState(null);
@@ -379,6 +407,7 @@ export default function Home() {
                 onVote={handleVote}
                 onRepost={handleRepost}
                 onSave={handleSave}
+                isHighlighted={highlightedPostId === post.id || highlightedPostId === post.docId}
               />
             ))}
           </div>

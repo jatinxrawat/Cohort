@@ -11,6 +11,7 @@ import { formatRelativeTime, compressImage, getAvatarUrl } from '@/utils/helpers
 import { UserAvatar } from '@/components/UserAvatar';
 import { uploadImageToCloudinary } from '@/utils/cloudinary';
 import SEO from '@/components/SEO';
+import ShareModal from '@/components/ShareModal';
 import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, query, where, deleteDoc, increment, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 
@@ -838,10 +839,10 @@ export default function Profile() {
     navigate(`/messages?recipientUid=${profileUser.uid}&recipientName=${encodeURIComponent(profileUser.name)}`);
   };
 
+  const [isProfileShareOpen, setIsProfileShareOpen] = useState(false);
+
   const handleShareProfile = () => {
-    const shareUrl = "https://cohortnow.online" + window.location.pathname + window.location.search;
-    navigator.clipboard.writeText(shareUrl);
-    showSuccess('Profile link copied to clipboard!');
+    setIsProfileShareOpen(true);
   };
 
   const achievements = [
@@ -2190,6 +2191,14 @@ export default function Profile() {
           </div>
         </Modal>
       )}
+
+      {/* Instagram-style Share Modal */}
+      <ShareModal
+        isOpen={isProfileShareOpen}
+        onClose={() => setIsProfileShareOpen(false)}
+        shareUrl={window.location.href}
+        title={`Profile: ${profileUser?.name || 'Cohort Student'}`}
+      />
     </div>
   );
 }

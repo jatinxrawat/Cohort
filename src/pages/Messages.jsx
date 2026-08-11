@@ -8,7 +8,7 @@ import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { Input } from '@/components/Input';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, CheckCheck, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Eye, Paperclip, Image, Video, Download, Maximize2 } from 'lucide-react';
+import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, CheckCheck, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Eye, Paperclip, Image, Video, Download, Maximize2, Share2, ExternalLink, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { formatRelativeTime } from '@/utils/helpers';
@@ -2296,11 +2296,66 @@ export default function Messages() {
                                 )}
 
                                 <div className="relative inline-block max-w-full">
-                                  {msg.text && (
-                                    <span className="text-[13.5px] leading-snug break-words font-normal">
-                                      {msg.text}
-                                    </span>
-                                  )}
+                                   {/* Instagram-Style Sleek Compact Shared Post Card */}
+                                   {(msg.isSharedPost || msg.sharedPostData || (msg.text && msg.text.startsWith('Shared post by'))) && (
+                                     <div
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         const sharedId = msg.sharedPostData?.id;
+                                         if (sharedId) {
+                                           window.location.href = `/post/${sharedId}`;
+                                         } else {
+                                           const targetUrl = msg.sharedPostData?.url || (msg.text?.match(/https?:\/\/[^\s]+/)?.[0]);
+                                           if (targetUrl) {
+                                             window.location.href = targetUrl;
+                                           } else {
+                                             window.location.href = '/home';
+                                           }
+                                         }
+                                       }}
+                                       className="w-[230px] sm:w-[260px] p-2.5 rounded-2xl bg-black/25 dark:bg-white/10 border border-white/15 backdrop-blur-md text-left space-y-1.5 shadow-md group cursor-pointer hover:border-purple-400/60 hover:bg-black/35 dark:hover:bg-white/15 transition-all my-1"
+                                     >
+                                       <div className="flex items-center justify-between">
+                                         <div className="flex items-center gap-1 text-[9px] font-black text-purple-400 dark:text-purple-300 uppercase tracking-widest">
+                                           <Share2 className="w-3 h-3" />
+                                           <span>Shared Post</span>
+                                         </div>
+                                         <ExternalLink className="w-3 h-3 text-white/40 group-hover:text-white transition-colors" />
+                                       </div>
+
+                                       {(msg.sharedPostData?.mediaUrl || (msg.mediaUrl && !msg.isDeletedForEveryone)) && (
+                                         <img
+                                           src={msg.sharedPostData?.mediaUrl || msg.mediaUrl}
+                                           alt="Shared post thumbnail"
+                                           className="w-full h-32 sm:h-36 object-cover rounded-xl border border-white/15 shadow-xs my-0.5"
+                                         />
+                                       )}
+
+                                       <div>
+                                         <p className="text-[11.5px] font-bold text-white line-clamp-1 leading-tight">
+                                           {msg.sharedPostData?.title || (msg.text?.split('\n')[0]?.replace(/^Shared post by\s*/i, '') || 'Campus Post')}
+                                         </p>
+                                         <p className="text-[10px] text-white/80 dark:text-neutral-200 line-clamp-2 leading-tight mt-0.5 font-normal">
+                                           {msg.sharedPostData?.content || (msg.text?.split('\n')[1]?.replace(/^"|"$/g, '') || '')}
+                                         </p>
+                                       </div>
+
+                                       <button
+                                         type="button"
+                                         className="w-full mt-1 py-1.5 px-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-[10.5px] shadow-xs transition-all flex items-center justify-center gap-1 cursor-pointer active:scale-95"
+                                       >
+                                         <span>View Post</span>
+                                         <ArrowRight className="w-3 h-3 stroke-[2.5]" />
+                                       </button>
+                                     </div>
+                                   )}
+
+                                   {/* Message Text (Hidden if it's a shared post to prevent duplicate raw text & URLs) */}
+                                   {msg.text && !msg.isSharedPost && !msg.sharedPostData && !msg.text.startsWith('Shared post by') && (
+                                     <span className="text-[13.5px] leading-snug break-words font-normal">
+                                       {msg.text}
+                                     </span>
+                                   )}
                                   {isStarred && (
                                     <Star className="w-3 h-3 text-amber-400 fill-amber-400 inline-block ml-1" title="Starred message" />
                                   )}

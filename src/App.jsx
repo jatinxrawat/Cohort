@@ -138,6 +138,14 @@ function App() {
                     }
                   />
                   <Route
+                    path="/post/:postId"
+                    element={
+                      <ProtectedRoute>
+                        <Home />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/anonymous"
                     element={
                       <ProtectedRoute>

@@ -28,11 +28,12 @@ import { UserAvatar } from '@/components/UserAvatar';
 import { formatRelativeTime } from '@/utils/helpers';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
+import ShareModal from '@/components/ShareModal';
 import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, increment, arrayUnion, arrayRemove, getDocs, where } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 import { createNotification } from '@/utils/notifications';
 
-export const PostCard = ({ post, onVote, onRepost, onSave }) => {
+export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showSuccess } = useNotification();
@@ -52,6 +53,7 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
   // LinkedIn-style Reshare State & Tracking
   const [showReshareModal, setShowReshareModal] = useState(false);
   const [reshareMode, setReshareMode] = useState(null); // null | 'thoughts'
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [thoughtCaption, setThoughtCaption] = useState('');
   const [isSubmittingReshare, setIsSubmittingReshare] = useState(false);
 
@@ -647,11 +649,14 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
 
   return (
     <Card
-      className={
-        isCohortOfficialPost
-          ? "mb-lg border-purple-500/50 dark:border-purple-500/60 shadow-[0_0_15px_rgba(168,85,247,0.15)] bg-white dark:bg-neutral-900"
-          : "mb-lg border-neutral-100 dark:border-neutral-800 shadow-sm"
-      }
+      id={`post-${post.id || post.docId}`}
+      className={`mb-lg transition-all duration-500 ease-out ${
+        isHighlighted
+          ? 'ring-2 ring-purple-500/60 dark:ring-purple-400/60 border-purple-500/80 shadow-md shadow-purple-500/20 rounded-2xl'
+          : isCohortOfficialPost
+          ? "border-purple-500/50 dark:border-purple-500/60 shadow-[0_0_15px_rgba(168,85,247,0.15)] bg-white dark:bg-neutral-900"
+          : "border-neutral-100 dark:border-neutral-800 shadow-sm"
+      }`}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-lg">
@@ -910,12 +915,8 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
 
         {/* Share Pill */}
         <button
-          onClick={() => {
-            const shareUrl = "https://cohortnow.online" + window.location.pathname + window.location.search;
-            navigator.clipboard.writeText(shareUrl);
-            showSuccess('Post link copied to clipboard!');
-          }}
-          className="flex items-center gap-xs px-lg py-sm rounded-full text-xs font-semibold bg-neutral-100 dark:bg-neutral-800/80 border border-transparent text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all"
+          onClick={() => setIsShareModalOpen(true)}
+          className="flex items-center gap-xs px-lg py-sm rounded-full text-xs font-semibold bg-neutral-100 dark:bg-neutral-800/80 border border-transparent text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all cursor-pointer"
         >
           <Share2 className="w-4 h-4" />
           <span>Share</span>
@@ -1398,6 +1399,15 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
           )}
         </Modal>
       )}
+
+      {/* Instagram-style Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        post={post}
+        shareUrl={`https://cohortnow.online/post/${post.id}`}
+        title={`Post by ${post.author?.name || 'Cohort Student'}`}
+      />
     </Card>
   );
 };
