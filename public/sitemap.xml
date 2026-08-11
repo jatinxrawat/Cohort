@@ -38,5 +38,15 @@
     <changefreq>monthly</changefreq>
   </url>
 
-  
+  <!-- Cohort Uncut Pages -->
+  <url>
+    <loc>https://cohortnow.online/uncut</loc>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://cohortnow.online/uncut/college-love</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
 </urlset>
