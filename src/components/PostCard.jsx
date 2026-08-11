@@ -911,7 +911,8 @@ export const PostCard = ({ post, onVote, onRepost, onSave }) => {
         {/* Share Pill */}
         <button
           onClick={() => {
-            navigator.clipboard.writeText(window.location.href);
+            const shareUrl = "https://cohortnow.online" + window.location.pathname + window.location.search;
+            navigator.clipboard.writeText(shareUrl);
             showSuccess('Post link copied to clipboard!');
           }}
           className="flex items-center gap-xs px-lg py-sm rounded-full text-xs font-semibold bg-neutral-100 dark:bg-neutral-800/80 border border-transparent text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all"

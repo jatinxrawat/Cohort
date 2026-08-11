@@ -1,12 +1,16 @@
-# Cohort Uncut Article Styling Rules
+# Custom Agent Rules for Cohort
 
+## Sitemap Management Rule
+- Whenever creating a new public-facing page (such as a public feature, information page, landing page layout, or article/blog post), you MUST automatically append the new canonical URL to `public/sitemap.xml` with appropriate prioritization and crawl frequency. Do not wait for the user to request it. Private/authenticated routes (guarded by `ProtectedRoute`) must NOT be added to the sitemap.
+
+## Cohort Uncut Article Styling Rules
 All future articles written for the "Cohort Uncut" page must inherit and preserve the styling rules established in [CollegeLove.jsx](file:///c:/Users/kusha/Desktop/Projects/Cohort/src/pages/uncut/CollegeLove.jsx):
 
-## 1. Structure and Wrapper
+### 1. Structure and Wrapper
 * The main page container must have `min-h-screen relative overflow-x-hidden` classes. The `relative` wrapper is critical so that absolute decorative atmospheric glow blurs are bounded and do not bleed over screen edges causing horizontal scrollbars.
 * Background colors must support Light Mode Sepia reading paper style (`bg-[#faf7f2] text-neutral-900`) and Dark Mode Midnight style (`dark:bg-[#08080C] dark:text-neutral-100`) via transition effects.
 
-## 2. Header Architecture
+### 2. Header Architecture
 * The header container width must be set to `max-w-7xl mx-auto` to match the alignment coordinates of the Uncut landing page header exactly.
 * The header background styling must follow standard glassmorphism rules: `bg-white/70 dark:bg-[#08080C]/70 backdrop-blur-xl`.
 * The logo icon and text must be accompanied by the pink Uncut glowing link badge:
@@ -20,7 +24,7 @@ All future articles written for the "Cohort Uncut" page must inherit and preserv
   ```
 * The back button should navigate to `/uncut` and be hidden on mobile screen widths using the Tailwind responsive viewport rules: `hidden sm:flex items-center gap-1.5 ...`.
 
-## 3. Article Content Typography & Layout
+### 3. Article Content Typography & Layout
 * **Content Container**: The article text content must reside in a `max-w-3xl mx-auto font-serif` block. Avoid using default Tailwind `.prose` wrappers to prevent typography plugins from overriding core colors.
 * **Heading Accent**: Title elements should contain an accent keyword utilizing the signature Uncut gradient:
   ```jsx

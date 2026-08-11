@@ -839,7 +839,8 @@ export default function Profile() {
   };
 
   const handleShareProfile = () => {
-    navigator.clipboard.writeText(window.location.href);
+    const shareUrl = "https://cohortnow.online" + window.location.pathname + window.location.search;
+    navigator.clipboard.writeText(shareUrl);
     showSuccess('Profile link copied to clipboard!');
   };
 

@@ -1036,7 +1036,8 @@ export default function AnonymousFeed({ defaultTab }) {
 
                         <button
                           onClick={() => {
-                            navigator.clipboard.writeText(window.location.href);
+                            const shareUrl = "https://cohortnow.online" + window.location.pathname + window.location.search;
+                            navigator.clipboard.writeText(shareUrl);
                             showSuccess('Post link copied!');
                           }}
                           className="flex items-center gap-xs px-md py-xs rounded-full text-neutral-500 dark:text-zinc-400 hover:text-violet-600 dark:hover:text-violet-300 hover:bg-neutral-100 dark:hover:bg-zinc-800/60 transition-all"

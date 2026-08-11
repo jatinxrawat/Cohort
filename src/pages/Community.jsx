@@ -830,7 +830,7 @@ export default function Community() {
 
   const handleCopyInviteLink = () => {
     if (!selectedRoom?.id) return;
-    const url = `${window.location.origin}/community?join=${selectedRoom.id}`;
+    const url = `https://cohortnow.online/community?join=${selectedRoom.id}`;
     navigator.clipboard.writeText(url).then(() => showSuccess('Invite link copied!'));
   };
 
@@ -2483,7 +2483,7 @@ export default function Community() {
                     {(selectedRoom.type !== 'private' || isAdmin) ? (
                       <div className="bg-primary-50 dark:bg-primary-950/20 border border-primary-200 dark:border-primary-800 rounded-2xl p-lg">
                         <div className="flex items-center gap-md mb-md"><div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center text-white"><Link2 className="w-4 h-4" /></div><div><p className="font-bold text-sm">Invite Link</p><p className="text-xs text-neutral-500">Share to invite people</p></div></div>
-                        <div className="flex items-center gap-sm bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-md py-sm text-xs text-neutral-500 font-mono mb-md overflow-hidden"><span className="truncate flex-1">{`${window.location.origin}/community?join=${selectedRoom.id}`}</span></div>
+                        <div className="flex items-center gap-sm bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-md py-sm text-xs text-neutral-500 font-mono mb-md overflow-hidden"><span className="truncate flex-1">{`https://cohortnow.online/community?join=${selectedRoom.id}`}</span></div>
                         <button onClick={handleCopyInviteLink} className="w-full flex items-center justify-center gap-md bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm py-md rounded-xl transition-colors"><Copy className="w-4 h-4" /> Copy Invite Link</button>
                         <button onClick={handleOpenInviteModal} className="w-full flex items-center justify-center gap-md bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 font-semibold text-sm py-md rounded-xl transition-colors mt-sm"><UserPlus2 className="w-4 h-4" /> Invite People Directly</button>
                       </div>
