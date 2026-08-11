@@ -74,7 +74,10 @@ export default function HomeRightPanel() {
   }
 
   return (
-    <aside className="hidden xl:flex flex-col w-[360px] flex-shrink-0 sticky top-[72px] self-start max-h-[calc(100vh-88px)] overflow-y-auto overflow-x-hidden ml-4 pr-0.5 pb-8 gap-4 scrollbar-none" style={{ scrollbarWidth: 'none' }}>
+    <aside
+      className="hidden xl:flex flex-col w-[360px] flex-shrink-0 sticky top-[72px] self-start max-h-[calc(100vh-88px)] overflow-y-auto overflow-x-hidden overscroll-y-contain ml-4 pr-0.5 pb-8 gap-4 scrollbar-none"
+      style={{ scrollbarWidth: 'none', overscrollBehavior: 'contain' }}
+    >
 
       {/* What is Cohort Uncut */}
       <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800/50 p-4 shadow-sm">
@@ -139,8 +142,8 @@ export default function HomeRightPanel() {
 
         {/* Scrollable article list — max 3 visible, scroll for more */}
         <div
-          className="overflow-y-auto px-2 pb-2"
-          style={{ maxHeight: '290px', scrollbarWidth: 'thin', scrollbarColor: 'rgba(128,128,128,0.2) transparent' }}
+          className="overflow-y-auto px-2 pb-2 overscroll-y-contain"
+          style={{ maxHeight: '290px', scrollbarWidth: 'thin', scrollbarColor: 'rgba(128,128,128,0.2) transparent', overscrollBehavior: 'contain' }}
         >
           <div className="space-y-0.5">
             {FEATURED_ARTICLES.map((article) => (
@@ -181,21 +184,27 @@ export default function HomeRightPanel() {
       </div>
 
       {/* Write for Uncut CTA */}
-      <div className="relative rounded-2xl overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-pink-500/6 via-purple-500/4 to-cyan-500/6 dark:from-pink-500/10 dark:via-purple-500/8 dark:to-cyan-500/10" />
-        <div className="relative p-4 border border-pink-500/10 dark:border-pink-500/15 rounded-2xl">
-          <div className="flex items-center gap-2 mb-2">
-            <BookOpen className="w-3.5 h-3.5 text-purple-500" />
-            <span className="text-[11px] font-bold text-neutral-700 dark:text-neutral-300">Write your story</span>
+      <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800/50 p-4 shadow-sm relative overflow-hidden">
+        {/* Subtle decorative gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 via-purple-500/3 to-cyan-500/5 dark:from-pink-500/10 dark:via-purple-500/5 dark:to-cyan-500/10 pointer-events-none" />
+        
+        <div className="relative z-10">
+          <div className="flex items-center gap-2.5 mb-2.5">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center flex-shrink-0">
+              <BookOpen className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
+            </div>
+            <h3 className="text-[13px] font-bold text-neutral-900 dark:text-neutral-100 tracking-tight">
+              Write your story
+            </h3>
           </div>
-          <p className="text-[10px] text-neutral-400 dark:text-neutral-500 leading-relaxed mb-3">
+          <p className="text-[11px] text-neutral-600 dark:text-neutral-400 leading-relaxed mb-3.5">
             Have a campus story? Submit to Cohort Uncut and reach thousands of students.
           </p>
           <Link
             to="/uncut"
-            className="inline-flex items-center gap-1.5 text-[10px] font-bold text-white bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 px-3.5 py-1.5 rounded-lg transition-all duration-200 shadow-sm shadow-pink-500/20 hover:shadow-pink-500/30 active:scale-95"
+            className="inline-flex items-center gap-2 text-[11px] font-bold text-white bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 hover:from-pink-400 hover:to-indigo-500 px-4 py-2 rounded-xl transition-all duration-200 shadow-md shadow-pink-500/20 hover:shadow-pink-500/30 active:scale-95"
           >
-            <PenTool className="w-2.5 h-2.5" />
+            <PenTool className="w-3 h-3" />
             Submit a story
           </Link>
         </div>
