@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   try {
     const { postId, id, img, title, desc } = req.query || {};
-    
+
     // Extract postId from URL parameter or route rewrite
     let targetPostId = postId || id;
     if (!targetPostId && req.url) {
@@ -13,10 +13,10 @@ export default async function handler(req, res) {
     let postContent = desc ? decodeURIComponent(desc) : 'Check out this post on Cohort - Your Campus Social Media!';
     let postImage = img ? decodeURIComponent(img) : 'https://cohortnow.online/og-image.png';
 
-    // Fetch fresh post metadata from Firestore REST API if postId is provided
+    // Fetch fresh post metadata from Firestore REST API if targetPostId exists
     if (targetPostId && targetPostId !== 'undefined' && targetPostId !== 'null') {
       try {
-        const firestoreUrl = `https://firestore.googleapis.com/v1/projects/collex-2026/databases/(default)/documents/posts/${targetPostId}`;
+        const firestoreUrl = `https://firestore.googleapis.com/v1/projects/collex-73ee4/databases/(default)/documents/posts/${targetPostId}`;
         const response = await fetch(firestoreUrl);
 
         if (response.ok) {
@@ -26,11 +26,13 @@ export default async function handler(req, res) {
           // Extract Author Name / Title
           const authorObj = fields.author?.mapValue?.fields || {};
           const authorName = authorObj.name?.stringValue || fields.authorName?.stringValue || 'Campus Student';
-          postTitle = `Post by ${authorName}`;
+          if (!title) {
+            postTitle = authorName.toLowerCase().startsWith('post by') ? authorName : `Post by ${authorName}`;
+          }
 
           // Extract Post Content / Caption
           const rawContent = fields.content?.stringValue || fields.text?.stringValue || fields.caption?.stringValue || '';
-          if (rawContent) {
+          if (rawContent && !desc) {
             postContent = rawContent.slice(0, 200) + (rawContent.length > 200 ? '...' : '');
           }
 
@@ -44,7 +46,7 @@ export default async function handler(req, res) {
             fields.coverImage?.stringValue ||
             authorObj.avatar?.stringValue;
 
-          if (mediaUrl) {
+          if (mediaUrl && !img) {
             postImage = mediaUrl;
           }
         }
@@ -98,7 +100,7 @@ export default async function handler(req, res) {
   </script>
 </head>
 <body>
-  <p>Redirecting to post... <a href="${redirectUrl}">Click here if not redirected.</a></p>
+  <p>Redirecting to post on Cohort... <a href="${redirectUrl}">Click here if not redirected.</a></p>
 </body>
 </html>`;
 

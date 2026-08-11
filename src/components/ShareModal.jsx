@@ -36,19 +36,28 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
   const [sentMap, setSentMap] = useState({});
   const [copied, setCopied] = useState(false);
 
-  // Determine canonical share URL & text
-  const shareUrl =
-    customShareUrl ||
-    (post?.id
-      ? `${window.location.origin}/post/${post.id}`
-      : window.location.href);
-
   const rawAuthorName = post?.author?.name || post?.authorName || '';
   const shareTitle =
     customTitle ||
     (rawAuthorName ? (rawAuthorName.toLowerCase().startsWith('post by') ? rawAuthorName : `Post by ${rawAuthorName}`) : 'Campus Post');
 
   const shareText = post?.content || post?.text || post?.caption || 'Check out this post on Cohort!';
+
+  const postMediaUrl =
+    post?.image ||
+    post?.imageUrl ||
+    post?.mediaUrl ||
+    post?.photo ||
+    post?.media ||
+    post?.coverImage ||
+    post?.author?.avatar ||
+    'https://cohortnow.online/og-image.png';
+
+  const shareUrl =
+    customShareUrl ||
+    (post?.id
+      ? `${window.location.origin}/post/${post.id}?img=${encodeURIComponent(postMediaUrl)}&title=${encodeURIComponent(shareTitle)}&desc=${encodeURIComponent(shareText.slice(0, 160))}`
+      : window.location.href);
 
   // Fetch recent chat members and campus users when modal opens
   useEffect(() => {
