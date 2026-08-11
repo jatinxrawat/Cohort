@@ -33,6 +33,45 @@ import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteD
 import { db } from '@/utils/firebase';
 import { createNotification } from '@/utils/notifications';
 
+export const ExpandableCaption = ({ text, maxLength = 200, className = '' }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!text) return null;
+
+  const lines = text.split('\n');
+  const hasTooManyLines = lines.length > 4;
+  const shouldTruncate = text.length > maxLength || hasTooManyLines;
+
+  let displayText = text;
+  if (!isExpanded && shouldTruncate) {
+    if (hasTooManyLines && lines.length > 4) {
+      displayText = lines.slice(0, 4).join('\n').trim() + '...';
+    } else {
+      displayText = text.slice(0, maxLength).trim() + '...';
+    }
+  }
+
+  return (
+    <div className={className}>
+      <p className="text-neutral-800 dark:text-neutral-200 leading-relaxed whitespace-pre-wrap break-words inline">
+        {displayText}
+      </p>
+      {shouldTruncate && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(!isExpanded);
+          }}
+          className="ml-1.5 text-xs font-bold text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors inline-block cursor-pointer"
+        >
+          {isExpanded ? 'See less' : 'See more'}
+        </button>
+      )}
+    </div>
+  );
+};
+
 export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -804,14 +843,16 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
                   </p>
                 </div>
               </div>
-              <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed pt-xs whitespace-pre-wrap break-words">
-                {post.originalPost?.content || post.content}
-              </p>
+              <ExpandableCaption
+                text={post.originalPost?.content || post.content}
+                className="pt-xs text-sm"
+              />
             </div>
           ) : (
-            <p className="text-neutral-800 dark:text-neutral-200 mb-xl leading-relaxed text-base whitespace-pre-wrap break-words">
-              {post.content}
-            </p>
+            <ExpandableCaption
+              text={post.content}
+              className="mb-xl text-base"
+            />
           )}
         </>
       )}

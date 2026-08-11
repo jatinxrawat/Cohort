@@ -13,6 +13,7 @@ import { uploadImageToCloudinary } from '@/utils/cloudinary';
 import SEO from '@/components/SEO';
 import ShareModal from '@/components/ShareModal';
 import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, query, where, deleteDoc, increment, onSnapshot, orderBy } from 'firebase/firestore';
+import { ExpandableCaption } from '@/components/PostCard';
 import { db } from '@/utils/firebase';
 
 const renderGenderBadge = (gender) => {
@@ -484,145 +485,220 @@ export default function Profile() {
 
         setProfileUser(activeProfile);
 
+        const activeUid = activeProfile?.uid || activeProfile?.id || targetUid || currentUser?.uid;
+        if (activeUid && activeUid !== 'cohort_official') {
+          onSnapshot(doc(db, 'users', activeUid), (snap) => {
+            if (snap.exists()) {
+              setProfileUser(prev => ({ ...prev, ...snap.data() }));
+            }
+          });
+        }
+
         if (activeProfile) {
-          const currentUid = activeProfile.uid || targetUid;
-          const currentName = activeProfile.name || targetName;
+          const currentUid = activeProfile.uid || activeProfile.id || targetUid || currentUser?.uid;
+          const currentName = activeProfile.name || targetName || currentUser?.name;
+          const currentUsername = activeProfile.username || currentUser?.username || (targetUsername ? targetUsername.replace('@', '') : null);
+          const currentEmail = activeProfile.email || currentUser?.email;
 
-          // Fetch posts by this user from Firestore
-          const querySnapshot = await getDocs(collection(db, 'posts'));
-          const loaded = [];
-          for (const docSnap of querySnapshot.docs) {
-            const data = docSnap.data();
-            const isMatch = (data.author?.uid && data.author.uid === currentUid) ||
-                            (data.author?.name && currentName && data.author.name.toLowerCase() === currentName.toLowerCase());
-            if (isMatch) {
-              const likedUsers = data.likedUsers || data.upvotedUsers || data.likedBy || (Array.isArray(data.likes) ? data.likes : []);
-              const likesCount = (typeof data.likes === 'number' && data.likes > 0)
-                ? data.likes
-                : (typeof data.upvotes === 'number' && data.upvotes > 0
-                  ? data.upvotes
-                  : (data.likesCount || likedUsers.length));
-              let commentsCount = (typeof data.comments === 'number' && data.comments > 0)
-                ? data.comments
-                : (data.commentsCount || (Array.isArray(data.comments) ? data.comments.length : 0));
-              try {
-                const cSnap = await getDocs(collection(db, 'posts', docSnap.id, 'comments'));
-                if (cSnap.size > 0 || !commentsCount) {
-                  commentsCount = cSnap.size;
-                }
-              } catch (e) {}
+          const cleanStr = (s) => (s || '').toString().toLowerCase().replace(/[^a-z0-9]/g, '');
 
-              loaded.push({
-                id: docSnap.id,
-                docId: docSnap.id,
-                collectionName: 'posts',
-                ...data,
-                likedUsers,
-                likesCount,
-                commentsCount,
-                timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp || Date.now())
-              });
-            }
-          }
-          setUserPosts(loaded);
-          const likesSum = loaded.reduce((acc, curr) => acc + (curr.likesCount || 0), 0);
-          setTotalLikes(likesSum);
+          const getTokens = (str) => (str || '').toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(t => t.length >= 3);
+          const hasTokenMatch = (strA, strB) => {
+            const tokensA = getTokens(strA);
+            const tokensB = getTokens(strB);
+            return tokensA.some(t => tokensB.includes(t));
+          };
 
-          // Fetch Anonymous Posts & Confessions authored by this user
-          try {
-            const loadedAnon = [];
-            const anonSnap = await getDocs(query(collection(db, 'anonymousPosts'), where('authorUid', '==', currentUid)));
-            for (const d of anonSnap.docs) {
-              const data = d.data();
-              const likedUsers = data.likedUsers || data.upvotedUsers || data.likedBy || (Array.isArray(data.likes) ? data.likes : []);
-              const likesCount = (typeof data.likes === 'number' && data.likes > 0)
-                ? data.likes
-                : (typeof data.upvotes === 'number' && data.upvotes > 0
-                  ? data.upvotes
-                  : (data.likesCount || likedUsers.length));
-              let commentsCount = (typeof data.comments === 'number' && data.comments > 0)
-                ? data.comments
-                : (data.commentsCount || (Array.isArray(data.comments) ? data.comments.length : 0));
-              try {
-                const cSnap = await getDocs(collection(db, 'anonymousPosts', d.id, 'comments'));
-                if (cSnap.size > 0 || !commentsCount) {
-                  commentsCount = cSnap.size;
-                }
-              } catch (e) {}
+          const currentNameClean = cleanStr(currentName || currentUser?.name);
+          const currentUsernameClean = cleanStr(currentUsername || currentUser?.username);
+          const currentEmailClean = cleanStr(currentEmail || currentUser?.email);
 
-              loadedAnon.push({
-                id: d.id,
-                docId: d.id,
-                collectionName: 'anonymousPosts',
-                isAnonymous: true,
-                isConfession: false,
-                ...data,
-                likedUsers,
-                likesCount,
-                commentsCount,
-                createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now())
-              });
-            }
+          // 1. Real-time listener for Feed Posts authored by this user
+          onSnapshot(collection(db, 'posts'), (querySnapshot) => {
+            const loaded = [];
+            querySnapshot.forEach((docSnap) => {
+              const data = docSnap.data();
 
-            const confessionSnap = await getDocs(query(collection(db, 'confessions'), where('authorUid', '==', currentUid)));
-            for (const d of confessionSnap.docs) {
-              const data = d.data();
-              const likedUsers = data.likedUsers || data.upvotedUsers || data.likedBy || (Array.isArray(data.likes) ? data.likes : []);
-              const likesCount = (typeof data.likes === 'number' && data.likes > 0)
-                ? data.likes
-                : (typeof data.upvotes === 'number' && data.upvotes > 0
-                  ? data.upvotes
-                  : (data.likesCount || likedUsers.length));
-              let commentsCount = (typeof data.comments === 'number' && data.comments > 0)
-                ? data.comments
-                : (data.commentsCount || (Array.isArray(data.comments) ? data.comments.length : 0));
-              try {
-                const cSnap = await getDocs(collection(db, 'confessions', d.id, 'comments'));
-                if (cSnap.size > 0 || !commentsCount) {
-                  commentsCount = cSnap.size;
-                }
-              } catch (e) {}
+              const postAuthorUid = data.author?.uid || data.authorUid || data.uid || data.userUid || data.resharedBy?.uid;
+              const authorNameStr = typeof data.author === 'string' ? data.author : (data.author?.name || data.authorName || data.resharedBy?.name || '');
+              const authorUsernameStr = data.author?.username || data.authorUsername || data.resharedBy?.username || '';
+              const authorEmailStr = data.author?.email || data.authorEmail || '';
 
-              loadedAnon.push({
-                id: d.id,
-                docId: d.id,
-                collectionName: 'confessions',
-                isAnonymous: true,
-                isConfession: true,
-                ...data,
-                likedUsers,
-                likesCount,
-                commentsCount,
-                createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now())
-              });
-            }
+              const postAuthorNameClean = cleanStr(authorNameStr);
+              const postAuthorUsernameClean = cleanStr(authorUsernameStr);
+              const postAuthorEmailClean = cleanStr(authorEmailStr);
 
-            loadedAnon.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-            setUserAnonPosts(loadedAnon);
-          } catch (err) {
-            console.error('Error fetching user anonymous posts:', err);
-          }
+              const isMatch =
+                (currentUid && postAuthorUid === currentUid) ||
+                (currentUser?.uid && postAuthorUid === currentUser.uid) ||
+                (currentNameClean && (postAuthorNameClean === currentNameClean || postAuthorUsernameClean === currentNameClean)) ||
+                (currentUsernameClean && (postAuthorNameClean === currentUsernameClean || postAuthorUsernameClean === currentUsernameClean)) ||
+                (currentEmailClean && postAuthorEmailClean && postAuthorEmailClean === currentEmailClean) ||
+                hasTokenMatch(authorNameStr, currentName) ||
+                hasTokenMatch(authorNameStr, currentUsername) ||
+                hasTokenMatch(authorUsernameStr, currentName) ||
+                hasTokenMatch(authorUsernameStr, currentUsername) ||
+                (isOwnProfile && (
+                  hasTokenMatch(authorNameStr, currentUser?.name) ||
+                  hasTokenMatch(authorNameStr, currentUser?.username) ||
+                  hasTokenMatch(authorUsernameStr, currentUser?.name) ||
+                  hasTokenMatch(authorUsernameStr, currentUser?.username)
+                ));
 
-          // Fetch Marketplace Listings authored by this user
-          try {
-            const marketplaceSnap = await getDocs(collection(db, 'marketplace'));
-            const loadedMarketplace = [];
-            marketplaceSnap.forEach(d => {
-              const data = d.data();
-              const isMatch = (data.sellerUid && data.sellerUid === currentUid) ||
-                              (data.seller && currentName && data.seller.toLowerCase() === currentName.toLowerCase());
               if (isMatch) {
-                loadedMarketplace.push({
+                const likedUsers = data.likedUsers || data.upvotedUsers || data.likedBy || (Array.isArray(data.likes) ? data.likes : []);
+                const likesCount = (typeof data.likes === 'number' && data.likes > 0)
+                  ? data.likes
+                  : (typeof data.upvotes === 'number' && data.upvotes > 0
+                    ? data.upvotes
+                    : (data.likesCount || likedUsers.length));
+                let commentsCount = (typeof data.comments === 'number' && data.comments > 0)
+                  ? data.comments
+                  : (data.commentsCount || (Array.isArray(data.comments) ? data.comments.length : 0));
+
+                loaded.push({
+                  id: docSnap.id,
+                  docId: docSnap.id,
+                  collectionName: 'posts',
+                  ...data,
+                  likedUsers,
+                  likesCount,
+                  commentsCount,
+                  timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp || Date.now())
+                });
+              }
+            });
+
+            loaded.sort((a, b) => (b.timestamp?.getTime ? b.timestamp.getTime() : 0) - (a.timestamp?.getTime ? a.timestamp.getTime() : 0));
+            setUserPosts(loaded);
+            const likesSum = loaded.reduce((acc, curr) => acc + (curr.likesCount || 0), 0);
+            setTotalLikes(likesSum);
+          });
+
+          // 2. Real-time listener for Anonymous Posts & Confessions authored by this user
+          let rawAnonPosts = [];
+          let rawConfessions = [];
+          const updateAnonState = () => {
+            const combined = [...rawAnonPosts, ...rawConfessions];
+            combined.sort((a, b) => (b.createdAt?.getTime ? b.createdAt.getTime() : 0) - (a.createdAt?.getTime ? a.createdAt.getTime() : 0));
+            setUserAnonPosts(combined);
+          };
+
+          onSnapshot(collection(db, 'anonymousPosts'), (snap) => {
+            const loaded = [];
+            snap.forEach((d) => {
+              const data = d.data();
+              const postAuthorUid = data.authorUid || data.uid || data.userUid || data.author?.uid;
+              const postAuthorNameClean = cleanStr(data.anonymousName || data.authorName || data.author?.name);
+
+              const isMatch =
+                (currentUid && postAuthorUid === currentUid) ||
+                (currentUser?.uid && postAuthorUid === currentUser.uid) ||
+                (currentNameClean && postAuthorNameClean === currentNameClean) ||
+                (currentUsernameClean && postAuthorNameClean === currentUsernameClean) ||
+                hasTokenMatch(data.anonymousName, currentName) ||
+                hasTokenMatch(data.anonymousName, currentUsername);
+
+              if (isMatch) {
+                const likedUsers = data.likedUsers || data.upvotedUsers || data.likedBy || (Array.isArray(data.likes) ? data.likes : []);
+                const likesCount = (typeof data.likes === 'number' && data.likes > 0)
+                  ? data.likes
+                  : (typeof data.upvotes === 'number' && data.upvotes > 0
+                    ? data.upvotes
+                    : (data.likesCount || likedUsers.length));
+                let commentsCount = (typeof data.comments === 'number' && data.comments > 0)
+                  ? data.comments
+                  : (data.commentsCount || (Array.isArray(data.comments) ? data.comments.length : 0));
+
+                loaded.push({
+                  id: d.id,
+                  docId: d.id,
+                  collectionName: 'anonymousPosts',
+                  isAnonymous: true,
+                  isConfession: false,
+                  ...data,
+                  likedUsers,
+                  likesCount,
+                  commentsCount,
+                  createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now())
+                });
+              }
+            });
+            rawAnonPosts = loaded;
+            updateAnonState();
+          });
+
+          onSnapshot(collection(db, 'confessions'), (snap) => {
+            const loaded = [];
+            snap.forEach((d) => {
+              const data = d.data();
+              const postAuthorUid = data.authorUid || data.uid || data.userUid || data.author?.uid;
+              const postAuthorNameClean = cleanStr(data.anonymousName || data.authorName || data.author?.name);
+
+              const isMatch =
+                (currentUid && postAuthorUid === currentUid) ||
+                (currentUser?.uid && postAuthorUid === currentUser.uid) ||
+                (currentNameClean && postAuthorNameClean === currentNameClean) ||
+                (currentUsernameClean && postAuthorNameClean === currentUsernameClean) ||
+                hasTokenMatch(data.anonymousName, currentName) ||
+                hasTokenMatch(data.anonymousName, currentUsername);
+
+              if (isMatch) {
+                const likedUsers = data.likedUsers || data.upvotedUsers || data.likedBy || (Array.isArray(data.likes) ? data.likes : []);
+                const likesCount = (typeof data.likes === 'number' && data.likes > 0)
+                  ? data.likes
+                  : (typeof data.upvotes === 'number' && data.upvotes > 0
+                    ? data.upvotes
+                    : (data.likesCount || likedUsers.length));
+                let commentsCount = (typeof data.comments === 'number' && data.comments > 0)
+                  ? data.comments
+                  : (data.commentsCount || (Array.isArray(data.comments) ? data.comments.length : 0));
+
+                loaded.push({
+                  id: d.id,
+                  docId: d.id,
+                  collectionName: 'confessions',
+                  isAnonymous: true,
+                  isConfession: true,
+                  ...data,
+                  likedUsers,
+                  likesCount,
+                  commentsCount,
+                  createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now())
+                });
+              }
+            });
+            rawConfessions = loaded;
+            updateAnonState();
+          });
+
+          // 3. Real-time listener for Marketplace Items authored by this user
+          onSnapshot(collection(db, 'marketplace'), (snap) => {
+            const loaded = [];
+            snap.forEach((d) => {
+              const data = d.data();
+              const sellerUid = data.sellerUid || data.authorUid || data.uid;
+              const sellerNameStr = data.seller || data.authorName || data.author?.name || '';
+              const sellerNameClean = cleanStr(sellerNameStr);
+
+              const isMatch =
+                (currentUid && sellerUid === currentUid) ||
+                (currentUser?.uid && sellerUid === currentUser.uid) ||
+                (currentNameClean && sellerNameClean === currentNameClean) ||
+                (currentUsernameClean && sellerNameClean === currentUsernameClean) ||
+                hasTokenMatch(sellerNameStr, currentName) ||
+                hasTokenMatch(sellerNameStr, currentUsername);
+
+              if (isMatch) {
+                loaded.push({
                   id: d.id,
                   docId: d.id,
                   ...data
                 });
               }
             });
-            setUserMarketplaceItems(loadedMarketplace);
-          } catch (err) {
-            console.error('Error fetching user marketplace items:', err);
-          }
+            setUserMarketplaceItems(loaded);
+          });
         }
       } catch (e) {
         console.error('Failed to load profile:', e);
@@ -632,7 +708,7 @@ export default function Profile() {
     };
 
     loadProfile();
-  }, [targetUid, targetName, isOwnProfile]);
+  }, [targetUid, targetName, isOwnProfile, currentUser]);
 
   // Load Followers / Following list for Modal
   useEffect(() => {
@@ -649,20 +725,40 @@ export default function Profile() {
         const allUsersSnap = await getDocs(collection(db, 'users'));
         const userMap = {};
         allUsersSnap.forEach(d => {
-          userMap[d.id] = { uid: d.id, id: d.id, ...d.data() };
+          const uData = { uid: d.id, id: d.id, ...d.data() };
+          userMap[d.id] = uData;
+          if (d.data().uid) userMap[d.data().uid] = uData;
+          if (d.data().username) userMap[d.data().username.toLowerCase()] = uData;
+          if (d.data().name) userMap[d.data().name.toLowerCase()] = uData;
         });
 
-        targetIds.forEach(id => {
-          if (userMap[id]) {
-            results.push(userMap[id]);
+        targetIds.forEach(idItem => {
+          if (!idItem) return;
+          if (typeof idItem === 'object' && (idItem.name || idItem.username)) {
+            results.push({
+              uid: idItem.uid || idItem.id || `user_${Date.now()}`,
+              id: idItem.id || idItem.uid || `user_${Date.now()}`,
+              name: idItem.name || 'Student Peer',
+              username: idItem.username || 'student',
+              avatar: idItem.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(idItem.name || 'user')}`,
+              college: idItem.college || profileUser?.college || 'KIET'
+            });
+            return;
+          }
+
+          const rawId = typeof idItem === 'object' ? (idItem.uid || idItem.id) : String(idItem);
+          const matchedUser = userMap[rawId] || userMap[rawId.toLowerCase()];
+
+          if (matchedUser) {
+            results.push(matchedUser);
           } else {
             results.push({
-              uid: id,
-              id: id,
-              name: id.startsWith('user_') ? 'Student Peer' : (profileUser?.name ? `${profileUser.name}'s Friend` : 'Campus Student'),
-              username: `student_${id.slice(-4)}`,
+              uid: rawId,
+              id: rawId,
+              name: rawId.startsWith('user_') ? 'Student Peer' : (profileUser?.name ? `${profileUser.name}'s Connection` : 'Campus Student'),
+              username: `student_${String(rawId).slice(-4)}`,
               college: profileUser?.college || 'KIET',
-              avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(id)}`
+              avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(rawId)}`
             });
           }
         });
@@ -676,7 +772,7 @@ export default function Profile() {
     };
 
     fetchConnections();
-  }, [connectionsModalOpen, activeTab, profileUser]);
+  }, [connectionsModalOpen, activeTab, profileUser, currentUser]);
 
   const isMutual = (uId) => {
     const myFollowing = currentUser?.following || [];
@@ -1268,15 +1364,17 @@ export default function Profile() {
                                 {post.originalPost?.author?.name || 'Student'}
                               </span>
                             </div>
-                            <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed line-clamp-2 whitespace-pre-wrap break-words">
-                              {post.originalPost?.content || post.content}
-                            </p>
+                            <ExpandableCaption
+                              text={post.originalPost?.content || post.content}
+                              className="text-xs"
+                            />
                           </div>
                         ) : (
                           <>
-                            <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed whitespace-pre-wrap break-words">
-                              {post.content}
-                            </p>
+                            <ExpandableCaption
+                              text={post.content}
+                              className="text-sm"
+                            />
                             {post.imageUrl && (
                               <div className="mt-md rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-950/40 flex items-center justify-center">
                                 <img

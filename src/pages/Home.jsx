@@ -195,12 +195,14 @@ export default function Home() {
       }
 
       const postData = {
+        authorUid: user?.uid || null,
         author: {
           uid: user?.uid || null,
           username: user?.username || null,
           name: user?.name || 'Student',
           avatar: user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || 'user')}`,
           role: user?.college || 'Student',
+          email: user?.email || null,
         },
         content: postContent.trim(),
         imageUrl: uploadedImageUrl,
