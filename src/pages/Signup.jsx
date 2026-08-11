@@ -120,7 +120,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-black text-white relative flex flex-col justify-between selection:bg-purple-500 selection:text-white font-sans">
+    <div className="relative min-h-screen w-full bg-[#08080C] text-neutral-100 flex flex-col justify-between overflow-x-hidden select-none pb-12 sm:pb-16 lg:pb-24">
       <SEO 
         title={isSignup ? "Sign Up" : "Log In"} 
         description="Connect with your university campus community on Cohort. Log in or create a new student account." 
@@ -175,7 +175,7 @@ export default function Signup() {
       </header>
 
       {/* --- MAIN HERO 2-COLUMN SPLIT GRID --- */}
-      <main className="relative z-20 max-w-7xl w-full mx-auto px-6 sm:px-12 py-2 grid grid-cols-1 lg:grid-cols-12 items-center gap-8 lg:gap-12 flex-1 overflow-y-auto lg:overflow-visible">
+      <main className="relative z-20 max-w-7xl w-full mx-auto px-6 sm:px-12 pt-2 pb-16 lg:pb-24 grid grid-cols-1 lg:grid-cols-12 items-center gap-8 lg:gap-12 flex-1 overflow-y-auto">
         
         {/* LEFT COLUMN: TYPOGRAPHY + AUTH FORM */}
         <div className="lg:col-span-6 space-y-5 text-left max-w-xl">
@@ -291,7 +291,7 @@ export default function Signup() {
               <Link to="/privacy" className="text-purple-400 hover:underline">Privacy Policy</Link>, and Cookie Use.
             </p>
 
-            <div className="pt-2 border-t border-neutral-900">
+            <div className="pt-2 border-t border-neutral-900 pb-6 mb-4">
               <p className="text-xs font-bold text-neutral-400">
                 {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
                 <button

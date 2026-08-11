@@ -71,16 +71,16 @@ function CarouselCard() {
 
 
 const VIBE_TAGS = [
-  { label: 'CONFESSION', icon: Flame },
-  { label: 'CRUSH', icon: Heart },
-  { label: 'LOST & FOUND', icon: Sparkles },
-  { label: 'STORY TIME', icon: MessageCircle },
-  { label: 'PSA', icon: Zap },
-  { label: 'FIT CHECK', icon: Users },
-  { label: 'DM ME', icon: Send },
-  { label: 'EVENTS', icon: Calendar },
-  { label: 'CAREER', icon: Briefcase },
-  { label: 'MARKETPLACE', icon: ShoppingBag },
+  { label: 'CONFESSION', icon: Flame, iconColor: 'text-purple-400', iconBg: 'bg-purple-500/20' },
+  { label: 'CRUSH', icon: Heart, iconColor: 'text-rose-400', iconBg: 'bg-rose-500/20' },
+  { label: 'LOST & FOUND', icon: Sparkles, iconColor: 'text-amber-400', iconBg: 'bg-amber-500/20' },
+  { label: 'STORY TIME', icon: MessageCircle, iconColor: 'text-sky-400', iconBg: 'bg-sky-500/20' },
+  { label: 'PSA', icon: Zap, iconColor: 'text-yellow-400', iconBg: 'bg-yellow-500/20' },
+  { label: 'FIT CHECK', icon: Users, iconColor: 'text-emerald-400', iconBg: 'bg-emerald-500/20' },
+  { label: 'DM ME', icon: Send, iconColor: 'text-indigo-400', iconBg: 'bg-indigo-500/20' },
+  { label: 'EVENTS', icon: Calendar, iconColor: 'text-pink-400', iconBg: 'bg-pink-500/20' },
+  { label: 'CAREER', icon: Briefcase, iconColor: 'text-cyan-400', iconBg: 'bg-cyan-500/20' },
+  { label: 'MARKETPLACE', icon: ShoppingBag, iconColor: 'text-teal-400', iconBg: 'bg-teal-500/20' },
 ];
 
 export default function Landing() {
@@ -457,13 +457,15 @@ export default function Landing() {
                   <button
                     key={idx}
                     onClick={() => setSelectedVibe(tag.label)}
-                    className={`px-4 py-2 rounded-full border text-xs font-bold tracking-wide flex items-center gap-1.5 transition-all cursor-pointer ${
+                    className={`px-3.5 py-1.5 rounded-full border text-xs font-extrabold tracking-wide flex items-center gap-2 transition-all duration-200 cursor-pointer ${
                       isSelected
-                        ? 'bg-purple-500/15 text-purple-300 border-purple-500/40 scale-105'
-                        : 'bg-white/5 text-neutral-400 border-white/10 hover:bg-white/8 hover:text-neutral-200 hover:border-white/20'
+                        ? 'bg-neutral-900/90 text-white border-purple-500/60 ring-1 ring-purple-500/40 shadow-md scale-[1.03]'
+                        : 'bg-neutral-900/60 text-neutral-300 border-white/10 hover:bg-neutral-800/80 hover:text-white hover:border-white/20'
                     }`}
                   >
-                    <IconComp className="w-3.5 h-3.5" />
+                    <span className={`p-1 rounded-full flex items-center justify-center ${tag.iconBg} ${tag.iconColor}`}>
+                      <IconComp className="w-3.5 h-3.5 stroke-[2.2]" />
+                    </span>
                     <span>{tag.label}</span>
                   </button>
                 );

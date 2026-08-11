@@ -63,7 +63,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-black text-white relative flex flex-col justify-between selection:bg-purple-500 selection:text-white font-sans">
+    <div className="min-h-screen overflow-x-hidden bg-black text-white relative flex flex-col justify-between selection:bg-purple-500 selection:text-white font-sans pb-12 sm:pb-16 lg:pb-24">
       <SEO 
         title="Forgot Password" 
         description="Reset your Cohort campus account password." 
@@ -116,7 +116,7 @@ export default function ForgotPassword() {
       </header>
 
       {/* --- MAIN HERO 2-COLUMN SPLIT GRID --- */}
-      <main className="relative z-20 max-w-7xl w-full mx-auto px-6 sm:px-12 py-2 grid grid-cols-1 lg:grid-cols-12 items-center gap-8 lg:gap-12 flex-1 overflow-y-auto lg:overflow-visible">
+      <main className="relative z-20 max-w-7xl w-full mx-auto px-6 sm:px-12 pt-2 pb-16 lg:pb-24 grid grid-cols-1 lg:grid-cols-12 items-center gap-8 lg:gap-12 flex-1 overflow-y-auto">
         
         {/* LEFT COLUMN: TYPOGRAPHY + VERIFICATION FORM */}
         <div className="lg:col-span-6 space-y-5 text-left max-w-xl">
