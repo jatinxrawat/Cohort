@@ -1130,7 +1130,7 @@ export default function Community() {
 };
 
   return (
-    <div className="section-container p-0 flex h-full w-full overflow-hidden">
+    <div className="max-w-7xl mx-auto p-0 md:p-md h-full w-full flex flex-col font-sans antialiased text-neutral-900 dark:text-white overflow-hidden">
       <SEO title="Campus Circles" />
 
       {/* ──────── JOIN BANNER ──────── */}
@@ -1154,8 +1154,10 @@ export default function Community() {
         )}
       </AnimatePresence>
 
-      {/* ──────── LEFT SIDEBAR ──────── */}
-      <div className={`flex-shrink-0 w-full md:w-80 lg:w-96 border-r border-neutral-100 dark:border-neutral-800 flex flex-col bg-white dark:bg-neutral-900 ${selectedRoom ? 'hidden md:flex' : 'flex'}`}>
+      <div className="flex flex-col md:flex-row gap-0 md:gap-lg h-full min-h-0 flex-1 overflow-hidden">
+        {/* ──────── LEFT SIDEBAR ──────── */}
+        <div className={`w-full md:w-80 lg:w-96 flex-shrink-0 flex flex-col h-full overflow-hidden ${selectedRoom ? 'hidden md:flex' : 'flex'}`}>
+          <Card className="flex-1 flex flex-col p-0 overflow-hidden rounded-none md:rounded-xl border-none md:border">
 
         {/* Sidebar Header */}
         <div className="px-lg pt-lg pb-md flex-shrink-0">
@@ -1560,14 +1562,15 @@ export default function Community() {
             </div>
           )}
         </div>
+        </Card>
       </div>
 
       {/* ──────── MAIN CHAT AREA ──────── */}
-      <div className={`flex-1 flex flex-col min-w-0 bg-neutral-50 dark:bg-neutral-900 ${selectedRoom ? 'flex' : 'hidden md:flex'}`}>
+      <div className={`flex-1 h-full min-h-0 flex flex-col overflow-hidden ${selectedRoom ? 'flex' : 'hidden md:flex'}`}>
 
         {!selectedRoom ? (
           /* Welcome screen */
-          <div className="flex-1 flex flex-col items-center justify-center text-center px-xl">
+          <Card className="flex-1 flex flex-col items-center justify-center text-center p-2xl border-none md:border rounded-none md:rounded-xl">
             <div className="w-20 h-20 bg-primary-50 dark:bg-primary-950/30 rounded-3xl flex items-center justify-center mb-lg shadow-inner">
               <MessageSquare className="w-10 h-10 text-primary-400" />
             </div>
@@ -1575,12 +1578,13 @@ export default function Community() {
             <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-xs mb-xl">Choose a community from the left to start chatting, or create a new one.</p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-md bg-primary-500 hover:bg-primary-600 text-white font-semibold px-xl py-md rounded-xl shadow-md transition-all hover:scale-105 active:scale-95 text-sm"
+              className="flex items-center gap-md bg-primary-500 hover:bg-primary-600 text-white font-semibold px-xl py-md rounded-xl shadow-md transition-all hover:scale-105 active:scale-95 text-sm cursor-pointer"
             >
               <Plus className="w-4 h-4" /> Create Community
             </button>
-          </div>
-        ) : isCollegeRoom ? (
+          </Card>
+        ) : (
+          <Card className="flex-1 flex flex-col p-0 overflow-hidden border-none md:border rounded-none md:rounded-xl border-neutral-100 dark:border-neutral-800 h-full min-h-0">
           /* ── COLLEGE COMMUNITY ROOM ── */
           <div className="flex-1 flex flex-col min-h-0">
             {/* Header */}
@@ -2278,6 +2282,9 @@ export default function Community() {
             </div>
           </div>
         ) : null}
+        </Card>
+        )}
+      </div>
       </div>
 
       {/* ── MODALS ── */}

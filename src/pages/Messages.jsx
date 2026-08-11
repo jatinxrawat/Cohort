@@ -1524,8 +1524,8 @@ export default function Messages() {
                 </button>
               </div>
 
-              {/* Glassmorphic Segmented Switcher for Direct Chats vs Community */}
-              <div className="p-1.5 bg-neutral-100/90 dark:bg-neutral-900/80 rounded-2xl flex items-center gap-1 border border-neutral-200/80 dark:border-neutral-800/80 shadow-inner">
+              {/* Glassmorphic Segmented Switcher for Direct Chats vs Community (Community hidden on Desktop) */}
+              <div className="p-1.5 bg-neutral-100/90 dark:bg-neutral-900/80 rounded-2xl flex items-center gap-1 border border-neutral-200/80 dark:border-neutral-800/80 shadow-inner md:hidden">
                 <button
                   type="button"
                   onClick={() => setMessagesTab('direct')}
