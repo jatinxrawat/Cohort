@@ -120,7 +120,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-[#08080C] text-neutral-100 flex flex-col justify-between overflow-x-hidden select-none pb-12 sm:pb-16 lg:pb-24">
+    <div className="relative min-h-screen w-full bg-[#08080C] text-neutral-100 flex flex-col justify-start overflow-x-hidden select-none pb-28 sm:pb-36 lg:pb-44">
       <SEO 
         title={isSignup ? "Sign Up" : "Log In"} 
         description="Connect with your university campus community on Cohort. Log in or create a new student account." 
@@ -175,32 +175,32 @@ export default function Signup() {
       </header>
 
       {/* --- MAIN HERO 2-COLUMN SPLIT GRID --- */}
-      <main className="relative z-20 max-w-7xl w-full mx-auto px-6 sm:px-12 pt-2 pb-16 lg:pb-24 grid grid-cols-1 lg:grid-cols-12 items-center gap-8 lg:gap-12 flex-1 overflow-y-auto">
+      <main className="relative z-20 max-w-7xl w-full mx-auto px-6 sm:px-12 pt-2 pb-24 sm:pb-32 lg:pb-36 grid grid-cols-1 lg:grid-cols-12 items-center gap-6 lg:gap-12 flex-1 overflow-y-auto">
         
         {/* LEFT COLUMN: TYPOGRAPHY + AUTH FORM */}
-        <div className="lg:col-span-6 space-y-5 text-left max-w-xl">
+        <div className="lg:col-span-6 space-y-3.5 sm:space-y-4 text-left max-w-xl">
           
           <div>
-            <h1 className="font-unbounded font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight text-white leading-[1.05] mb-3">
+            <h1 className="font-unbounded font-black text-3xl sm:text-4xl lg:text-5xl tracking-tight text-white leading-[1.05] mb-2">
               Join the <br />
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-300 bg-clip-text text-transparent">hub.</span>
             </h1>
-            <p className="font-jakarta text-base sm:text-lg text-neutral-300 font-bold tracking-tight">
+            <p className="font-jakarta text-sm sm:text-base text-neutral-300 font-bold tracking-tight">
               {isSignup ? 'Join your campus community today.' : 'Sign in to access your campus world.'}
             </p>
           </div>
 
           {/* Social Auth Buttons */}
-          <div className="max-w-sm space-y-2.5 pt-1">
+          <div className="max-w-sm space-y-2 pt-1">
             
             {/* Google Sign In Button */}
             <button
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isGoogleLoading}
-              className="w-full py-3 px-6 bg-white hover:bg-neutral-100 text-neutral-900 font-extrabold text-sm rounded-full shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 cursor-pointer border border-white"
+              className="w-full py-2.5 px-6 bg-white hover:bg-neutral-100 text-neutral-900 font-extrabold text-xs sm:text-sm rounded-full shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 cursor-pointer border border-white"
             >
-              <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
@@ -213,22 +213,22 @@ export default function Signup() {
             <button
               type="button"
               onClick={handleGoogleSignIn}
-              className="w-full py-3 px-6 bg-white hover:bg-neutral-100 text-neutral-900 font-extrabold text-sm rounded-full shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 cursor-pointer border border-white"
+              className="w-full py-2.5 px-6 bg-white hover:bg-neutral-100 text-neutral-900 font-extrabold text-xs sm:text-sm rounded-full shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 cursor-pointer border border-white"
             >
-              <svg className="w-5 h-5 fill-current flex-shrink-0" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 fill-current flex-shrink-0" viewBox="0 0 24 24">
                 <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.32c.67-.82 1.13-1.96.99-3.11-.98.04-2.19.66-2.88 1.47-.62.72-1.16 1.88-1.01 3 .01.01 1.09.08 2.9-.36z"/>
               </svg>
               <span>Continue with Apple</span>
             </button>
 
             {/* Divider */}
-            <div className="relative flex items-center justify-center my-3">
+            <div className="relative flex items-center justify-center my-2">
               <div className="border-t border-neutral-800 w-full" />
-              <span className="bg-black px-3 text-[11px] font-bold text-neutral-500 uppercase tracking-widest absolute">or</span>
+              <span className="bg-black px-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest absolute">or</span>
             </div>
 
             {/* Form Inputs for Email / Password */}
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-2.5">
               <div>
                 <input
                   type="text"
@@ -237,7 +237,7 @@ export default function Signup() {
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   className={`w-full bg-black border ${
                     errors.email ? 'border-rose-500' : 'border-neutral-800 focus:border-purple-500'
-                  } rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-500 font-medium focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all`}
+                  } rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-neutral-500 font-medium focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all`}
                 />
                 {errors.email && (
                   <p className="text-xs text-rose-400 mt-1 font-medium">{errors.email}</p>
@@ -254,7 +254,7 @@ export default function Signup() {
                       onChange={(e) => handleInputChange('password', e.target.value)}
                       className={`w-full bg-black border ${
                         errors.password ? 'border-rose-500' : 'border-neutral-800 focus:border-purple-500'
-                      } rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-500 font-medium focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all`}
+                      } rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-neutral-500 font-medium focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all`}
                     />
                     <button
                       type="button"
@@ -279,7 +279,7 @@ export default function Signup() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white font-extrabold text-sm rounded-full transition-all cursor-pointer border border-neutral-700 active:scale-[0.99] flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-extrabold text-xs sm:text-sm rounded-full transition-all cursor-pointer border border-neutral-700 active:scale-[0.99] flex items-center justify-center gap-2"
               >
                 {isLoading ? 'Processing...' : isSignup ? 'Create Account' : 'Sign In'}
               </button>
@@ -291,7 +291,7 @@ export default function Signup() {
               <Link to="/privacy" className="text-purple-400 hover:underline">Privacy Policy</Link>, and Cookie Use.
             </p>
 
-            <div className="pt-2 border-t border-neutral-900 pb-6 mb-4">
+            <div className="pt-2 border-t border-neutral-900 pb-12 mb-8">
               <p className="text-xs font-bold text-neutral-400">
                 {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
                 <button
