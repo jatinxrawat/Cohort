@@ -12,15 +12,19 @@
       // Disable default page view trigger on load for React SPA route compatibility
       gtag('config', 'G-P06KWK4X10', { send_page_view: false });
     </script>
+    <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="canonical" href="https://cohortnow.online/" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="description" content="Cohort - Your campus social media. A student community platform connecting college students with their campus communities, events, confessions, gossip, clubs, opportunities, and friends." />
     <meta name="theme-color" content="#08080C" />
     <title>Cohort - Your Campus Social Media</title>
-
     <!-- Open Graph / Facebook / WhatsApp Link Previews -->
     <meta property="og:type" content="article" />
     <meta property="og:url" content="https://cohortnow.online/" />
@@ -39,6 +43,24 @@
     <meta name="twitter:title" content="Cohort - Your Campus Social Media" />
     <meta name="twitter:description" content="Check out this post on Cohort - The student community platform connecting college students." />
     <meta name="twitter:image" content="https://cohortnow.online/og-image.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Cohort",
+        "alternateName": "Cohort Campus",
+        "url": "https://cohortnow.online/",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://cohortnow.online/search?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Unbounded:wght@700;800;900&display=swap" rel="stylesheet" />
