@@ -5,10 +5,12 @@ import { ArrowLeft, Heart, Clock, Calendar, User, Sparkles, BookOpen, Coffee, Sh
 import SEO from '@/components/SEO';
 import BorderGlow from '@/components/BorderGlow';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
 
 export default function CollegeLove() {
   const { isDark } = useTheme();
+  const { isAuthenticated } = useAuth();
   const [claps, setClaps] = useState(320);
   const [hasClapped, setHasClapped] = useState(false);
   const [showShareTooltip, setShowShareTooltip] = useState(false);
@@ -89,13 +91,23 @@ export default function CollegeLove() {
             </Link>
           </div>
 
-          <Link 
-            to="/uncut" 
-            className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-neutral-600 dark:text-neutral-400 hover:text-pink-500 dark:hover:text-pink-400 transition-colors bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-3.5 py-2 rounded-xl shadow-xs"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link 
+              to="/uncut" 
+              className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-neutral-600 dark:text-neutral-400 hover:text-pink-500 dark:hover:text-pink-400 transition-colors bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-3.5 py-2 rounded-xl shadow-xs"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back</span>
+            </Link>
+
+            <Link
+              to={isAuthenticated ? "/home" : "/signup"}
+              className="flex items-center gap-1.5 text-[11px] sm:text-xs font-black text-pink-500 dark:text-pink-400 bg-pink-500/5 hover:bg-pink-500/10 border border-pink-500/20 hover:border-pink-500/30 transition-all px-3.5 py-2 rounded-xl shadow-xs hover:scale-[1.02] active:scale-[0.98] duration-200 cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{isAuthenticated ? "Enter App" : "Join Cohort"}</span>
+            </Link>
+          </div>
         </div>
       </header>
 
