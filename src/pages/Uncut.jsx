@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 import BorderGlow from '@/components/BorderGlow';
 import SEO from '@/components/SEO';
 import { db } from '@/utils/firebase';
@@ -96,6 +97,7 @@ These tiny behaviors are the social glue that keeps campus from descending into 
 
 export default function Uncut() {
   const { isDark } = useTheme();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [articles, setArticles] = useState(MOCK_ARTICLES);
   const [selectedArticle, setSelectedArticle] = useState(null);
@@ -249,13 +251,23 @@ export default function Uncut() {
             </span>
           </div>
 
-          <Link 
-            to="/" 
-            className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-neutral-600 dark:text-neutral-400 hover:text-pink-500 dark:hover:text-pink-400 transition-colors bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-3.5 py-2 rounded-xl shadow-xs"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link 
+              to="/" 
+              className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-neutral-600 dark:text-neutral-400 hover:text-pink-500 dark:hover:text-pink-400 transition-colors bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-3.5 py-2 rounded-xl shadow-xs"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back</span>
+            </Link>
+
+            <Link
+              to={isAuthenticated ? "/home" : "/signup"}
+              className="flex items-center gap-1.5 text-[11px] sm:text-xs font-black text-pink-500 dark:text-pink-400 bg-pink-500/5 hover:bg-pink-500/10 border border-pink-500/20 hover:border-pink-500/30 transition-all px-3.5 py-2 rounded-xl shadow-xs hover:scale-[1.02] active:scale-[0.98] duration-200 cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{isAuthenticated ? "Enter App" : "Join Cohort"}</span>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -299,7 +311,6 @@ export default function Uncut() {
           {articles.map((article, idx) => (
             <motion.div
               key={article.id}
-              layoutId={`card-container-${article.id}`}
               onClick={() => {
                 if (article.id === 'college-love') {
                   navigate('/uncut/college-love');
@@ -473,10 +484,11 @@ export default function Uncut() {
                 <AnimatePresence>
                   {!isAnonymous && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="space-y-1 overflow-hidden"
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.15, ease: 'easeOut' }}
+                      className="space-y-1"
                     >
                       <label htmlFor="author-name" className="text-xs font-bold text-neutral-500 dark:text-neutral-400">Display Name / Pen Name</label>
                       <input
@@ -593,10 +605,18 @@ export default function Uncut() {
       {/* --- IMMERSIVE DIARY EXPANSION OVERLAY --- */}
       <AnimatePresence>
         {selectedArticle && (
-          <div className="fixed inset-0 z-50 overflow-y-auto bg-amber-50/90 dark:bg-[#08080C]/95 backdrop-blur-lg flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
-            
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 overflow-y-auto bg-amber-50/90 dark:bg-[#08080C]/95 backdrop-blur-lg flex items-center justify-center p-3 sm:p-6"
+          >
             <motion.div
-              layoutId={`card-container-${selectedArticle.id}`}
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 350 }}
               className="bg-white dark:bg-neutral-900 border border-amber-900/10 dark:border-white/5 rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative"
             >
               
@@ -688,7 +708,7 @@ export default function Uncut() {
               </div>
 
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
