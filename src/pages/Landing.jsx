@@ -87,34 +87,7 @@ export default function Landing() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Inject WebSite JSON-LD Structured Data on Homepage mount
-  useEffect(() => {
-    const schema = {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "Cohort",
-      "alternateName": "Cohort Campus",
-      "url": "https://cohortnow.online",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": {
-          "@type": "EntryPoint",
-          "urlTemplate": "https://cohortnow.online/search?q={search_term_string}"
-        },
-        "query-input": "required name=search_term_string"
-      },
-      "description": "The social media for campus and college students. Connect with campus communities, events, confessions, gossip, clubs, opportunities, and friends."
-    };
 
-    const script = document.createElement('script');
-    script.type = 'application/ld+json';
-    script.innerHTML = JSON.stringify(schema);
-    document.head.appendChild(script);
-
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
 
   // --- STATE MANAGEMENT ---
   const [selectedVibe, setSelectedVibe] = useState('CONFESSION');

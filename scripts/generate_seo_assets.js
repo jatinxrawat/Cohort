@@ -22,28 +22,71 @@ if (!fs.existsSync(logoPath)) {
 
 const logoBuffer = fs.readFileSync(logoPath);
 
+function createIco(images) {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0); // Reserved
+  header.writeUInt16LE(1, 2); // Image type (1 = ICO)
+  header.writeUInt16LE(images.length, 4); // Number of images
+
+  const entries = [];
+  let offset = 6 + 16 * images.length;
+
+  for (const img of images) {
+    const entry = Buffer.alloc(16);
+    entry.writeUInt8(img.width >= 256 ? 0 : img.width, 0); // Width
+    entry.writeUInt8(img.height >= 256 ? 0 : img.height, 1); // Height
+    entry.writeUInt8(0, 2); // Color palette
+    entry.writeUInt8(0, 3); // Reserved
+    entry.writeUInt16LE(1, 4); // Color planes
+    entry.writeUInt16LE(32, 6); // Bits per pixel
+    entry.writeUInt32LE(img.buffer.length, 8); // Size of image data
+    entry.writeUInt32LE(offset, 12); // Offset of image data
+    
+    entries.push(entry);
+    offset += img.buffer.length;
+  }
+
+  const buffers = [header, ...entries, ...images.map(img => img.buffer)];
+  return Buffer.concat(buffers);
+}
+
 async function generateFavicons() {
   try {
-    // A. Generate favicon-16x16.png
-    await sharp(logoBuffer)
-      .resize(16, 16)
-      .png()
-      .toFile(path.join(publicDir, 'favicon-16x16.png'));
+    // Generate PNG buffers for ICO and standard sizes
+    const png16 = await sharp(logoBuffer).resize(16, 16).png().toBuffer();
+    const png32 = await sharp(logoBuffer).resize(32, 32).png().toBuffer();
+    const png48 = await sharp(logoBuffer).resize(48, 48).png().toBuffer();
+    const png96 = await sharp(logoBuffer).resize(96, 96).png().toBuffer();
+    const png192 = await sharp(logoBuffer).resize(192, 192).png().toBuffer();
+    const pngApple = await sharp(logoBuffer).resize(180, 180).png().toBuffer();
+
+    // Write PNG files
+    fs.writeFileSync(path.join(publicDir, 'favicon-16x16.png'), png16);
     console.log('✔ Generated public/favicon-16x16.png');
 
-    // B. Generate favicon-32x32.png
-    await sharp(logoBuffer)
-      .resize(32, 32)
-      .png()
-      .toFile(path.join(publicDir, 'favicon-32x32.png'));
+    fs.writeFileSync(path.join(publicDir, 'favicon-32x32.png'), png32);
     console.log('✔ Generated public/favicon-32x32.png');
 
-    // C. Generate apple-touch-icon.png (180x180)
-    await sharp(logoBuffer)
-      .resize(180, 180)
-      .png()
-      .toFile(path.join(publicDir, 'apple-touch-icon.png'));
+    fs.writeFileSync(path.join(publicDir, 'favicon-48x48.png'), png48);
+    console.log('✔ Generated public/favicon-48x48.png');
+
+    fs.writeFileSync(path.join(publicDir, 'favicon-96x96.png'), png96);
+    console.log('✔ Generated public/favicon-96x96.png');
+
+    fs.writeFileSync(path.join(publicDir, 'favicon-192x192.png'), png192);
+    console.log('✔ Generated public/favicon-192x192.png');
+
+    fs.writeFileSync(path.join(publicDir, 'apple-touch-icon.png'), pngApple);
     console.log('✔ Generated public/apple-touch-icon.png');
+
+    // Generate and write favicon.ico
+    const icoBuffer = createIco([
+      { width: 16, height: 16, buffer: png16 },
+      { width: 32, height: 32, buffer: png32 },
+      { width: 48, height: 48, buffer: png48 }
+    ]);
+    fs.writeFileSync(path.join(publicDir, 'favicon.ico'), icoBuffer);
+    console.log('✔ Generated public/favicon.ico');
 
   } catch (err) {
     console.error('Failed to generate favicons:', err);
