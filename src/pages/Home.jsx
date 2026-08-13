@@ -12,6 +12,7 @@ import { UserAvatar } from '@/components/UserAvatar';
 import { uploadImageToCloudinary } from '@/utils/cloudinary';
 import SEO from '@/components/SEO';
 import HomeRightPanel from '@/components/HomeRightPanel';
+import { MentionTextArea } from '@/components/MentionTextArea';
 
 const FAKE_NAMES = [
   'priya sharma',
@@ -338,10 +339,10 @@ export default function Home() {
                 className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shadow-sm ring-2 ring-neutral-200/50 dark:ring-neutral-700/50 flex-shrink-0"
               />
               <div className="flex-1 min-w-0">
-                <textarea
+                <MentionTextArea
                   value={postContent}
                   onChange={(e) => setPostContent(e.target.value)}
-                  placeholder="What's happening in your campus?"
+                  placeholder="What's happening in your campus? Type #hashtag or @mention..."
                   className="w-full bg-transparent text-sm sm:text-base text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 resize-none outline-none border-none focus:ring-0 leading-relaxed p-1"
                   rows={3}
                 />

@@ -17,6 +17,7 @@ import { useNotification } from '@/contexts/NotificationContext';
 import { PostCard } from '@/components/PostCard';
 import { uploadImageToCloudinary } from '@/utils/cloudinary';
 import SEO from '@/components/SEO';
+import { MentionTextArea } from '@/components/MentionTextArea';
 import {
   collection, addDoc, doc, deleteDoc, updateDoc, query,
   orderBy, onSnapshot, getDoc, getDocs, arrayUnion, arrayRemove, where
@@ -1872,8 +1873,8 @@ export default function Community() {
                         className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shadow-sm ring-2 ring-neutral-200/50 dark:ring-neutral-700/50 flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <textarea
-                          placeholder="Post a campus announcement or community update..."
+                        <MentionTextArea
+                          placeholder="Post a campus announcement or community update... (type @ to tag a peer)"
                           value={newPostText}
                           onChange={(e) => setNewPostText(e.target.value)}
                           rows={3}

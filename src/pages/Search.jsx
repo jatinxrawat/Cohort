@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { UserAvatar } from '@/components/UserAvatar';
+import FormattedText from '@/components/FormattedText';
 import {
   Search as SearchIcon,
   Users,
@@ -14,7 +15,8 @@ import {
   TrendingUp,
   Clock,
   History,
-  Trash2
+  Trash2,
+  Tag
 } from 'lucide-react';
 import { useDebounce } from '@/hooks';
 import SEO from '@/components/SEO';
@@ -23,6 +25,8 @@ import { db } from '@/utils/firebase';
 
 export default function Search() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('All');
   const [loading, setLoading] = useState(false);
@@ -30,13 +34,25 @@ export default function Search() {
   const [peopleResults, setPeopleResults] = useState([]);
   const [postsResults, setPostsResults] = useState([]);
 
+  // Read URL query parameter e.g. ?q=%23Cohort or ?hashtag=Cohort
+  useEffect(() => {
+    const qParam = searchParams.get('q') || searchParams.get('hashtag');
+    if (qParam) {
+      const decoded = decodeURIComponent(qParam);
+      setSearchTerm(decoded);
+      if (decoded.startsWith('#')) {
+        setActiveTab('Posts');
+      }
+    }
+  }, [searchParams]);
+
   // Search History State (persisted in localStorage)
   const [searchHistory, setSearchHistory] = useState(() => {
     try {
       const saved = localStorage.getItem('cohort_search_history');
-      return saved ? JSON.parse(saved) : ['@student', 'KIET', 'Computer Science'];
+      return saved ? JSON.parse(saved) : ['#Cohort', '#CampusLife', '@student', 'KIET'];
     } catch (e) {
-      return ['@student', 'KIET', 'Computer Science'];
+      return ['#Cohort', '#CampusLife', '@student', 'KIET'];
     }
   });
 
@@ -94,55 +110,64 @@ export default function Search() {
       }
 
       setLoading(true);
-      const cleanTerm = debouncedQuery.toLowerCase().replace('@', '').trim();
+      const rawTerm = debouncedQuery.trim().toLowerCase();
+      const cleanTerm = rawTerm.replace(/^[@#]/, '').trim();
+      const isHashtagSearch = rawTerm.startsWith('#');
 
       try {
-        // Search Students / Users
-        const usersSnap = await getDocs(collection(db, 'users'));
-        const foundPeople = [];
-        let addedCohort = false;
+        // Search Students / Users (skip if purely searching a hashtag)
+        if (!isHashtagSearch) {
+          const usersSnap = await getDocs(collection(db, 'users'));
+          const foundPeople = [];
+          let addedCohort = false;
 
-        usersSnap.forEach(d => {
-          const data = d.data();
-          const nameMatch = data.name && data.name.toLowerCase().includes(cleanTerm);
-          const usernameMatch = data.username && data.username.toLowerCase().includes(cleanTerm);
-          const collegeMatch = data.college && data.college.toLowerCase().includes(cleanTerm);
+          usersSnap.forEach(d => {
+            const data = d.data();
+            const nameMatch = data.name && data.name.toLowerCase().includes(cleanTerm);
+            const usernameMatch = data.username && data.username.toLowerCase().includes(cleanTerm);
+            const collegeMatch = data.college && data.college.toLowerCase().includes(cleanTerm);
 
-          if (nameMatch || usernameMatch || collegeMatch) {
-            const isCohortAccount =
-              d.id === 'cohort_official' ||
-              (data.username || '').toLowerCase() === 'cohort' ||
-              (data.name || '').toLowerCase() === 'cohort' ||
-              data.isOfficial === true;
+            if (nameMatch || usernameMatch || collegeMatch) {
+              const isCohortAccount =
+                d.id === 'cohort_official' ||
+                (data.username || '').toLowerCase() === 'cohort' ||
+                (data.name || '').toLowerCase() === 'cohort' ||
+                data.isOfficial === true;
 
-            if (isCohortAccount) {
-              if (!addedCohort) {
-                addedCohort = true;
-                foundPeople.push({
-                  id: 'cohort_official',
-                  uid: 'cohort_official',
-                  name: 'Cohort',
-                  username: 'cohort',
-                  college: 'Cohort Official Platform',
-                  isOfficial: true,
-                  bio: data.bio || 'The official Cohort platform account. Connecting students across campuses.',
-                  avatar: data.avatar || 'https://ui-avatars.com/api/?name=Cohort&background=9333ea&color=fff&bold=true&size=128'
-                });
+              if (isCohortAccount) {
+                if (!addedCohort) {
+                  addedCohort = true;
+                  foundPeople.push({
+                    id: 'cohort_official',
+                    uid: 'cohort_official',
+                    name: 'Cohort',
+                    username: 'cohort',
+                    college: 'Cohort Official Platform',
+                    isOfficial: true,
+                    bio: data.bio || 'The official Cohort platform account. Connecting students across campuses.',
+                    avatar: data.avatar || 'https://ui-avatars.com/api/?name=Cohort&background=9333ea&color=fff&bold=true&size=128'
+                  });
+                }
+              } else {
+                foundPeople.push({ id: d.id, uid: d.id, ...data });
               }
-            } else {
-              foundPeople.push({ id: d.id, uid: d.id, ...data });
             }
-          }
-        });
-        setPeopleResults(foundPeople);
+          });
+          setPeopleResults(foundPeople);
+        } else {
+          setPeopleResults([]);
+        }
 
-        // Search Feed Posts
+        // Search Feed Posts for matching content or hashtag
         const postsSnap = await getDocs(collection(db, 'posts'));
         const foundPosts = [];
         postsSnap.forEach(d => {
           const data = d.data();
-          const contentMatch = data.content && data.content.toLowerCase().includes(cleanTerm);
-          const authorMatch = data.author?.name && data.author.name.toLowerCase().includes(cleanTerm);
+          const content = (data.content || '').toLowerCase();
+          const authorName = (data.author?.name || '').toLowerCase();
+
+          const contentMatch = content.includes(rawTerm) || content.includes(cleanTerm);
+          const authorMatch = authorName.includes(cleanTerm);
 
           if (contentMatch || authorMatch) {
             foundPosts.push({ id: d.id, docId: d.id, ...data });
@@ -332,7 +357,7 @@ export default function Search() {
                           </div>
                         </div>
                         <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed mb-md whitespace-pre-wrap break-words">
-                          {post.content}
+                          <FormattedText text={post.content} />
                         </p>
                         {post.imageUrl && (
                           <div className="mb-md rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-950/40 flex items-center justify-center">
@@ -360,7 +385,7 @@ export default function Search() {
               <SearchIcon className="w-12 h-12 text-neutral-300 dark:text-neutral-700 mx-auto mb-md" />
               <h3 className="font-bold text-lg text-neutral-900 dark:text-white mb-xs">No Matches Found</h3>
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                We couldn't find any student or post matching "{debouncedQuery}". Try searching by exact name or @username.
+                We couldn't find any student or post matching "{debouncedQuery}". Try searching by exact name, #hashtag, or @username.
               </p>
             </motion.div>
           )
@@ -372,16 +397,22 @@ export default function Search() {
             animate={{ opacity: 1 }}
             className="space-y-xl"
           >
-            {/* Quick Chips / Popular Searches */}
+            {/* Quick Chips / Popular Searches & Hashtags */}
             <div className="flex items-center gap-xs flex-wrap">
               <span className="text-xs font-bold text-neutral-400 mr-sm flex items-center gap-xs">
-                <TrendingUp className="w-3.5 h-3.5 text-primary-500" /> Popular Searches:
+                <TrendingUp className="w-3.5 h-3.5 text-primary-500" /> Trending & Popular:
               </span>
-              {['@student', 'KIET', 'Computer Science', 'Campus Community'].map(chip => (
+              {['#Cohort', '#CampusLife', '#StudentStartup', '#BuildInPublic', '@student', 'KIET'].map(chip => (
                 <button
                   key={chip}
                   onClick={() => handleSelectChip(chip)}
-                  className="px-md py-xs bg-neutral-100 dark:bg-neutral-800/80 hover:bg-primary-50 dark:hover:bg-primary-950/40 text-neutral-700 dark:text-neutral-300 hover:text-primary-500 rounded-full text-xs font-semibold transition-colors cursor-pointer"
+                  className={`px-md py-xs rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    chip.startsWith('#')
+                      ? 'bg-sky-500/10 text-sky-500 dark:text-sky-400 hover:bg-sky-500/20 border border-sky-500/20'
+                      : chip.startsWith('@')
+                        ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20 border border-purple-500/20'
+                        : 'bg-neutral-100 dark:bg-neutral-800/80 hover:bg-primary-50 dark:hover:bg-primary-950/40 text-neutral-700 dark:text-neutral-300 hover:text-primary-500'
+                  }`}
                 >
                   {chip}
                 </button>

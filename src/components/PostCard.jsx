@@ -32,6 +32,8 @@ import ShareModal from '@/components/ShareModal';
 import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, increment, arrayUnion, arrayRemove, getDocs, where } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 import { createNotification } from '@/utils/notifications';
+import FormattedText from '@/components/FormattedText';
+import { MentionTextArea } from '@/components/MentionTextArea';
 
 export const ExpandableCaption = ({ text, maxLength = 200, className = '' }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -54,7 +56,7 @@ export const ExpandableCaption = ({ text, maxLength = 200, className = '' }) => 
   return (
     <div className={className}>
       <p className="text-neutral-800 dark:text-neutral-200 leading-relaxed whitespace-pre-wrap break-words inline">
-        {displayText}
+        <FormattedText text={displayText} />
       </p>
       {shouldTruncate && (
         <button
@@ -788,11 +790,12 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
       {/* Content / Thoughts */}
       {isEditingPost ? (
         <div className="mb-xl space-y-sm">
-          <textarea
+          <MentionTextArea
             value={editPostContent}
             onChange={(e) => setEditPostContent(e.target.value)}
             className="w-full p-md bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500 text-neutral-900 dark:text-white leading-relaxed resize-none"
             rows={3}
+            placeholder="Edit your post content (type @ to tag a peer)..."
           />
           <div className="flex items-center justify-end gap-md">
             <button

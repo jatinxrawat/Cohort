@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '@/components/SEO';
+import FormattedText from '@/components/FormattedText';
+import { MentionTextArea } from '@/components/MentionTextArea';
 import {
   Heart,
   MessageCircle,
@@ -959,7 +961,7 @@ export default function AnonymousFeed({ defaultTab }) {
                     {/* Post Content / Thoughts & Embedded Preview */}
                     {post.thought && (
                       <p className="text-neutral-900 dark:text-zinc-100 text-sm font-semibold leading-relaxed">
-                        {post.thought}
+                        <FormattedText text={post.thought} />
                       </p>
                     )}
 
@@ -970,12 +972,12 @@ export default function AnonymousFeed({ defaultTab }) {
                           <span>{post.originalPost?.anonymousName || 'Anonymous Fox'}</span>
                         </div>
                         <p className="text-xs text-neutral-700 dark:text-zinc-300 leading-relaxed">
-                          {post.originalPost?.text || post.text}
+                          <FormattedText text={post.originalPost?.text || post.text} />
                         </p>
                       </div>
                     ) : (
                       <p className="text-neutral-800 dark:text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap">
-                        {post.text}
+                        <FormattedText text={post.text} />
                       </p>
                     )}
 
@@ -1590,12 +1592,12 @@ export default function AnonymousFeed({ defaultTab }) {
           )}
 
           <div className="space-y-sm">
-            <textarea
+            <MentionTextArea
               rows={4}
               placeholder={
                 activeTab === 'confessions'
                   ? "Share your secret confession..."
-                  : "What's on your mind? Share anonymously..."
+                  : "What's on your mind? Share anonymously... (type @ to tag a peer)"
               }
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
@@ -1667,12 +1669,12 @@ export default function AnonymousFeed({ defaultTab }) {
           size="md"
         >
           <div className="space-y-md py-xs">
-            <textarea
+            <MentionTextArea
               value={editedPostText}
               onChange={(e) => setEditedPostText(e.target.value)}
               rows={4}
               className="w-full p-md bg-neutral-50 dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500 text-neutral-900 dark:text-white leading-relaxed resize-none placeholder:text-neutral-400 dark:placeholder:text-zinc-500"
-              placeholder="Edit your post content..."
+              placeholder="Edit your post content (type @ to tag a peer)..."
             />
             <div className="flex items-center justify-end gap-md pt-sm">
               <Button
