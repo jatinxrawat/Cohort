@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Heart, Clock, Calendar, User, Sparkles, BookOpen, Coffee, Share2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Heart, Clock, Calendar, User, UserPlus, Sparkles, BookOpen, Coffee, Share2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import BorderGlow from '@/components/BorderGlow';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -81,7 +81,12 @@ export default function CollegeLove() {
       <header className="sticky top-0 z-40 bg-white/70 dark:bg-[#08080C]/70 backdrop-blur-xl border-b border-amber-900/5 dark:border-white/5 py-4 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Logo isLanding={false} iconSize="w-9 h-9" textSize="text-xl" />
+            <Logo 
+              isLanding={false} 
+              iconSize="w-9 h-9" 
+              textSize="text-xl" 
+              textClassName="hidden sm:inline font-display font-black tracking-tight" 
+            />
             <span className="h-5 w-px bg-amber-900/10 dark:bg-white/10" />
             <Link 
               to="/uncut" 
@@ -104,7 +109,11 @@ export default function CollegeLove() {
               to={isAuthenticated ? "/home" : "/signup"}
               className="flex items-center gap-1.5 text-[11px] sm:text-xs font-black text-pink-500 dark:text-pink-400 bg-pink-500/5 hover:bg-pink-500/10 border border-pink-500/20 hover:border-pink-500/30 transition-all px-3.5 py-2 rounded-xl shadow-xs hover:scale-[1.02] active:scale-[0.98] duration-200 cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              {isAuthenticated ? (
+                <ArrowRight className="w-3.5 h-3.5" />
+              ) : (
+                <UserPlus className="w-3.5 h-3.5" />
+              )}
               <span>{isAuthenticated ? "Enter App" : "Join Cohort"}</span>
             </Link>
           </div>

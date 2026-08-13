@@ -91,7 +91,8 @@ export const Logo = ({
   textSize = "text-xl", 
   variant = "badge", 
   isLanding = false,
-  className = "flex items-center gap-2.5 group"
+  className = "flex items-center gap-2.5 group",
+  textClassName = "font-display font-black tracking-tight"
 }) => {
   return (
     <Link to={to} className={className}>
@@ -103,7 +104,7 @@ export const Logo = ({
         <LogoText 
           textSize={textSize} 
           isLanding={isLanding} 
-          className="font-display font-black tracking-tight" 
+          className={textClassName} 
         />
       )}
     </Link>

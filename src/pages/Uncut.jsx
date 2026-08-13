@@ -13,6 +13,7 @@ import {
   PenTool, 
   Clock, 
   User, 
+  UserPlus,
   Calendar,
   CheckCircle,
   MessageCircle,
@@ -231,7 +232,12 @@ export default function Uncut() {
       <header className="sticky top-0 z-40 bg-white/70 dark:bg-[#08080C]/70 backdrop-blur-xl border-b border-amber-900/5 dark:border-white/5 py-4 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Logo isLanding={false} iconSize="w-9 h-9" textSize="text-xl" />
+            <Logo 
+              isLanding={false} 
+              iconSize="w-9 h-9" 
+              textSize="text-xl" 
+              textClassName="hidden sm:inline font-display font-black tracking-tight" 
+            />
             <span className="h-5 w-px bg-amber-900/10 dark:bg-white/10" />
             <span className="font-unbounded font-black text-xs tracking-wider text-pink-500 dark:text-pink-400 bg-pink-500/10 px-2.5 py-1 rounded-md border border-pink-500/20">
               UNCUT
@@ -251,7 +257,11 @@ export default function Uncut() {
               to={isAuthenticated ? "/home" : "/signup"}
               className="flex items-center gap-1.5 text-[11px] sm:text-xs font-black text-pink-500 dark:text-pink-400 bg-pink-500/5 hover:bg-pink-500/10 border border-pink-500/20 hover:border-pink-500/30 transition-all px-3.5 py-2 rounded-xl shadow-xs hover:scale-[1.02] active:scale-[0.98] duration-200 cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              {isAuthenticated ? (
+                <ArrowRight className="w-3.5 h-3.5" />
+              ) : (
+                <UserPlus className="w-3.5 h-3.5" />
+              )}
               <span>{isAuthenticated ? "Enter App" : "Join Cohort"}</span>
             </Link>
           </div>
@@ -607,7 +617,7 @@ export default function Uncut() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 overflow-y-auto bg-amber-50/90 dark:bg-[#08080C]/95 backdrop-blur-lg flex items-center justify-center p-3 sm:p-6"
+            className="fixed inset-0 z-50 overflow-y-auto bg-black/30 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
