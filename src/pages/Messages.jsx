@@ -167,18 +167,54 @@ export default function Messages() {
 
   const getLiveRecipientProfile = (conv) => {
     if (!conv) return { avatar: '', name: 'Student', username: '', college: 'KIET' };
-    const otherUid = conv.recipientUid ||
-                     (conv.participants || []).find(p => p !== myUid) ||
-                     conv.createdBy;
+    
+    // Always resolve the OTHER participant's UID (distinct from current user myUid)
+    let otherUid = (conv.participants || []).find(p => p && p !== myUid);
+    if (!otherUid) {
+      if (conv.recipientUid && conv.recipientUid !== myUid) {
+        otherUid = conv.recipientUid;
+      } else if (conv.createdBy && conv.createdBy !== myUid) {
+        otherUid = conv.createdBy;
+      } else {
+        const otherMsg = (conv.messages || []).find(m => (m.senderUid && m.senderUid !== myUid) || (m.sender && m.sender !== myUid && m.sender !== 'me'));
+        if (otherMsg) {
+          otherUid = otherMsg.senderUid || (otherMsg.sender !== 'me' ? otherMsg.sender : null);
+        }
+      }
+    }
 
-    const liveUser = usersMap[otherUid] || recipientProfile;
+    const liveUser = (otherUid && usersMap[otherUid]) || null;
+    const mapInfo = (otherUid && conv.participantMap?.[otherUid]) || null;
+
+    let name = liveUser?.name || mapInfo?.name;
+    if (!name) {
+      if (conv.recipientUid && conv.recipientUid !== myUid && conv.recipientName) {
+        name = conv.recipientName;
+      } else if (conv.createdBy && conv.createdBy !== myUid && conv.createdByName) {
+        name = conv.createdByName;
+      } else {
+        name = (conv.name && conv.name !== user?.name) ? conv.name : (conv.recipientName || 'Student');
+      }
+    }
+
+    let avatar = liveUser?.avatar || mapInfo?.avatar;
+    if (!avatar) {
+      if (conv.recipientUid && conv.recipientUid !== myUid && conv.recipientAvatar) {
+        avatar = conv.recipientAvatar;
+      } else if (conv.createdBy && conv.createdBy !== myUid && conv.createdByAvatar) {
+        avatar = conv.createdByAvatar;
+      } else {
+        avatar = (conv.avatar && conv.avatar !== user?.avatar) ? conv.avatar : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
+      }
+    }
+
     return {
-      avatar: liveUser?.avatar || conv.participantAvatars?.[otherUid] || conv.avatar,
-      name: liveUser?.name || conv.participantNames?.[otherUid] || conv.name,
-      username: liveUser?.username || conv.username || '',
-      college: liveUser?.college || conv.college || 'KIET',
-      bio: liveUser?.bio || conv.bio,
-      uid: otherUid
+      avatar,
+      name,
+      username: liveUser?.username || mapInfo?.username || conv.username || '',
+      college: liveUser?.college || mapInfo?.college || conv.college || 'Campus Peer',
+      bio: liveUser?.bio || mapInfo?.bio || conv.bio || '',
+      uid: otherUid || (conv.recipientUid !== myUid ? conv.recipientUid : conv.createdBy)
     };
   };
 
@@ -308,26 +344,34 @@ export default function Messages() {
             }));
 
             // Determine other participant's UID and details
-            const otherUid = (data.participants || []).find(pUid => pUid !== user.uid);
+            let otherUid = (data.participants || []).find(pUid => pUid && pUid !== user.uid);
+            if (!otherUid) {
+              if (data.recipientUid && data.recipientUid !== user.uid) {
+                otherUid = data.recipientUid;
+              } else if (data.createdBy && data.createdBy !== user.uid) {
+                otherUid = data.createdBy;
+              }
+            }
+
             let displayTitle = '';
             let avatarUrl = '';
 
             if (otherUid && data.participantMap && data.participantMap[otherUid]) {
               displayTitle = data.participantMap[otherUid].name;
               avatarUrl = data.participantMap[otherUid].avatar;
+            } else if (data.recipientUid && data.recipientUid !== user.uid) {
+              displayTitle = data.recipientName || (data.name !== user.name ? data.name : '') || 'Chat';
+              avatarUrl = data.recipientAvatar || data.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayTitle)}`;
             } else if (data.createdBy && data.createdBy !== user.uid) {
               displayTitle = data.createdByName || 'Chat';
               avatarUrl = data.createdByAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayTitle)}`;
-            } else if (data.recipientUid && data.recipientUid !== user.uid) {
-              displayTitle = data.recipientName || data.name || 'Chat';
-              avatarUrl = data.recipientAvatar || data.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayTitle)}`;
             } else {
               const otherMsg = parsedMsgs.find(m => m.senderUid && m.senderUid !== user.uid);
               if (otherMsg && otherMsg.senderName) {
                 displayTitle = otherMsg.senderName;
                 avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayTitle)}`;
               } else {
-                displayTitle = data.name || 'Chat';
+                displayTitle = (data.name && data.name !== user.name) ? data.name : (data.recipientName || 'Chat');
                 avatarUrl = data.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayTitle)}`;
               }
             }
@@ -348,8 +392,12 @@ export default function Messages() {
       // Deduplicate loaded conversations so multiple docs for the same chat pair never render duplicate cards
       const uniqueConversationsMap = new Map();
       loaded.forEach(c => {
-        const otherUid = (c.participants || []).find(p => p !== user.uid) || c.recipientUid;
-        const key = otherUid || c.name || c.id;
+        let otherUid = (c.participants || []).find(p => p && p !== user.uid);
+        if (!otherUid) {
+          if (c.recipientUid && c.recipientUid !== user.uid) otherUid = c.recipientUid;
+          else if (c.createdBy && c.createdBy !== user.uid) otherUid = c.createdBy;
+        }
+        const key = otherUid || (c.name !== user.name ? c.name : null) || c.id;
         if (!uniqueConversationsMap.has(key)) {
           uniqueConversationsMap.set(key, c);
         } else {
