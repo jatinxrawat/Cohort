@@ -2281,7 +2281,7 @@ export default function Community() {
               </div>
             </div>
           </div>
-        ) : null}
+        ) : null
           </Card>
         )}
       </div>

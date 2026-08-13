@@ -692,21 +692,21 @@ export default function MakeAFriend() {
   const QuestionIcon = currentQuestion?.icon;
 
   return (
-    <div className="min-h-[calc(100vh-80px)] w-full flex flex-col items-center justify-start p-4 sm:p-6 lg:p-8 select-none relative overflow-hidden bg-zinc-950 text-white">
+    <div className="min-h-[calc(100vh-80px)] w-full flex flex-col items-center justify-start p-4 sm:p-6 lg:p-8 select-none relative overflow-hidden bg-neutral-50 dark:bg-zinc-950 text-neutral-900 dark:text-white transition-colors duration-300">
       <SEO title="Make a Friend" />
       
       {/* Subtle ambient background glow */}
-      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary-600/5 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary-600/5 dark:bg-primary-600/10 rounded-full blur-[140px] pointer-events-none" />
 
       {/* Main Page Title Header */}
       <div className="text-center mb-6 z-10">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-zinc-900 border border-zinc-800 text-primary-400 rounded-full text-xs font-semibold uppercase tracking-wider mb-2 shadow-xs">
-          <Sparkles className="w-3.5 h-3.5 text-primary-400" /> Campus Vibe Twin
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-neutral-200/80 dark:bg-zinc-900 border border-neutral-300/80 dark:border-zinc-800 text-primary-600 dark:text-primary-400 rounded-full text-xs font-semibold uppercase tracking-wider mb-2 shadow-xs">
+          <Sparkles className="w-3.5 h-3.5 text-primary-600 dark:text-primary-400" /> Campus Vibe Twin
         </div>
-        <h1 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight text-white">
+        <h1 className="text-3xl sm:text-4xl font-heading font-extrabold tracking-tight text-neutral-900 dark:text-white">
           Make a Friend
         </h1>
-        <p className="text-xs sm:text-sm text-zinc-400 mt-1 font-medium max-w-md mx-auto">
+        <p className="text-xs sm:text-sm text-neutral-600 dark:text-zinc-400 mt-1 font-medium max-w-md mx-auto">
           Discover classmates nearby who match your personality & campus vibe.
         </p>
       </div>
@@ -715,7 +715,7 @@ export default function MakeAFriend() {
       {step === 'onboarding' && (
         <div className="w-full max-w-xl flex flex-col items-center relative z-10 py-4">
           {/* Category Progress Segmented Toggle Bar */}
-          <div className="flex gap-1.5 w-full justify-between mb-6 p-1.5 bg-zinc-900/90 backdrop-blur-xl rounded-2xl border border-zinc-800 shadow-sm">
+          <div className="flex gap-1.5 w-full justify-between mb-6 p-1.5 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl rounded-2xl border border-neutral-200/80 dark:border-zinc-800 shadow-sm">
             {CATEGORIES.map((cat, idx) => {
               const isCurrent = currentCategory === cat;
               const isPassed = CATEGORIES.indexOf(currentCategory) > idx;
@@ -726,8 +726,8 @@ export default function MakeAFriend() {
                     isCurrent
                       ? 'bg-primary-600 text-white shadow-sm'
                       : isPassed
-                      ? 'bg-zinc-800/80 text-zinc-300 border border-zinc-700/60'
-                      : 'text-zinc-500'
+                      ? 'bg-neutral-100 dark:bg-zinc-800/80 text-neutral-700 dark:text-zinc-300 border border-neutral-200 dark:border-zinc-700/60'
+                      : 'text-neutral-400 dark:text-zinc-500'
                   }`}
                 >
                   {cat}
@@ -737,23 +737,23 @@ export default function MakeAFriend() {
           </div>
 
           {/* Question Box Card */}
-          <Card className="w-full bg-zinc-900/90 backdrop-blur-2xl border border-zinc-800 p-6 sm:p-8 rounded-3xl relative shadow-xl space-y-6">
-            <div className="absolute top-6 right-6 bg-zinc-800 border border-zinc-700/60 px-3 py-1 rounded-full text-xs font-mono text-zinc-400 font-bold">
+          <Card className="w-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl border border-neutral-200/80 dark:border-zinc-800 p-6 sm:p-8 rounded-3xl relative shadow-xl space-y-6">
+            <div className="absolute top-6 right-6 bg-neutral-100 dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700/60 px-3 py-1 rounded-full text-xs font-mono text-neutral-600 dark:text-zinc-400 font-bold">
               {questionNumber} / {QUESTIONS.length}
             </div>
 
             <div className="flex items-center gap-3">
               {QuestionIcon && (
                 <div className="w-10 h-10 rounded-xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center flex-shrink-0">
-                  <QuestionIcon className="w-5 h-5 text-primary-400" />
+                  <QuestionIcon className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 </div>
               )}
-              <span className="text-xs font-bold uppercase tracking-wider text-primary-400 font-mono">
+              <span className="text-xs font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 font-mono">
                 {currentQuestion?.category}
               </span>
             </div>
 
-            <h3 className="text-lg sm:text-xl font-bold font-display text-white leading-snug">
+            <h3 className="text-lg sm:text-xl font-bold font-display text-neutral-900 dark:text-white leading-snug">
               {currentQuestion?.text}
             </h3>
 
@@ -762,11 +762,11 @@ export default function MakeAFriend() {
                 <button
                   key={oIdx}
                   onClick={() => handleSelectOption(currentQuestion.id, oIdx)}
-                  className="w-full text-left p-4 bg-zinc-950/60 hover:bg-zinc-800/60 text-sm font-semibold rounded-2xl border border-zinc-800 hover:border-primary-500/50 text-zinc-300 hover:text-white transition-all flex items-center justify-between group cursor-pointer"
+                  className="w-full text-left p-4 bg-neutral-50 dark:bg-zinc-950/60 hover:bg-neutral-100 dark:hover:bg-zinc-800/60 text-sm font-semibold rounded-2xl border border-neutral-200 dark:border-zinc-800 hover:border-primary-500/50 text-neutral-700 dark:text-zinc-300 hover:text-neutral-900 dark:hover:text-white transition-all flex items-center justify-between group cursor-pointer"
                 >
                   <span>{opt}</span>
-                  <div className="w-5 h-5 rounded-full border border-zinc-700 flex items-center justify-center flex-shrink-0 group-hover:border-primary-400 transition-colors">
-                    <div className="w-2.5 h-2.5 rounded-full bg-primary-400 scale-0 group-hover:scale-100 transition-transform duration-200" />
+                  <div className="w-5 h-5 rounded-full border border-neutral-300 dark:border-zinc-700 flex items-center justify-center flex-shrink-0 group-hover:border-primary-500 transition-colors">
+                    <div className="w-2.5 h-2.5 rounded-full bg-primary-500 dark:bg-primary-400 scale-0 group-hover:scale-100 transition-transform duration-200" />
                   </div>
                 </button>
               ))}
@@ -776,7 +776,7 @@ export default function MakeAFriend() {
             {currentQuestionIndex > 0 && (
               <button
                 onClick={handleOnboardingBack}
-                className="pt-2 flex items-center gap-1 text-xs font-bold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                className="pt-2 flex items-center gap-1 text-xs font-bold text-neutral-500 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" /> Go Back
               </button>
@@ -784,7 +784,7 @@ export default function MakeAFriend() {
           </Card>
 
           {/* Progress Bar */}
-          <div className="w-full bg-zinc-900 h-2 rounded-full overflow-hidden mt-6 border border-zinc-800">
+          <div className="w-full bg-neutral-200 dark:bg-zinc-900 h-2 rounded-full overflow-hidden mt-6 border border-neutral-300/60 dark:border-zinc-800">
             <div
               className="bg-primary-600 h-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
@@ -796,23 +796,23 @@ export default function MakeAFriend() {
       {/* STEP 2: QUESTIONNAIRE COMPLETE - READY TO FIND FRIEND */}
       {step === 'match_ready' && (
         <div className="w-full max-w-md flex flex-col items-center justify-center text-center relative z-10 py-6">
-          <div className="w-20 h-20 rounded-full bg-zinc-900 border border-zinc-800 mb-6 flex items-center justify-center shadow-lg">
-            <Sparkles className="w-10 h-10 text-primary-400" />
+          <div className="w-20 h-20 rounded-full bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 mb-6 flex items-center justify-center shadow-lg">
+            <Sparkles className="w-10 h-10 text-primary-600 dark:text-primary-400" />
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-white leading-tight">
+          <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-neutral-900 dark:text-white leading-tight">
             Ready to Connect
           </h2>
-          <p className="text-xs sm:text-sm text-zinc-400 mt-2 px-6 font-medium max-w-sm mb-6">
+          <p className="text-xs sm:text-sm text-neutral-600 dark:text-zinc-400 mt-2 px-6 font-medium max-w-sm mb-6">
             Your vibe parameters are mapped! Select your preferred radius and start swiping.
           </p>
 
           {/* Campus Match Toggle */}
-          <Card className="w-full bg-zinc-900/90 border border-zinc-800 p-4 mb-6 rounded-2xl max-w-xs shadow-xl">
-            <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3 flex items-center justify-center gap-1.5">
-              <MapPin className="w-4 h-4 text-primary-400" /> Matching Radius
+          <Card className="w-full bg-white/90 dark:bg-zinc-900/90 border border-neutral-200 dark:border-zinc-800 p-4 mb-6 rounded-2xl max-w-xs shadow-xl">
+            <label className="block text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider mb-3 flex items-center justify-center gap-1.5">
+              <MapPin className="w-4 h-4 text-primary-600 dark:text-primary-400" /> Matching Radius
             </label>
-            <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+            <div className="flex bg-neutral-100 dark:bg-zinc-950 p-1 rounded-xl border border-neutral-200 dark:border-zinc-800">
               {['On Campus', 'Outside Campus'].map((opt) => (
                 <button
                   key={opt}
@@ -821,7 +821,7 @@ export default function MakeAFriend() {
                   className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
                     campusFilter === opt
                       ? 'bg-primary-600 text-white shadow-xs'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      : 'text-neutral-600 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-200'
                   }`}
                 >
                   {opt}
@@ -839,7 +839,7 @@ export default function MakeAFriend() {
 
           <button
             onClick={handleRetakeQuiz}
-            className="mt-4 text-xs font-bold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            className="mt-4 text-xs font-bold text-neutral-500 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
           >
             Review Answers
           </button>
@@ -872,9 +872,9 @@ export default function MakeAFriend() {
         <div className="w-full max-w-md flex flex-col items-center relative z-10">
           
           {/* Sleek Floating Glass Filter Bar */}
-          <div className="w-full bg-zinc-900/80 backdrop-blur-2xl p-2 rounded-2xl border border-white/10 shadow-2xl mb-5 flex flex-col gap-2">
+          <div className="w-full bg-white/90 dark:bg-zinc-900/80 backdrop-blur-2xl p-2 rounded-2xl border border-neutral-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl mb-5 flex flex-col gap-2">
             <div className="flex items-center justify-between gap-1.5">
-              <div className="flex items-center gap-1 flex-1 bg-black/40 p-1 rounded-xl border border-zinc-800/80">
+              <div className="flex items-center gap-1 flex-1 bg-neutral-100/80 dark:bg-black/40 p-1 rounded-xl border border-neutral-200/80 dark:border-zinc-800/80">
                 {['All', 'Male', 'Female', 'Liked Profiles'].map((tab) => {
                   const isActive = tab === 'Liked Profiles' ? viewMode === 'liked' : (viewMode === 'swipe' && genderFilter === tab);
                   return (
@@ -892,7 +892,7 @@ export default function MakeAFriend() {
                       className={`flex-1 py-1.5 px-2 text-[11px] font-bold rounded-lg transition-all duration-200 cursor-pointer text-center whitespace-nowrap ${
                         isActive
                           ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-500/25 scale-[1.02]'
-                          : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                          : 'text-neutral-600 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-white/5'
                       }`}
                     >
                       {tab === 'Liked Profiles' ? 'Liked' : tab}
@@ -905,7 +905,7 @@ export default function MakeAFriend() {
                 type="button"
                 onClick={handleRetakeQuiz}
                 title="Retake Vibe Quiz"
-                className="p-2.5 bg-black/40 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-xl transition-all border border-zinc-800 flex-shrink-0 cursor-pointer active:scale-95"
+                className="p-2.5 bg-neutral-100 dark:bg-black/40 hover:bg-neutral-200 dark:hover:bg-zinc-800 text-neutral-600 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-white rounded-xl transition-all border border-neutral-200 dark:border-zinc-800 flex-shrink-0 cursor-pointer active:scale-95"
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
@@ -913,11 +913,11 @@ export default function MakeAFriend() {
 
             {/* Campus Radius Selector */}
             {viewMode === 'swipe' && (
-              <div className="flex items-center justify-between px-3 py-1.5 bg-black/30 rounded-xl border border-zinc-800/60 text-xs">
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-violet-400" /> Radius
+              <div className="flex items-center justify-between px-3 py-1.5 bg-neutral-100/60 dark:bg-black/30 rounded-xl border border-neutral-200/60 dark:border-zinc-800/60 text-xs">
+                <span className="text-[10px] font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-violet-500 dark:text-violet-400" /> Radius
                 </span>
-                <div className="flex bg-zinc-950 p-0.5 rounded-lg border border-zinc-800">
+                <div className="flex bg-neutral-200/70 dark:bg-zinc-950 p-0.5 rounded-lg border border-neutral-300/70 dark:border-zinc-800">
                   {['On Campus', 'Outside Campus'].map((opt) => (
                     <button
                       key={opt}
@@ -936,8 +936,8 @@ export default function MakeAFriend() {
                       }}
                       className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all duration-200 cursor-pointer ${
                         campusFilter === opt
-                          ? 'bg-white/15 border border-white/20 text-white shadow-xs'
-                          : 'text-zinc-400 hover:text-white'
+                          ? 'bg-white dark:bg-white/15 border border-neutral-300 dark:border-white/20 text-neutral-900 dark:text-white shadow-xs'
+                          : 'text-neutral-600 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-white'
                       }`}
                     >
                       {opt}
@@ -951,9 +951,9 @@ export default function MakeAFriend() {
           {/* Swipe Card Deck / Liked Grid Container */}
           <div className="w-full max-w-md h-[470px] sm:h-[510px] relative flex items-center justify-center">
             {viewMode === 'liked' ? (
-              <div className="w-full h-full bg-zinc-900/90 backdrop-blur-2xl rounded-3xl border border-white/10 p-5 flex flex-col text-left shadow-2xl">
-                <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4 flex items-center justify-between border-b border-zinc-800 pb-3">
-                  <span className="flex items-center gap-2 text-violet-400">
+              <div className="w-full h-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl rounded-3xl border border-neutral-200/80 dark:border-white/10 p-5 flex flex-col text-left shadow-xl dark:shadow-2xl">
+                <div className="text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider mb-4 flex items-center justify-between border-b border-neutral-200 dark:border-zinc-800 pb-3">
+                  <span className="flex items-center gap-2 text-violet-600 dark:text-violet-400 font-bold">
                     <Sparkles className="w-4 h-4" /> Liked Profiles ({likedProfiles.length})
                   </span>
                 </div>
@@ -964,30 +964,30 @@ export default function MakeAFriend() {
                       <div
                         key={lp.uid}
                         onClick={() => navigate(`/messages?recipientUid=${lp.lpUid || lp.uid}&recipientName=${encodeURIComponent(lp.name)}`)}
-                        className="flex items-center justify-between cursor-pointer group bg-black/40 hover:bg-black/80 border border-zinc-800 p-4 rounded-2xl transition-all hover:border-violet-500/40 relative w-full shadow-xs"
+                        className="flex items-center justify-between cursor-pointer group bg-neutral-50 dark:bg-black/40 hover:bg-neutral-100 dark:hover:bg-black/80 border border-neutral-200 dark:border-zinc-800 p-4 rounded-2xl transition-all hover:border-violet-500/40 relative w-full shadow-xs"
                       >
                         <div className="flex items-center gap-3.5 min-w-0">
                           <div className="relative flex-shrink-0">
                             <img
                               src={lp.avatar}
                               alt={lp.name}
-                              className="w-12 h-12 rounded-full border border-violet-500/50 object-cover bg-zinc-800 shadow-sm"
+                              className="w-12 h-12 rounded-full border border-violet-500/50 object-cover bg-neutral-200 dark:bg-zinc-800 shadow-sm"
                             />
                             <div className="absolute -bottom-1 -right-1 bg-violet-600 text-white rounded-full p-1 shadow-xs">
                               <MessageSquare className="w-3 h-3 fill-current" />
                             </div>
                           </div>
                           <div className="min-w-0 text-left">
-                            <span className="text-sm font-bold text-white truncate block group-hover:text-violet-400 transition-colors">
+                            <span className="text-sm font-bold text-neutral-900 dark:text-white truncate block group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
                               {lp.name}
                             </span>
-                            <span className="text-xs text-zinc-400 font-medium block mt-0.5">
+                            <span className="text-xs text-neutral-500 dark:text-zinc-400 font-medium block mt-0.5">
                               Tap to start chat
                             </span>
                           </div>
                         </div>
 
-                        <div className="bg-zinc-800 border border-zinc-700 text-zinc-300 rounded-full p-2 shadow-xs group-hover:bg-violet-600 group-hover:text-white transition-all ml-3 flex-shrink-0">
+                        <div className="bg-neutral-200 dark:bg-zinc-800 border border-neutral-300 dark:border-zinc-700 text-neutral-700 dark:text-zinc-300 rounded-full p-2 shadow-xs group-hover:bg-violet-600 group-hover:text-white transition-all ml-3 flex-shrink-0">
                           <ChevronRight className="w-4 h-4" />
                         </div>
                       </div>
@@ -995,11 +995,11 @@ export default function MakeAFriend() {
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
-                    <div className="w-12 h-12 rounded-full bg-zinc-800/80 flex items-center justify-center text-zinc-500 border border-zinc-700/60 mb-4 shadow-sm">
-                      <Sparkles className="w-6 h-6 text-violet-400" />
+                    <div className="w-12 h-12 rounded-full bg-neutral-100 dark:bg-zinc-800/80 flex items-center justify-center text-neutral-400 dark:text-zinc-500 border border-neutral-200 dark:border-zinc-700/60 mb-4 shadow-sm">
+                      <Sparkles className="w-6 h-6 text-violet-600 dark:text-violet-400" />
                     </div>
-                    <h4 className="text-sm font-bold text-white">No Liked Profiles Yet</h4>
-                    <p className="text-xs text-zinc-400 mt-1 px-4 leading-relaxed font-medium">
+                    <h4 className="text-sm font-bold text-neutral-900 dark:text-white">No Liked Profiles Yet</h4>
+                    <p className="text-xs text-neutral-500 dark:text-zinc-400 mt-1 px-4 leading-relaxed font-medium">
                       Swipe right on matches to save them here and open direct chats anytime.
                     </p>
                   </div>
@@ -1028,16 +1028,16 @@ export default function MakeAFriend() {
                           transition={{ duration: 0.25, ease: 'easeInOut' }}
                           className="w-full h-full"
                         >
-                          <Card className="w-full h-full bg-gradient-to-b from-zinc-900/95 via-zinc-900/90 to-zinc-950/95 backdrop-blur-2xl border border-white/10 p-5 sm:p-6 rounded-3xl flex flex-col justify-between shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative overflow-hidden select-none">
+                          <Card className="w-full h-full bg-white dark:bg-gradient-to-b dark:from-zinc-900/95 dark:via-zinc-900/90 dark:to-zinc-950/95 backdrop-blur-2xl border border-neutral-200/90 dark:border-white/10 p-5 sm:p-6 rounded-3xl flex flex-col justify-between shadow-xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative overflow-hidden select-none">
                             
                             {/* Swipe Indicators overlays */}
                             {isTopCard && swipeDirection === 'right' && (
-                              <div className="absolute top-10 left-8 border-2 border-emerald-400 text-emerald-400 font-extrabold uppercase tracking-widest text-2xl rotate-[-12deg] px-4 py-1 rounded-xl z-30 bg-zinc-950/90 shadow-2xl">
+                              <div className="absolute top-10 left-8 border-2 border-emerald-500 dark:border-emerald-400 text-emerald-600 dark:text-emerald-400 font-extrabold uppercase tracking-widest text-2xl rotate-[-12deg] px-4 py-1 rounded-xl z-30 bg-white/90 dark:bg-zinc-950/90 shadow-2xl">
                                 LIKE ✨
                               </div>
                             )}
                             {isTopCard && swipeDirection === 'left' && (
-                              <div className="absolute top-10 right-8 border-2 border-rose-500 text-rose-500 font-extrabold uppercase tracking-widest text-2xl rotate-[12deg] px-4 py-1 rounded-xl z-30 bg-zinc-950/90 shadow-2xl">
+                              <div className="absolute top-10 right-8 border-2 border-rose-500 text-rose-600 dark:text-rose-500 font-extrabold uppercase tracking-widest text-2xl rotate-[12deg] px-4 py-1 rounded-xl z-30 bg-white/90 dark:bg-zinc-950/90 shadow-2xl">
                                 SKIP ❌
                               </div>
                             )}
@@ -1049,15 +1049,15 @@ export default function MakeAFriend() {
                                   <img
                                     src={profile.avatar}
                                     alt={profile.name}
-                                    className="w-16 h-16 sm:w-18 sm:h-18 rounded-full border-2 border-violet-500/60 object-cover flex-shrink-0 bg-zinc-800 shadow-md"
+                                    className="w-16 h-16 sm:w-18 sm:h-18 rounded-full border-2 border-violet-500/60 object-cover flex-shrink-0 bg-neutral-200 dark:bg-zinc-800 shadow-md"
                                   />
                                   <div className="flex-1 min-w-0 text-left">
-                                    <h3 className="font-display font-extrabold text-base sm:text-lg text-white leading-snug whitespace-normal break-words">
+                                    <h3 className="font-display font-extrabold text-base sm:text-lg text-neutral-900 dark:text-white leading-snug whitespace-normal break-words">
                                       {profile.name}
                                     </h3>
-                                    <p className="text-xs text-zinc-400 font-semibold mt-0.5 truncate">{profile.college}</p>
+                                    <p className="text-xs text-neutral-500 dark:text-zinc-400 font-semibold mt-0.5 truncate">{profile.college}</p>
                                     <div className="flex items-center gap-1.5 mt-1">
-                                      <span className="inline-flex px-2.5 py-0.5 bg-zinc-950/80 border border-zinc-800 rounded-md text-[10px] text-zinc-300 capitalize font-mono font-bold">
+                                      <span className="inline-flex px-2.5 py-0.5 bg-neutral-100 dark:bg-zinc-950/80 border border-neutral-200 dark:border-zinc-800 rounded-md text-[10px] text-neutral-700 dark:text-zinc-300 capitalize font-mono font-bold">
                                         {profile.gender}
                                       </span>
                                     </div>
@@ -1065,16 +1065,16 @@ export default function MakeAFriend() {
                                 </div>
 
                                 <div className="flex-shrink-0">
-                                  <div className="inline-flex items-center gap-1 bg-violet-500/10 border border-violet-500/30 text-violet-300 font-mono text-[11px] sm:text-xs px-3 py-1 rounded-full font-bold shadow-[0_0_12px_rgba(139,92,246,0.15)] whitespace-nowrap">
-                                    <Flame className="w-3.5 h-3.5 fill-current text-violet-400" /> {profile.matchPercentage}%
+                                  <div className="inline-flex items-center gap-1 bg-violet-500/10 border border-violet-500/30 text-violet-600 dark:text-violet-300 font-mono text-[11px] sm:text-xs px-3 py-1 rounded-full font-bold shadow-[0_0_12px_rgba(139,92,246,0.15)] whitespace-nowrap">
+                                    <Flame className="w-3.5 h-3.5 fill-current text-violet-500 dark:text-violet-400" /> {profile.matchPercentage}%
                                   </div>
                                 </div>
                               </div>
 
                               {/* Middle Section: Shared Vibe Vectors */}
                               <div className="pt-2">
-                                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                  <TrendingUp className="w-3.5 h-3.5 text-violet-400" /> Shared Vibe Vectors
+                                <div className="text-[10px] font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                  <TrendingUp className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" /> Shared Vibe Vectors
                                 </div>
                                 {profile.sharedInterests.length > 0 ? (
                                   <div className="flex flex-wrap gap-2 max-h-[180px] overflow-y-auto pr-1">
@@ -1083,16 +1083,16 @@ export default function MakeAFriend() {
                                       return (
                                         <span
                                           key={iIdx}
-                                          className="inline-flex items-center gap-1.5 text-xs font-medium bg-black/40 border border-zinc-800 text-zinc-300 px-3 py-1.5 rounded-xl hover:border-zinc-700 hover:text-white transition-colors"
+                                          className="inline-flex items-center gap-1.5 text-xs font-medium bg-neutral-100 dark:bg-black/40 border border-neutral-200 dark:border-zinc-800 text-neutral-700 dark:text-zinc-300 px-3 py-1.5 rounded-xl hover:border-neutral-300 dark:hover:border-zinc-700 hover:text-neutral-900 dark:hover:text-white transition-colors"
                                         >
-                                          <InterestIcon className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
+                                          <InterestIcon className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400 flex-shrink-0" />
                                           <span>{interest.text.split('(')[0].trim()}</span>
                                         </span>
                                       );
                                     })}
                                   </div>
                                 ) : (
-                                  <p className="text-xs text-zinc-400 italic py-2">
+                                  <p className="text-xs text-neutral-500 dark:text-zinc-400 italic py-2">
                                     No exact question overlaps, but opposites attract! Connect and start chatting.
                                   </p>
                                 )}
@@ -1101,12 +1101,12 @@ export default function MakeAFriend() {
 
                             {/* Bottom Action Controls Embedded in Card */}
                             {isTopCard && (
-                              <div className="flex items-center justify-around border-t border-zinc-800/80 pt-4 mt-2">
+                              <div className="flex items-center justify-around border-t border-neutral-200/80 dark:border-zinc-800/80 pt-4 mt-2">
                                 <button
                                   type="button"
                                   onClick={() => handleSwipe('left')}
                                   title="Skip Profile"
-                                  className="w-12 h-12 bg-black/50 border border-zinc-800 text-zinc-400 hover:text-rose-400 hover:border-rose-500/40 hover:bg-rose-500/10 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
+                                  className="w-12 h-12 bg-neutral-100 dark:bg-black/50 border border-neutral-200 dark:border-zinc-800 text-neutral-600 dark:text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 hover:border-rose-500/40 hover:bg-rose-500/10 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
                                 >
                                   <X className="w-5 h-5" />
                                 </button>
@@ -1115,7 +1115,7 @@ export default function MakeAFriend() {
                                   type="button"
                                   onClick={() => startChat(profile)}
                                   title="Direct Message"
-                                  className="w-12 h-12 bg-black/50 border border-zinc-800 text-zinc-400 hover:text-sky-400 hover:border-sky-500/40 hover:bg-sky-500/10 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
+                                  className="w-12 h-12 bg-neutral-100 dark:bg-black/50 border border-neutral-200 dark:border-zinc-800 text-neutral-600 dark:text-zinc-400 hover:text-sky-500 dark:hover:text-sky-400 hover:border-sky-500/40 hover:bg-sky-500/10 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95"
                                 >
                                   <MessageSquare className="w-5 h-5" />
                                 </button>
@@ -1137,12 +1137,12 @@ export default function MakeAFriend() {
                   </AnimatePresence>
                 ) : (
                   /* Out of Matches State */
-                  <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 bg-zinc-900/90 rounded-3xl border border-white/10 backdrop-blur-2xl shadow-2xl z-0">
-                    <div className="w-14 h-14 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 border border-zinc-700/60 mb-4 shadow-sm">
-                      <AlertCircle className="w-7 h-7 text-violet-400" />
+                  <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 bg-white/90 dark:bg-zinc-900/90 rounded-3xl border border-neutral-200/80 dark:border-white/10 backdrop-blur-2xl shadow-xl dark:shadow-2xl z-0">
+                    <div className="w-14 h-14 rounded-full bg-neutral-100 dark:bg-zinc-800 flex items-center justify-center text-neutral-500 dark:text-zinc-400 border border-neutral-200 dark:border-zinc-700/60 mb-4 shadow-sm">
+                      <AlertCircle className="w-7 h-7 text-violet-600 dark:text-violet-400" />
                     </div>
-                    <h3 className="text-base font-bold font-display text-white">No Profiles Left</h3>
-                    <p className="text-xs text-zinc-400 mt-2 px-4 font-medium leading-relaxed">
+                    <h3 className="text-base font-bold font-display text-neutral-900 dark:text-white">No Profiles Left</h3>
+                    <p className="text-xs text-neutral-500 dark:text-zinc-400 mt-2 px-4 font-medium leading-relaxed">
                       You reviewed all profiles in your current filter. Change filters, reset swipes, or retake your quiz to find new friends!
                     </p>
 
