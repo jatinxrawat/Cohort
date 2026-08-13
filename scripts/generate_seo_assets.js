@@ -103,22 +103,17 @@ async function generateOgImage() {
             <stop offset="50%" stop-color="#963BFF" />
             <stop offset="100%" stop-color="#00F0FF" />
           </linearGradient>
-          <linearGradient id="cohort-text-grad" x1="300" y1="550" x2="900" y2="550" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#FF2A85" />
-            <stop offset="50%" stop-color="#963BFF" />
-            <stop offset="100%" stop-color="#00F0FF" />
-          </linearGradient>
         </defs>
         
         <!-- Midnight dark background -->
         <rect x="0" y="0" width="1200" height="630" fill="#08080C" />
         
-        <!-- Background decorative glows -->
-        <circle cx="600" cy="315" r="450" fill="#963BFF" opacity="0.14" filter="blur(90px)" />
-        <circle cx="600" cy="315" r="300" fill="#00F0FF" opacity="0.06" filter="blur(70px)" />
+        <!-- Background decorative glows centered behind the logo -->
+        <circle cx="600" cy="315" r="450" fill="#963BFF" opacity="0.16" filter="blur(90px)" />
+        <circle cx="600" cy="315" r="300" fill="#00F0FF" opacity="0.08" filter="blur(70px)" />
 
-        <!-- Centered Logo squircle (scaled 10.5x, centered around x=600, y=50) -->
-        <g transform="translate(432, 50) scale(10.5)">
+        <!-- Centered Logo squircle (scaled 16x, centered around x=600, y=315) -->
+        <g transform="translate(344, 59) scale(16)">
           <rect x="2" y="2" width="28" height="28" rx="9" fill="#08080C" stroke="url(#cohort-logo-grad)" stroke-width="2" />
           <path d="M 21,11 A 7,7 0 1,0 21,21" stroke="url(#cohort-logo-grad)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
           <circle cx="21" cy="11" r="2.5" fill="#FF2A85" />
@@ -126,12 +121,6 @@ async function generateOgImage() {
           <circle cx="21" cy="21" r="2.5" fill="#00F0FF" />
           <path d="M 16,14.5 L 17.5,16 L 16,17.5 L 14.5,16 Z" fill="#FFFFFF" />
         </g>
-
-        <!-- Brand Wordmark "Cohort." -->
-        <text x="600" y="475" font-family="'Outfit', 'Plus Jakarta Sans', 'Inter', 'Arial', sans-serif" font-size="100" font-weight="900" text-anchor="middle" fill="#FFFFFF" letter-spacing="-2">Cohort<tspan fill="#FF2A85">.</tspan></text>
-        
-        <!-- Tagline / Subtitle -->
-        <text x="600" y="550" font-family="'Plus Jakarta Sans', 'Outfit', 'Inter', 'Arial', sans-serif" font-size="40" font-weight="800" text-anchor="middle" fill="url(#cohort-text-grad)" letter-spacing="1">Your Campus Social Media</text>
       </svg>
     `;
 
