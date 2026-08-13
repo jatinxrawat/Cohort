@@ -103,7 +103,7 @@ async function generateOgImage() {
             <stop offset="50%" stop-color="#963BFF" />
             <stop offset="100%" stop-color="#00F0FF" />
           </linearGradient>
-          <linearGradient id="cohort-text-grad" x1="200" y1="420" x2="1000" y2="420" gradientUnits="userSpaceOnUse">
+          <linearGradient id="cohort-text-grad" x1="300" y1="550" x2="900" y2="550" gradientUnits="userSpaceOnUse">
             <stop offset="0%" stop-color="#FF2A85" />
             <stop offset="50%" stop-color="#963BFF" />
             <stop offset="100%" stop-color="#00F0FF" />
@@ -114,11 +114,11 @@ async function generateOgImage() {
         <rect x="0" y="0" width="1200" height="630" fill="#08080C" />
         
         <!-- Background decorative glows -->
-        <circle cx="200" cy="150" r="300" fill="#963BFF" opacity="0.08" filter="blur(80px)" />
-        <circle cx="1000" cy="480" r="250" fill="#00F0FF" opacity="0.05" filter="blur(80px)" />
+        <circle cx="600" cy="315" r="450" fill="#963BFF" opacity="0.14" filter="blur(90px)" />
+        <circle cx="600" cy="315" r="300" fill="#00F0FF" opacity="0.06" filter="blur(70px)" />
 
-        <!-- Centered Logo squircle (scaled 7.5x, centered around x=600, y=100) -->
-        <g transform="translate(480, 90) scale(7.5)">
+        <!-- Centered Logo squircle (scaled 10.5x, centered around x=600, y=50) -->
+        <g transform="translate(432, 50) scale(10.5)">
           <rect x="2" y="2" width="28" height="28" rx="9" fill="#08080C" stroke="url(#cohort-logo-grad)" stroke-width="2" />
           <path d="M 21,11 A 7,7 0 1,0 21,21" stroke="url(#cohort-logo-grad)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
           <circle cx="21" cy="11" r="2.5" fill="#FF2A85" />
@@ -128,10 +128,10 @@ async function generateOgImage() {
         </g>
 
         <!-- Brand Wordmark "Cohort." -->
-        <text x="600" y="420" font-family="'Outfit', 'Plus Jakarta Sans', 'Inter', 'Arial', sans-serif" font-size="75" font-weight="900" text-anchor="middle" fill="#FFFFFF" letter-spacing="-1.5">Cohort<tspan fill="#FF2A85">.</tspan></text>
+        <text x="600" y="475" font-family="'Outfit', 'Plus Jakarta Sans', 'Inter', 'Arial', sans-serif" font-size="100" font-weight="900" text-anchor="middle" fill="#FFFFFF" letter-spacing="-2">Cohort<tspan fill="#FF2A85">.</tspan></text>
         
         <!-- Tagline / Subtitle -->
-        <text x="600" y="485" font-family="'Plus Jakarta Sans', 'Outfit', 'Inter', 'Arial', sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="url(#cohort-text-grad)" letter-spacing="1">Your Campus Social Media</text>
+        <text x="600" y="550" font-family="'Plus Jakarta Sans', 'Outfit', 'Inter', 'Arial', sans-serif" font-size="40" font-weight="800" text-anchor="middle" fill="url(#cohort-text-grad)" letter-spacing="1">Your Campus Social Media</text>
       </svg>
     `;
 
