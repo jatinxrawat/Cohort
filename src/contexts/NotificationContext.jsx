@@ -5,45 +5,22 @@ const NotificationContext = createContext(null);
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
 
-  const addNotification = useCallback((message, type = 'success', duration = 3000) => {
-    const id = Date.now();
-    const notification = { id, message, type };
-    
-    setNotifications(prev => [...prev, notification]);
-    
-    if (duration > 0) {
-      setTimeout(() => {
-        setNotifications(prev => prev.filter(n => n.id !== id));
-      }, duration);
-    }
-    
-    return id;
+  // Toast popups disabled across all pages
+  const addNotification = useCallback(() => {
+    return null;
   }, []);
 
-  const removeNotification = useCallback((id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-  }, []);
+  const removeNotification = useCallback(() => {}, []);
 
-  const showSuccess = useCallback((message, duration) => 
-    addNotification(message, 'success', duration), [addNotification]
-  );
-
-  const showError = useCallback((message, duration) => 
-    addNotification(message, 'error', duration), [addNotification]
-  );
-
-  const showWarning = useCallback((message, duration) => 
-    addNotification(message, 'warning', duration), [addNotification]
-  );
-
-  const showInfo = useCallback((message, duration) => 
-    addNotification(message, 'info', duration), [addNotification]
-  );
+  const showSuccess = useCallback(() => null, []);
+  const showError = useCallback(() => null, []);
+  const showWarning = useCallback(() => null, []);
+  const showInfo = useCallback(() => null, []);
 
   return (
     <NotificationContext.Provider
       value={{
-        notifications,
+        notifications: [],
         addNotification,
         removeNotification,
         showSuccess,

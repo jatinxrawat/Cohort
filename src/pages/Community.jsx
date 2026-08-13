@@ -1586,8 +1586,9 @@ export default function Community() {
           </Card>
         ) : (
           <Card className="flex-1 flex flex-col p-0 overflow-hidden border-none md:border rounded-none md:rounded-xl border-neutral-100 dark:border-neutral-800 h-full min-h-0">
-          /* ── COLLEGE COMMUNITY ROOM ── */
-          <div className="flex-1 flex flex-col min-h-0">
+            {!isGroupRoom ? (
+              /* ── COLLEGE COMMUNITY ROOM ── */
+              <div className="flex-1 flex flex-col min-h-0">
             {/* Header */}
             <div className="flex items-center gap-md px-lg py-md bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 flex-shrink-0 shadow-sm z-40 w-full">
               <button onClick={() => { setSelectedRoom(null); setSearchParams({}, { replace: true }); }} className="p-md rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors flex-shrink-0 cursor-pointer active:scale-95 z-10" title="Back to Communities List">
@@ -2000,8 +2001,7 @@ export default function Community() {
               )}
             </div>
           </div>
-
-        ) : isGroupRoom ? (
+        ) : (
           /* ── GROUP ROOM ── */
           <div className="flex-1 flex flex-col min-h-0">
             {/* Header */}
@@ -2180,41 +2180,50 @@ export default function Community() {
                                 <button onClick={() => handleToggleSelectMsg(msg.id)} className="self-center p-xs text-indigo-500">
                                   {isSelected ? <CheckSquare className="w-5 h-5 text-indigo-600 fill-indigo-100" /> : <Square className="w-5 h-5 text-neutral-400" />}
                                 </button>
-                              )}
-                              <img src={msg.sender?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(msg.sender?.name || 'u')}`} alt={msg.sender?.name} className="w-8 h-8 rounded-full flex-shrink-0 mt-xs object-cover" />
-                              <div className="space-y-xs relative group">
+                              )}                               <div className="space-y-xs relative group">
                                 {!isMe && <span className="text-[10px] font-bold text-neutral-500 ml-sm">{msg.sender?.name}</span>}
-                                <div className={`text-[13.5px] leading-relaxed relative overflow-hidden transition-all ${isMe ? 'bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-500 dark:to-indigo-600 text-white rounded-2xl rounded-tr-xs shadow-xs px-3.5 py-1.5' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border border-neutral-200/80 dark:border-neutral-700/60 rounded-2xl rounded-tl-xs px-3.5 py-1.5 shadow-xs'}`}>
-                                  {msg.replyTo && <div className={`p-1 px-2 rounded-lg border text-xs mb-1 ${isMe ? 'bg-black/25 text-white border-white/90' : 'bg-primary-500/10 text-neutral-800 dark:text-neutral-100 border-primary-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
-                                  {msg.fileUrl && (
-                                    <div className="mb-md p-md rounded-xl bg-black/10 flex items-center justify-between gap-md">
-                                      <div className="flex items-center gap-sm text-xs font-semibold truncate"><FileText className="w-4 h-4 flex-shrink-0" /> {msg.fileName || 'Attachment'}</div>
-                                      <a href={msg.fileUrl} download={msg.fileName || 'file'} target="_blank" rel="noreferrer" className="p-xs hover:bg-black/10 rounded"><Download className="w-3.5 h-3.5" /></a>
-                                    </div>
-                                  )}
-                                  <div className="relative inline-block max-w-full">
-                                    <span className="text-[13.5px] leading-snug break-words font-normal">{msg.content}</span>
-                                    {msg.edited && <span className="text-[9px] opacity-60 ml-xs italic">(edited)</span>}
-                                    {isStarred && <Star className="w-3 h-3 text-amber-400 fill-amber-400 inline-block ml-1" title="Starred message" />}
-
-                                    {/* WhatsApp / Instagram Style Inline Timestamp & Working Green Vector Tick */}
-                                    <span className="inline-flex items-center gap-1 float-right mt-1 ml-2.5 text-[10px] leading-none select-none">
-                                      <span className={isMe ? 'text-white/75' : 'text-neutral-500 dark:text-neutral-400 font-medium'}>
-                                        {formatTime(msg.timestamp)}
+                                {msg.isDeletedForEveryone || msg.content === 'This message was deleted by sender' || msg.text === 'This message was deleted by sender' ? (
+                                  <div className="my-xs max-w-sm">
+                                    <div className="flex items-center gap-xs px-md py-xs rounded-2xl bg-rose-500/5 dark:bg-rose-500/10 border border-dashed border-rose-400/40 text-neutral-600 dark:text-neutral-300 text-xs backdrop-blur-xs shadow-xs">
+                                      <Ban className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
+                                      <span className="italic font-medium text-[11px] opacity-90">
+                                        This message was deleted by sender
                                       </span>
-                                      {isMe && (
-                                        <CheckCheck
-                                          className={`w-3.5 h-3.5 stroke-[2.8] transition-colors duration-300 ${
-                                            isSeen
-                                              ? 'text-emerald-300 dark:text-emerald-300 drop-shadow-[0_0_6px_rgba(16,185,129,0.7)]'
-                                              : 'text-white/50 dark:text-neutral-400'
-                                          }`}
-                                          title={isSeen ? "Seen (Green Tick)" : "Sent to group"}
-                                        />
-                                      )}
-                                    </span>
+                                    </div>
                                   </div>
-                                </div>
+                                ) : (
+                                  <div className={`text-[13.5px] leading-relaxed relative overflow-hidden transition-all ${isMe ? 'bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-500 dark:to-indigo-600 text-white rounded-2xl rounded-tr-xs shadow-xs px-3.5 py-1.5' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border border-neutral-200/80 dark:border-neutral-700/60 rounded-2xl rounded-tl-xs px-3.5 py-1.5 shadow-xs'}`}>
+                                    {msg.replyTo && <div className={`p-1 px-2 rounded-lg border text-xs mb-1 ${isMe ? 'bg-black/25 text-white border-white/90' : 'bg-primary-500/10 text-neutral-800 dark:text-neutral-100 border-primary-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
+                                    {msg.fileUrl && (
+                                      <div className="mb-md p-md rounded-xl bg-black/10 flex items-center justify-between gap-md">
+                                        <div className="flex items-center gap-sm text-xs font-semibold truncate"><FileText className="w-4 h-4 flex-shrink-0" /> {msg.fileName || 'Attachment'}</div>
+                                        <a href={msg.fileUrl} download={msg.fileName || 'file'} target="_blank" rel="noreferrer" className="p-xs hover:bg-black/10 rounded"><Download className="w-3.5 h-3.5" /></a>
+                                      </div>
+                                    )}
+                                    <div className="relative inline-block max-w-full">
+                                      <span className="text-[13.5px] leading-snug break-words font-normal">{msg.content}</span>
+                                      {msg.edited && <span className="text-[9px] opacity-60 ml-xs italic">(edited)</span>}
+                                      {isStarred && <Star className="w-3 h-3 text-amber-400 fill-amber-400 inline-block ml-1" title="Starred message" />}
+
+                                      {/* WhatsApp / Instagram Style Inline Timestamp & Working Green Vector Tick */}
+                                      <span className="inline-flex items-center gap-1 float-right mt-1 ml-2.5 text-[10px] leading-none select-none">
+                                        <span className={isMe ? 'text-white/75' : 'text-neutral-500 dark:text-neutral-400 font-medium'}>
+                                          {formatTime(msg.timestamp)}
+                                        </span>
+                                        {isMe && (
+                                          <CheckCheck
+                                            className={`w-3.5 h-3.5 stroke-[2.8] transition-colors duration-300 ${
+                                              isSeen
+                                                ? 'text-emerald-300 dark:text-emerald-300 drop-shadow-[0_0_6px_rgba(16,185,129,0.7)]'
+                                                : 'text-white/50 dark:text-neutral-400'
+                                            }`}
+                                            title={isSeen ? "Seen (Green Tick)" : "Sent to group"}
+                                          />
+                                        )}
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
 
                                 {/* Message Hover Actions */}
                                 {!isSelectMode && !msg.isDeletedForEveryone && msg.content !== 'This message was deleted by sender' && msg.text !== 'This message was deleted by sender' && (
@@ -2282,9 +2291,9 @@ export default function Community() {
               </div>
             </div>
           </div>
-        ) : null
-          </Card>
         )}
+      </Card>
+    )}
       </div>
       </div>
 

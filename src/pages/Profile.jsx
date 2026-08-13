@@ -1276,181 +1276,255 @@ export default function Profile() {
 
         {/* Recent Activity Card */}
         <Card className="border-neutral-200/80 dark:border-neutral-800/80 shadow-md rounded-3xl p-5 sm:p-6 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-neutral-100 dark:border-neutral-800/80 pb-5">
-            <h2 className="text-xl font-heading font-extrabold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2">
-              <span>
-                {isOwnProfile
-                  ? (postsTab === 'feed' ? 'My Feed Posts' : postsTab === 'anonymous' ? 'My Anonymous Posts' : 'My Marketplace Listings')
-                  : (postsTab === 'marketplace' ? `Listings by ${profileUser?.name?.split(' ')[0] || 'User'}` : `Posts by ${profileUser?.name?.split(' ')[0] || 'User'}`)}
-              </span>
-            </h2>
+          {/* Content Tabs Navigation Bar */}
+          {(() => {
+            const userOriginalPosts = userPosts.filter(p => !p.isReshare && !p.isRepost);
+            const userResharedPosts = userPosts.filter(p => p.isReshare || p.isRepost);
 
-            {/* Glassmorphic Segmented Tab Bar */}
-            <div className="p-1.5 bg-neutral-100/90 dark:bg-neutral-950/80 border border-neutral-200/80 dark:border-neutral-800/80 rounded-2xl flex items-center gap-1 text-xs font-semibold overflow-x-auto scrollbar-none shadow-inner">
-              <button
-                type="button"
-                onClick={() => setPostsTab('feed')}
-                className={`px-3.5 py-1.5 rounded-xl transition-all duration-300 cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                  postsTab === 'feed'
-                    ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25 font-bold scale-[1.02]'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'
-                }`}
-              >
-                <Rss className="w-3.5 h-3.5" />
-                <span>Post ({userPosts.length})</span>
-              </button>
+            return (
+              <>
+                <div className="flex items-center justify-between gap-md mb-xl flex-wrap">
+                  <h2 className="text-xl font-heading font-extrabold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2">
+                    <span>
+                      {isOwnProfile
+                        ? (postsTab === 'feed' ? 'My Feed Posts' : postsTab === 'reshares' ? 'My Reshares' : postsTab === 'anonymous' ? 'My Anonymous Posts' : 'My Marketplace Listings')
+                        : (postsTab === 'reshares' ? `Reshares by ${profileUser?.name?.split(' ')[0] || 'User'}` : postsTab === 'marketplace' ? `Listings by ${profileUser?.name?.split(' ')[0] || 'User'}` : `Posts by ${profileUser?.name?.split(' ')[0] || 'User'}`)}
+                    </span>
+                  </h2>
 
-              {isOwnProfile && (
-                <button
-                  type="button"
-                  onClick={() => setPostsTab('anonymous')}
-                  className={`px-3.5 py-1.5 rounded-xl transition-all duration-300 cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                    postsTab === 'anonymous'
-                      ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-500/25 font-bold scale-[1.02]'
-                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'
-                  }`}
-                >
-                  <EyeOff className="w-3.5 h-3.5" />
-                  <span>Anon. ({userAnonPosts.length})</span>
-                </button>
-              )}
+                  {/* Glassmorphic Segmented Tab Bar */}
+                  <div className="p-1 sm:p-1.5 bg-neutral-100/90 dark:bg-neutral-950/80 border border-neutral-200/80 dark:border-neutral-800/80 rounded-2xl flex items-center gap-1 text-xs font-semibold overflow-x-auto scrollbar-none shadow-inner w-full sm:w-auto justify-between sm:justify-start">
+                    <button
+                      type="button"
+                      onClick={() => setPostsTab('feed')}
+                      className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl transition-all duration-300 cursor-pointer flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                        postsTab === 'feed'
+                          ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25 font-bold scale-[1.02]'
+                          : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'
+                      }`}
+                      title="Original Feed Posts"
+                    >
+                      <Rss className="w-3.5 h-3.5" />
+                      <span><span className="hidden sm:inline">Post </span>({userOriginalPosts.length})</span>
+                    </button>
 
-              {!isOfficialCohortAccount && (
-                <button
-                  type="button"
-                  onClick={() => setPostsTab('marketplace')}
-                  className={`px-3.5 py-1.5 rounded-xl transition-all duration-300 cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                    postsTab === 'marketplace'
-                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25 font-bold scale-[1.02]'
-                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'
-                  }`}
-                >
-                  <Tag className="w-3.5 h-3.5" />
-                  <span>Market ({userMarketplaceItems.length})</span>
-                </button>
-              )}
-            </div>
-          </div>
+                    <button
+                      type="button"
+                      onClick={() => setPostsTab('reshares')}
+                      className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl transition-all duration-300 cursor-pointer flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                        postsTab === 'reshares'
+                          ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25 font-bold scale-[1.02]'
+                          : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'
+                      }`}
+                      title="Reshared Posts"
+                    >
+                      <Repeat className="w-3.5 h-3.5" />
+                      <span><span className="hidden sm:inline">Reshares </span>({userResharedPosts.length})</span>
+                    </button>
 
-          {postsTab === 'feed' ? (
-            userPosts.length > 0 ? (
-              <div className="space-y-lg divide-y divide-neutral-100 dark:divide-neutral-800">
-                {userPosts.map((post) => (
-                  <div key={post.id} className="pt-lg first:pt-0 group">
-                    {post.isReshare && (
-                      <div className="flex items-center gap-2 text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-xs">
-                        <Repeat className="w-3.5 h-3.5 text-primary-500" />
-                        <span>Reshared post</span>
-                      </div>
+                    {isOwnProfile && (
+                      <button
+                        type="button"
+                        onClick={() => setPostsTab('anonymous')}
+                        className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl transition-all duration-300 cursor-pointer flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                          postsTab === 'anonymous'
+                            ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-500/25 font-bold scale-[1.02]'
+                            : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'
+                        }`}
+                        title="Anonymous Posts"
+                      >
+                        <EyeOff className="w-3.5 h-3.5" />
+                        <span><span className="hidden sm:inline">Anon. </span>({userAnonPosts.length})</span>
+                      </button>
                     )}
 
-                    <div className="flex items-start justify-between gap-md mb-md">
-                      <div className="flex-1 min-w-0">
-                        {post.thought && (
-                          <p className="text-sm font-semibold text-neutral-900 dark:text-white mb-xs leading-relaxed">
-                            {post.thought}
-                          </p>
-                        )}
+                    {!isOfficialCohortAccount && (
+                      <button
+                        type="button"
+                        onClick={() => setPostsTab('marketplace')}
+                        className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl transition-all duration-300 cursor-pointer flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+                          postsTab === 'marketplace'
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25 font-bold scale-[1.02]'
+                            : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'
+                        }`}
+                        title="Marketplace Listings"
+                      >
+                        <Tag className="w-3.5 h-3.5" />
+                        <span><span className="hidden sm:inline">Market </span>({userMarketplaceItems.length})</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
 
-                        {post.isReshare ? (
-                          <div className="border border-neutral-200 dark:border-neutral-700/80 rounded-xl p-md bg-neutral-50/50 dark:bg-neutral-800/40 space-y-xs">
-                            <div className="flex items-center gap-sm">
-                              <UserAvatar
-                                src={post.originalPost?.author?.avatar}
-                                name={post.originalPost?.author?.name || 'Student'}
-                                className="w-6 h-6 rounded-full object-cover"
+                {postsTab === 'feed' ? (
+                  userOriginalPosts.length > 0 ? (
+                    <div className="space-y-lg divide-y divide-neutral-100 dark:divide-neutral-800">
+                      {userOriginalPosts.map((post) => (
+                        <div key={post.id} className="pt-lg first:pt-0 group">
+                          <div className="flex items-start justify-between gap-md mb-md">
+                            <div className="flex-1 min-w-0">
+                              <ExpandableCaption
+                                text={post.content}
+                                className="text-sm"
                               />
-                              <span className="font-bold text-xs text-neutral-900 dark:text-white">
-                                {post.originalPost?.author?.name || 'Student'}
-                              </span>
+                              {post.imageUrl && (
+                                <div className="mt-md rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-950/40 flex items-center justify-center">
+                                  <img
+                                    src={post.imageUrl}
+                                    alt="Post attachment"
+                                    className="w-full h-auto max-h-[700px] object-contain rounded-2xl"
+                                  />
+                                </div>
+                              )}
                             </div>
-                            <ExpandableCaption
-                              text={post.originalPost?.content || post.content}
-                              className="text-xs"
-                            />
-                          </div>
-                        ) : (
-                          <>
-                            <ExpandableCaption
-                              text={post.content}
-                              className="text-sm"
-                            />
-                            {post.imageUrl && (
-                              <div className="mt-md rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 bg-neutral-950/40 flex items-center justify-center">
-                                <img
-                                  src={post.imageUrl}
-                                  alt="Post attachment"
-                                  className="w-full h-auto max-h-[700px] object-contain rounded-2xl"
-                                />
+
+                            {isOwnProfile && (
+                              <div className="flex items-center gap-xs flex-shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditModal(post)}
+                                  className="p-1.5 text-neutral-400 hover:text-primary-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
+                                  title="Edit post"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setDeletingPost(post)}
+                                  className="p-1.5 text-neutral-400 hover:text-rose-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
+                                  title="Delete post"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
                               </div>
                             )}
-                          </>
-                        )}
-                      </div>
+                          </div>
 
-                      {isOwnProfile && (
-                        <div className="flex items-center gap-xs flex-shrink-0">
-                          {!post.isReshare && (
+                          <div className="flex items-center gap-md text-[10px] text-neutral-400 font-semibold uppercase tracking-wider mt-sm pt-xs border-t border-neutral-100 dark:border-neutral-800/60">
+                            <span>{formatRelativeTime(post.timestamp)}</span>
                             <button
                               type="button"
-                              onClick={() => handleOpenEditModal(post)}
-                              className="p-1.5 text-neutral-400 hover:text-primary-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
-                              title="Edit post"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenLikesModal(post);
+                              }}
+                              className="flex items-center gap-xs text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 px-sm py-xs rounded-lg transition-colors cursor-pointer font-bold"
+                              title="Click to see who liked this post"
                             >
-                              <Edit2 className="w-4 h-4" />
+                              <Heart className="w-3.5 h-3.5 fill-current" />
+                              <span>{post.likesCount || 0} Likes</span>
                             </button>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => setDeletingPost(post)}
-                            className="p-1.5 text-neutral-400 hover:text-rose-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
-                            title="Delete post"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenCommentsModal(post);
+                              }}
+                              className="flex items-center gap-xs text-primary-500 hover:text-primary-400 hover:bg-primary-500/10 px-sm py-xs rounded-lg transition-colors cursor-pointer font-bold"
+                              title="Click to read comments"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5 fill-current" />
+                              <span>{post.commentsCount || 0} Replies</span>
+                            </button>
+                          </div>
                         </div>
-                      )}
+                      ))}
                     </div>
+                  ) : (
+                    <div className="text-center py-xl">
+                      <MessageSquare className="w-12 h-12 text-neutral-300 dark:text-neutral-700 mx-auto mb-md animate-pulse-soft" />
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                        No original posts published yet.
+                      </p>
+                    </div>
+                  )
+                ) : postsTab === 'reshares' ? (
+                  userResharedPosts.length > 0 ? (
+                    <div className="space-y-lg divide-y divide-neutral-100 dark:divide-neutral-800">
+                      {userResharedPosts.map((post) => (
+                        <div key={post.id} className="pt-lg first:pt-0 group">
+                          <div className="flex items-center gap-2 text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-xs">
+                            <Repeat className="w-3.5 h-3.5 text-primary-500" />
+                            <span>Reshared post</span>
+                          </div>
 
-                    <div className="flex items-center gap-md text-[10px] text-neutral-400 font-semibold uppercase tracking-wider mt-sm pt-xs border-t border-neutral-100 dark:border-neutral-800/60">
-                      <span>{formatRelativeTime(post.timestamp)}</span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenLikesModal(post);
-                        }}
-                        className="flex items-center gap-xs text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 px-sm py-xs rounded-lg transition-colors cursor-pointer font-bold"
-                        title="Click to see who liked this post"
-                      >
-                        <Heart className="w-3.5 h-3.5 fill-current" />
-                        <span>{post.likesCount || 0} Likes</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenCommentsModal(post);
-                        }}
-                        className="flex items-center gap-xs text-primary-500 hover:text-primary-400 hover:bg-primary-500/10 px-sm py-xs rounded-lg transition-colors cursor-pointer font-bold"
-                        title="Click to read comments"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5 fill-current" />
-                        <span>{post.commentsCount || 0} Replies</span>
-                      </button>
+                          <div className="flex items-start justify-between gap-md mb-md">
+                            <div className="flex-1 min-w-0">
+                              {post.thought && (
+                                <p className="text-sm font-semibold text-neutral-900 dark:text-white mb-xs leading-relaxed">
+                                  {post.thought}
+                                </p>
+                              )}
+
+                              <div className="border border-neutral-200 dark:border-neutral-700/80 rounded-xl p-md bg-neutral-50/50 dark:bg-neutral-800/40 space-y-xs">
+                                <div className="flex items-center gap-sm">
+                                  <UserAvatar
+                                    src={post.originalPost?.author?.avatar}
+                                    name={post.originalPost?.author?.name || 'Student'}
+                                    className="w-6 h-6 rounded-full object-cover"
+                                  />
+                                  <span className="font-bold text-xs text-neutral-900 dark:text-white">
+                                    {post.originalPost?.author?.name || 'Student'}
+                                  </span>
+                                </div>
+                                <ExpandableCaption
+                                  text={post.originalPost?.content || post.content}
+                                  className="text-xs"
+                                />
+                              </div>
+                            </div>
+
+                            {isOwnProfile && (
+                              <button
+                                type="button"
+                                onClick={() => setDeletingPost(post)}
+                                className="p-1.5 text-neutral-400 hover:text-rose-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer flex-shrink-0"
+                                title="Remove reshare"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-md text-[10px] text-neutral-400 font-semibold uppercase tracking-wider mt-sm pt-xs border-t border-neutral-100 dark:border-neutral-800/60">
+                            <span>{formatRelativeTime(post.timestamp)}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenLikesModal(post);
+                              }}
+                              className="flex items-center gap-xs text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 px-sm py-xs rounded-lg transition-colors cursor-pointer font-bold"
+                              title="Click to see who liked this post"
+                            >
+                              <Heart className="w-3.5 h-3.5 fill-current" />
+                              <span>{post.likesCount || 0} Likes</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenCommentsModal(post);
+                              }}
+                              className="flex items-center gap-xs text-primary-500 hover:text-primary-400 hover:bg-primary-500/10 px-sm py-xs rounded-lg transition-colors cursor-pointer font-bold"
+                              title="Click to read comments"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5 fill-current" />
+                              <span>{post.commentsCount || 0} Replies</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-xl">
-                <MessageSquare className="w-12 h-12 text-neutral-300 dark:text-neutral-700 mx-auto mb-md animate-pulse-soft" />
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  No posts published yet.
-                </p>
-              </div>
-            )
-          ) : postsTab === 'anonymous' ? (
+                  ) : (
+                    <div className="text-center py-xl">
+                      <Repeat className="w-12 h-12 text-neutral-300 dark:text-neutral-700 mx-auto mb-md animate-pulse-soft" />
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                        No reshared posts yet.
+                      </p>
+                    </div>
+                  )
+                ) : postsTab === 'anonymous' ? (
             /* ANONYMOUS POSTS TAB */
             userAnonPosts.length > 0 ? (
               <div className="space-y-lg divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -1631,6 +1705,9 @@ export default function Profile() {
               </div>
             )
           )}
+        </>
+      );
+    })()}
         </Card>
       </div>
 
