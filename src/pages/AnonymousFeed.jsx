@@ -1200,15 +1200,15 @@ export default function AnonymousFeed({ defaultTab }) {
                               initial={{ opacity: 0, y: 5 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: 5 }}
-                              className="flex items-center justify-between px-md py-xs bg-zinc-900 rounded-xl border border-zinc-800 text-xs text-zinc-300"
+                              className="flex items-center justify-between px-md py-xs bg-neutral-100 dark:bg-zinc-900 rounded-xl border border-neutral-200 dark:border-zinc-800 text-xs text-neutral-700 dark:text-zinc-300"
                             >
                               <span className="flex items-center gap-xs">
-                                <CornerDownRight className="w-3.5 h-3.5 text-violet-400" />
-                                Replying to <strong className="text-white font-bold">@{replyingToComment.author}</strong>
+                                <CornerDownRight className="w-3.5 h-3.5 text-violet-500 dark:text-violet-400" />
+                                Replying to <strong className="text-neutral-900 dark:text-white font-bold">@{replyingToComment.author}</strong>
                               </span>
                               <button
                                 onClick={() => setReplyingToComment(null)}
-                                className="p-1 text-zinc-400 hover:text-white rounded-full hover:bg-zinc-800 transition-colors cursor-pointer"
+                                className="p-1 text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded-full hover:bg-neutral-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                               >
                                 <X className="w-3.5 h-3.5" />
                               </button>
@@ -1225,7 +1225,7 @@ export default function AnonymousFeed({ defaultTab }) {
                             value={commentText}
                             onChange={(e) => setCommentText(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleAddComment(post.id, false)}
-                            className="flex-1 bg-zinc-950 border border-zinc-800 rounded-full px-lg py-xs text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-violet-500"
+                            className="flex-1 bg-neutral-100 dark:bg-zinc-950 border border-neutral-200 dark:border-zinc-800 rounded-full px-lg py-xs text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-violet-500"
                           />
                           <button
                             onClick={() => handleAddComment(post.id, false)}
@@ -1511,15 +1511,15 @@ export default function AnonymousFeed({ defaultTab }) {
                               initial={{ opacity: 0, y: 5 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: 5 }}
-                              className="flex items-center justify-between px-md py-xs bg-zinc-900 rounded-xl border border-zinc-800 text-xs text-zinc-300"
+                              className="flex items-center justify-between px-md py-xs bg-neutral-100 dark:bg-zinc-900 rounded-xl border border-neutral-200 dark:border-zinc-800 text-xs text-neutral-700 dark:text-zinc-300"
                             >
                               <span className="flex items-center gap-xs">
-                                <CornerDownRight className="w-3.5 h-3.5 text-violet-400" />
-                                Replying to <strong className="text-white font-bold">@{replyingToComment.author}</strong>
+                                <CornerDownRight className="w-3.5 h-3.5 text-violet-500 dark:text-violet-400" />
+                                Replying to <strong className="text-neutral-900 dark:text-white font-bold">@{replyingToComment.author}</strong>
                               </span>
                               <button
                                 onClick={() => setReplyingToComment(null)}
-                                className="p-1 text-zinc-400 hover:text-white rounded-full hover:bg-zinc-800 transition-colors cursor-pointer"
+                                className="p-1 text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded-full hover:bg-neutral-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                               >
                                 <X className="w-3.5 h-3.5" />
                               </button>
@@ -1536,7 +1536,7 @@ export default function AnonymousFeed({ defaultTab }) {
                             value={commentText}
                             onChange={(e) => setCommentText(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleAddComment(confession.id, true)}
-                            className="flex-1 bg-zinc-950 border border-zinc-800 rounded-full px-lg py-xs text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-violet-500"
+                            className="flex-1 bg-neutral-100 dark:bg-zinc-950 border border-neutral-200 dark:border-zinc-800 rounded-full px-lg py-xs text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-violet-500"
                           />
                           <button
                             onClick={() => handleAddComment(confession.id, true)}
@@ -1599,7 +1599,7 @@ export default function AnonymousFeed({ defaultTab }) {
               }
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-md text-sm text-white resize-none placeholder:text-zinc-500 focus:outline-none focus:border-violet-500"
+              className="w-full bg-neutral-50 dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 rounded-xl p-md text-sm text-neutral-900 dark:text-white resize-none placeholder:text-neutral-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-violet-500"
             />
 
             {/* Photo Attachment inside Modal */}
@@ -1616,9 +1616,9 @@ export default function AnonymousFeed({ defaultTab }) {
                   <button
                     type="button"
                     onClick={() => modalFileInputRef.current?.click()}
-                    className="flex items-center gap-2 text-xs font-semibold text-zinc-400 hover:text-zinc-200 p-2 hover:bg-zinc-800 rounded-xl transition-colors cursor-pointer"
+                    className="flex items-center gap-2 text-xs font-semibold text-neutral-600 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-200 p-2 hover:bg-neutral-100 dark:hover:bg-zinc-800 rounded-xl transition-colors cursor-pointer"
                   >
-                    <ImageIcon className="w-4 h-4 text-violet-400" />
+                    <ImageIcon className="w-4 h-4 text-violet-500 dark:text-violet-400" />
                     <span>{modalSelectedImage ? 'Change Photo' : 'Attach Photo'}</span>
                   </button>
 
@@ -1671,7 +1671,7 @@ export default function AnonymousFeed({ defaultTab }) {
               value={editedPostText}
               onChange={(e) => setEditedPostText(e.target.value)}
               rows={4}
-              className="w-full p-md bg-zinc-900 border border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500 text-white leading-relaxed resize-none"
+              className="w-full p-md bg-neutral-50 dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500 text-neutral-900 dark:text-white leading-relaxed resize-none placeholder:text-neutral-400 dark:placeholder:text-zinc-500"
               placeholder="Edit your post content..."
             />
             <div className="flex items-center justify-end gap-md pt-sm">
@@ -1809,15 +1809,15 @@ export default function AnonymousFeed({ defaultTab }) {
                 placeholder="Share your thoughts..."
                 rows={3}
                 autoFocus
-                className="w-full p-md bg-zinc-900 border border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500 text-white leading-relaxed resize-none placeholder-zinc-500"
+                className="w-full p-md bg-neutral-50 dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500 text-neutral-900 dark:text-white leading-relaxed resize-none placeholder:text-neutral-400 dark:placeholder:text-zinc-500"
               />
 
-              <div className="border border-zinc-800 rounded-2xl p-md bg-zinc-950/60 space-y-xs opacity-95">
-                <div className="flex items-center gap-xs text-xs font-bold text-violet-300">
+              <div className="border border-neutral-200 dark:border-zinc-800 rounded-2xl p-md bg-neutral-100/80 dark:bg-zinc-950/60 space-y-xs opacity-95">
+                <div className="flex items-center gap-xs text-xs font-bold text-violet-600 dark:text-violet-300">
                   <EyeOff className="w-3.5 h-3.5" />
                   <span>{reshareTargetPost.originalPost?.anonymousName || reshareTargetPost.anonymousName || 'Anonymous Fox'}</span>
                 </div>
-                <p className="text-xs text-zinc-300 leading-relaxed line-clamp-3">
+                <p className="text-xs text-neutral-700 dark:text-zinc-300 leading-relaxed line-clamp-3">
                   {reshareTargetPost.originalPost?.text || reshareTargetPost.text}
                 </p>
               </div>
@@ -1847,16 +1847,16 @@ export default function AnonymousFeed({ defaultTab }) {
                 type="button"
                 onClick={handleReshareInstant}
                 disabled={isSubmittingReshare}
-                className="w-full p-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 rounded-2xl flex items-start gap-md text-left transition-all active:scale-[0.99] group cursor-pointer"
+                className="w-full p-lg bg-neutral-50 dark:bg-zinc-900/90 hover:bg-neutral-100 dark:hover:bg-zinc-800 border border-neutral-200 dark:border-zinc-700/80 rounded-2xl flex items-start gap-md text-left transition-all active:scale-[0.99] group cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 dark:text-amber-400 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                   <Zap className="w-5 h-5 fill-amber-500/20" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-white flex items-center gap-xs">
+                  <h4 className="font-bold text-sm text-neutral-900 dark:text-white flex items-center gap-xs">
                     Reshare Instantly
                   </h4>
-                  <p className="text-xs text-zinc-400 mt-xs leading-normal">
+                  <p className="text-xs text-neutral-500 dark:text-zinc-400 mt-xs leading-normal">
                     Post directly to anonymous feed without adding a caption.
                   </p>
                 </div>
@@ -1865,16 +1865,16 @@ export default function AnonymousFeed({ defaultTab }) {
               <button
                 type="button"
                 onClick={() => setReshareMode('thoughts')}
-                className="w-full p-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 rounded-2xl flex items-start gap-md text-left transition-all active:scale-[0.99] group cursor-pointer"
+                className="w-full p-lg bg-neutral-50 dark:bg-zinc-900/90 hover:bg-neutral-100 dark:hover:bg-zinc-800 border border-neutral-200 dark:border-zinc-700/80 rounded-2xl flex items-start gap-md text-left transition-all active:scale-[0.99] group cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                <div className="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                   <PenSquare className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-white flex items-center gap-xs">
+                  <h4 className="font-bold text-sm text-neutral-900 dark:text-white flex items-center gap-xs">
                     Reshare with Your Thoughts
                   </h4>
-                  <p className="text-xs text-zinc-400 mt-xs leading-normal">
+                  <p className="text-xs text-neutral-500 dark:text-zinc-400 mt-xs leading-normal">
                     Add your own commentary or opinion above the original post preview.
                   </p>
                 </div>

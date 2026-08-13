@@ -112,11 +112,13 @@ export default function SavedPosts() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center py-5xl card border border-dashed border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/30 max-w-md mx-auto rounded-2xl"
+            className="text-center p-8 sm:p-10 border border-dashed border-neutral-300 dark:border-neutral-800/80 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl max-w-md mx-auto rounded-3xl shadow-xl shadow-black/5 dark:shadow-black/30 text-neutral-900 dark:text-white"
           >
-            <Bookmark className="w-16 h-16 text-neutral-300 dark:text-neutral-700 mx-auto mb-lg" />
-            <h3 className="font-bold text-lg mb-md">No Saved Posts</h3>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            <div className="w-16 h-16 rounded-2xl bg-neutral-100 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700/60 flex items-center justify-center mx-auto mb-5 shadow-inner">
+              <Bookmark className="w-8 h-8 text-neutral-400 dark:text-neutral-500 stroke-[1.8]" />
+            </div>
+            <h3 className="font-heading font-extrabold text-xl mb-2 text-neutral-900 dark:text-white">No Saved Posts</h3>
+            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-xs mx-auto font-medium">
               When you browse your campus feed on Home, click the bookmark icon to save important discussions for later reference.
             </p>
           </motion.div>
