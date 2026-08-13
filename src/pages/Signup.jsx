@@ -163,7 +163,17 @@ export default function Signup() {
       <div className="absolute bottom-10 right-1/3 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[180px] pointer-events-none" />
 
       {/* --- TOP NAVBAR --- */}
-      <header className="relative z-30 px-6 sm:px-12 py-3 flex items-center justify-end flex-shrink-0">
+      <header className="relative z-30 px-6 sm:px-12 py-3 flex items-center justify-between flex-shrink-0">
+        <Link
+          to="/"
+          className="flex items-center gap-2.5 cursor-pointer group"
+          title="Return to Landing Page"
+        >
+          <LogoIcon className="w-8 h-8 group-hover:scale-105 transition-transform" variant="badge" glow={true} />
+          <span className="font-display font-black text-xl text-white tracking-tight">
+            Cohort<span className="text-pink-500">.</span>
+          </span>
+        </Link>
         <div className="flex items-center gap-4">
           <button
             onClick={toggleAuthMode}
@@ -310,9 +320,13 @@ export default function Signup() {
 
         {/* RIGHT COLUMN: REAL BRAND LOGO */}
         <div className="lg:col-span-6 hidden lg:flex items-center justify-center relative">
-          <div className="flex flex-col items-center justify-center text-center space-y-6 relative z-10 p-6">
+          <Link
+            to="/"
+            className="flex flex-col items-center justify-center text-center space-y-6 relative z-10 p-6 group cursor-pointer"
+            title="Return to Landing Page"
+          >
             {/* Glowing Backdrop & Real Badge LogoIcon */}
-            <div className="relative group flex items-center justify-center">
+            <div className="relative flex items-center justify-center">
               <div className="absolute -inset-6 bg-gradient-to-tr from-pink-500/40 via-purple-500/50 to-cyan-500/40 rounded-[35%] blur-3xl opacity-80 group-hover:opacity-100 transition-all duration-500 pointer-events-none" />
               <LogoIcon 
                 className="w-56 h-56 sm:w-64 sm:h-64 drop-shadow-[0_20px_60px_rgba(150,59,255,0.6)] transform group-hover:scale-105 transition-transform duration-300 relative z-10" 
@@ -327,7 +341,7 @@ export default function Signup() {
                 Cohort<span className="text-pink-500">.</span>
               </span>
             </div>
-          </div>
+          </Link>
         </div>
 
       </main>
