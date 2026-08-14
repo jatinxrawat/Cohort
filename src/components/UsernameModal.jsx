@@ -13,6 +13,7 @@ export const UsernameModal = () => {
   const { showSuccess } = useNotification();
 
   const [usernameInput, setUsernameInput] = useState('');
+  const [nameInput, setNameInput] = useState(user?.name || '');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -34,6 +35,14 @@ export const UsernameModal = () => {
   const [dob, setDob] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Sync name input when user profile is loaded
+  useEffect(() => {
+    if (user) {
+      setNameInput(user.name || '');
+      setCollegeInput(user.college || '');
+    }
+  }, [user]);
 
   // Fetch colleges dynamically with debounce
   useEffect(() => {
@@ -71,6 +80,12 @@ export const UsernameModal = () => {
   const handleCreateUsername = async (e) => {
     e.preventDefault();
     setErrorMsg('');
+
+    const cleanName = nameInput.trim();
+    if (!cleanName || cleanName.length < 2) {
+      setErrorMsg('Display Name must be at least 2 characters long.');
+      return;
+    }
 
     const cleanUsername = usernameInput.trim().toLowerCase().replace(/[^a-z0-9_.]/g, '');
 
@@ -130,6 +145,7 @@ export const UsernameModal = () => {
       // 3. Update Firestore user document
       const userRef = doc(db, 'users', user.uid);
       const onboardingData = {
+        name: cleanName,
         username: cleanUsername,
         avatar: uploadedAvatarUrl || avatarPreviewUrl || user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${cleanUsername}`,
         college: collegeInput,
@@ -209,6 +225,26 @@ export const UsernameModal = () => {
                   Remove
                 </Button>
               )}
+            </div>
+          </div>
+
+          {/* Display Name */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-xs">
+              Display Name
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="e.g. Vansh"
+                value={nameInput}
+                onChange={(e) => {
+                  setNameInput(e.target.value);
+                  setErrorMsg('');
+                }}
+                className="input-base text-sm"
+                required
+              />
             </div>
           </div>
 
