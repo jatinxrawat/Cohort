@@ -6,7 +6,7 @@ import {
   Shield, UserMinus, Settings, Link2, Trash2, Lock, Globe, X, ChevronLeft,
   Check, CheckCheck, Copy, Crown, MessageSquare, Hash, Pin, PinOff, UserPlus2, Star, Info,
   Edit3, Mic, MicOff, CheckSquare, Square, CornerUpLeft, MoreVertical, Eraser, Volume2,
-  EyeOff, Eye, Bell, BellOff, Camera, User, Ban
+  EyeOff, Eye, Bell, BellOff, Camera, User, Ban, GraduationCap
 } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
@@ -26,6 +26,50 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '@/utils/firebase';
 
 const chatEmojis = ['👍', '❤️', '🔥', '🙌', '😂', '😮'];
+
+const CRAZY_EMOJI_PACKS = [
+  {
+    id: 'vibe',
+    name: '🔥 Vibe',
+    emojis: [
+      '🔥', '✨', '💯', '⚡', '💀', '🗿', '🎯', '🚀', '👑', '💥', '🥳', '🎉', '💅', '🧠', '🤯',
+      '🌟', '💫', '💎', '🏆', '🌶️', '🌊', '🦄', '🔮', '🕶️', '🦾', '🧿', '💸', '📈', '🚩', '🧿'
+    ]
+  },
+  {
+    id: 'memes',
+    name: '😂 Memes',
+    emojis: [
+      '😂', '🤣', '💀', '🤡', '👁️👄👁️', '🙃', '🫠', '🫡', '😭', '🌚', '🌝', '🤓', '🤪', '😜',
+      '😈', '👹', '💩', '👻', '🙈', '🤏', '🤫', '🤥', '🤢', '🤧', '🥸', '👺', '☠️', '🪦', '🤖', '🫥'
+    ]
+  },
+  {
+    id: 'campus',
+    name: '😎 Campus',
+    emojis: [
+      '🎒', '📚', '💻', '☕', '🍕', '🎓', '📝', '🎧', '🛌', '⏰', '😴', '🍔', '🥤', '🍻', '🎸',
+      '⚽', '🏀', '🎮', '🕹️', '📱', '💡', '📌', '🧪', '🧃', '🍿', '🍩', '🍟', '🍜', '🍱', '🎬'
+    ]
+  },
+  {
+    id: 'love',
+    name: '❤️ Love',
+    emojis: [
+      '❤️', '💖', '🥺', '🥰', '😍', '🫶', '💔', '🖤', '💜', '💋', '🫂', '💌', '🌹', '💐', '⭐',
+      '👍', '🙌', '👏', '🤝', '✌️', '🌸', '🧸', '💘', '💝', '💗', '💓', '💞', '💕', '❣️', '🤍'
+    ]
+  },
+  {
+    id: 'food',
+    name: '🍕 Food',
+    emojis: [
+      '🍕', '🍔', '🍟', '🌭', '🍿', '🥓', '🍳', '🧇', '🥞', '🧋', '🧃', '🍺', '🍻', '🥂', '🍾',
+      '🍹', '🍩', '🍦', '🍧', '🎂', '🧁', '🍫', '🍬', '🍭', '🍒', '🥑', '🌶️', '🍉', '🍇', '🍓'
+    ]
+  }
+];
+
 
 const SwipeableMessageRow = ({ children, onReply, isMe }) => {
   const [dragOffset, setDragOffset] = useState(0);
@@ -61,6 +105,16 @@ const SwipeableMessageRow = ({ children, onReply, isMe }) => {
   );
 };
 
+const formatShortCollegeName = (rawName) => {
+  if (!rawName) return 'Campus';
+  let short = rawName.trim();
+  if (short.includes(' - ')) {
+    short = short.split(' - ')[0].trim();
+  } else if (short.includes(' (')) {
+    short = short.split(' (')[0].trim();
+  }
+  return short;
+};
 
 export default function Community() {
   const navigate = useNavigate();
@@ -132,6 +186,8 @@ export default function Community() {
   const [isCreatePollOpen, setIsCreatePollOpen] = useState(false);
   const [pollQuestion, setPollQuestion] = useState('');
   const [pollOptions, setPollOptions] = useState(['', '']);
+  const [pollType, setPollType] = useState('single'); // 'single' | 'multiple'
+
 
   const [files, setFiles] = useState([]);
   const [activeFileCategory, setActiveFileCategory] = useState('All');
@@ -149,6 +205,9 @@ export default function Community() {
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDesc, setNewGroupDesc] = useState('');
   const [newGroupType, setNewGroupType] = useState('public');
+  const [newGroupVisibility, setNewGroupVisibility] = useState('public'); // 'public' | 'private'
+  const [newGroupAudience, setNewGroupAudience] = useState('everyone'); // 'everyone' | 'college_only'
+  const [newGroupJoinControl, setNewGroupJoinControl] = useState('direct'); // 'direct' | 'request'
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
 
   const [showManageDrawer, setShowManageDrawer] = useState(false);
@@ -156,8 +215,12 @@ export default function Community() {
   const [editGroupName, setEditGroupName] = useState('');
   const [editGroupDesc, setEditGroupDesc] = useState('');
   const [editGroupType, setEditGroupType] = useState('public');
+  const [editGroupVisibility, setEditGroupVisibility] = useState('public');
+  const [editGroupAudience, setEditGroupAudience] = useState('everyone');
+  const [editGroupJoinControl, setEditGroupJoinControl] = useState('direct');
   const [newGroupAvatar, setNewGroupAvatar] = useState('');
   const [editGroupAvatar, setEditGroupAvatar] = useState('');
+
   const [editAdminPermissions, setEditAdminPermissions] = useState({
     canEditInfo: true,
     canInviteMembers: true,
@@ -218,12 +281,53 @@ export default function Community() {
   const [isGlobalStarredModalOpen, setIsGlobalStarredModalOpen] = useState(false);
   const [highlightedMsgId, setHighlightedMsgId] = useState(null);
 
-  // ── Voice Recording State
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
-  const recordingTimerRef = useRef(null);
+  // ── Attachment & Emoji Popover State
+  const [showAttachMenuPop, setShowAttachMenuPop] = useState(false);
+  const [showEmojiPickerPop, setShowEmojiPickerPop] = useState(false);
+  const [activeEmojiPack, setActiveEmojiPack] = useState(0);
+
+  // Intercept back button / history state when emoji tray or attachment popover is open
+  useEffect(() => {
+    if (showEmojiPickerPop || showAttachMenuPop) {
+      window.history.pushState({ trayOpen: true }, '');
+      const handlePopState = () => {
+        setShowEmojiPickerPop(false);
+        setShowAttachMenuPop(false);
+      };
+      window.addEventListener('popstate', handlePopState);
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [showEmojiPickerPop, showAttachMenuPop]);
+
+
+  // Recents Emoji Storage
+  const [recentEmojis, setRecentEmojis] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cohort_recent_emojis');
+      return saved ? JSON.parse(saved) : ['🔥', '😂', '💀', '✨', '❤️', '💯', '🗿', '🫡', '😭', '🥳', '🚀', '🎒', '😍', '☕'];
+    } catch (e) {
+      return ['🔥', '😂', '💀', '✨', '❤️', '💯', '🗿', '🫡', '😭', '🥳'];
+    }
+  });
+
+  const handleAddRecentEmoji = (emoji) => {
+    setRecentEmojis(prev => {
+      const filtered = prev.filter(e => e !== emoji);
+      const updated = [emoji, ...filtered].slice(0, 25);
+      try { localStorage.setItem('cohort_recent_emojis', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
+  };
+
+  const allPacks = [
+    { id: 'recents', name: '🕒 Recents', emojis: recentEmojis },
+    ...CRAZY_EMOJI_PACKS
+  ];
+
+
+  const cameraInputRef = useRef(null);
   const createAvatarFileRef = useRef(null);
   const editAvatarFileRef = useRef(null);
   const drawerHeaderAvatarFileRef = useRef(null);
@@ -247,17 +351,21 @@ export default function Community() {
 
   // ── Load college community
   useEffect(() => {
-    setLoading(true);
-    const fakeSenderNames = ['rahul roy', 'priya sharma', 'aditya gupta', 'arjun kumar', 'neha patel', 'rohan verma'];
+    const currentCollege = (user?.college || 'KIET').trim();
 
     const unsubMsgs = onSnapshot(collection(db, 'community-messages'), (snap) => {
       const loaded = [];
       snap.forEach(d => {
         const data = d.data();
-        const senderName = (data.sender?.name || '').toLowerCase();
-        const isFake = fakeSenderNames.some(f => senderName.includes(f));
-        if (isFake) deleteDoc(doc(db, 'community-messages', d.id)).catch(() => {});
-        else loaded.push({ id: d.id, docId: d.id, ...data, timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp || Date.now()) });
+        const msgCollege = data.college || data.sender?.role || data.sender?.college;
+        const isMatch = !msgCollege || String(msgCollege).toLowerCase().trim() === currentCollege.toLowerCase().trim() || (currentCollege === 'KIET' && (!msgCollege || msgCollege === 'Student'));
+
+        if (isMatch) {
+          const senderName = (data.sender?.name || '').toLowerCase();
+          const isFake = fakeSenderNames.some(f => senderName.includes(f));
+          if (isFake) deleteDoc(doc(db, 'community-messages', d.id)).catch(() => {});
+          else loaded.push({ id: d.id, docId: d.id, ...data, timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp || Date.now()) });
+        }
       });
       loaded.sort((a, b) => a.timestamp - b.timestamp);
       setMessages(loaded);
@@ -268,10 +376,15 @@ export default function Community() {
       const loaded = [];
       snap.forEach(d => {
         const data = d.data();
-        const name = (data.author?.name || '').toLowerCase();
-        const isFake = fakeSenderNames.some(f => name.includes(f));
-        if (isFake) deleteDoc(doc(db, 'community-feed', d.id)).catch(() => {});
-        else loaded.push({ id: d.id, docId: d.id, ...data, timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp || Date.now()) });
+        const postCollege = data.college || data.author?.role || data.author?.college;
+        const isMatch = !postCollege || String(postCollege).toLowerCase().trim() === currentCollege.toLowerCase().trim() || (currentCollege === 'KIET' && (!postCollege || postCollege === 'Student'));
+
+        if (isMatch) {
+          const name = (data.author?.name || '').toLowerCase();
+          const isFake = fakeSenderNames.some(f => name.includes(f));
+          if (isFake) deleteDoc(doc(db, 'community-feed', d.id)).catch(() => {});
+          else loaded.push({ id: d.id, docId: d.id, ...data, timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp || Date.now()) });
+        }
       });
       loaded.sort((a, b) => b.timestamp - a.timestamp);
       setFeedPosts(loaded);
@@ -279,18 +392,28 @@ export default function Community() {
 
     const unsubPolls = onSnapshot(collection(db, 'community-polls'), (snap) => {
       const loaded = [];
-      snap.forEach(d => loaded.push({ id: d.id, docId: d.id, ...d.data() }));
+      snap.forEach(d => {
+        const data = d.data();
+        const pollCollege = data.college;
+        const isMatch = !pollCollege || String(pollCollege).toLowerCase().trim() === currentCollege.toLowerCase().trim() || currentCollege === 'KIET';
+        if (isMatch) loaded.push({ id: d.id, docId: d.id, ...data });
+      });
       setPolls(loaded);
     });
 
     const unsubFiles = onSnapshot(collection(db, 'community-files'), (snap) => {
       const loaded = [];
-      snap.forEach(d => loaded.push({ id: d.id, docId: d.id, ...d.data() }));
+      snap.forEach(d => {
+        const data = d.data();
+        const fileCollege = data.college;
+        const isMatch = !fileCollege || String(fileCollege).toLowerCase().trim() === currentCollege.toLowerCase().trim() || currentCollege === 'KIET';
+        if (isMatch) loaded.push({ id: d.id, docId: d.id, ...data });
+      });
       setFiles(loaded);
     });
 
     return () => { unsubMsgs(); unsubFeed(); unsubPolls(); unsubFiles(); };
-  }, []);
+  }, [user?.college]);
 
   // ── Load my communities
   useEffect(() => {
@@ -304,6 +427,40 @@ export default function Community() {
     });
     return () => unsub();
   }, [user?.uid]);
+
+  // ── Load all public & discoverable communities
+  const [discoverCommunities, setDiscoverCommunities] = useState([]);
+  useEffect(() => {
+    if (!user?.uid) return;
+    const q = query(collection(db, 'userCommunities'));
+    const unsub = onSnapshot(q, (snap) => {
+      const comms = [];
+      snap.forEach(d => comms.push({ id: d.id, ...d.data(), createdAt: d.data().createdAt?.toDate ? d.data().createdAt.toDate() : new Date() }));
+      setDiscoverCommunities(comms);
+    });
+    return () => unsub();
+  }, [user?.uid]);
+
+  const isUserMember = (room) => Array.isArray(room?.members) && room.members.includes(user?.uid);
+  const isUserAdmin = (room) => room?.creatorUid === user?.uid || (Array.isArray(room?.admins) && room.admins.includes(user?.uid));
+  const isPendingRequest = (room) => Array.isArray(room?.joinRequests) && room.joinRequests.some(req => (typeof req === 'string' ? req === user?.uid : req?.uid === user?.uid));
+
+  const handleDirectJoin = async (community) => {
+    if (!community?.id || !user?.uid) return;
+    try {
+      await updateDoc(doc(db, 'userCommunities', community.id), {
+        members: arrayUnion(user.uid)
+      });
+      const updatedGroup = { roomType: 'group', ...community, members: [...(community.members || []), user.uid] };
+      setSelectedRoom(updatedGroup);
+      setMyCommunities(prev => [...prev.filter(c => c.id !== community.id), updatedGroup]);
+      showSuccess(`Joined "${community.name}"!`);
+    } catch (e) {
+      console.error(e);
+      showWarning('Failed to join community.');
+    }
+  };
+
 
   // ── Real-time Fetch All Starred Community Messages Across Rooms ──
   useEffect(() => {
@@ -540,7 +697,8 @@ export default function Community() {
     if (!messageText.trim() && !attachedFile) return;
     const senderName = user?.name || user?.email?.split('@')[0] || 'Student';
     const messageData = {
-      sender: { name: senderName, avatar: user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || senderName)}`, role: user?.college || 'Student', uid: user?.uid || null },
+      college: collegeName,
+      sender: { name: senderName, avatar: user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || senderName)}`, role: user?.college || 'Student', college: collegeName, uid: user?.uid || null },
       content: messageText.trim() + (attachedFile ? ` \n📎 Attached: ${attachedFile.name}` : ''),
       timestamp: new Date(), reactions: [],
       replyTo: replyingTo ? { name: replyingTo.sender.name, text: replyingTo.content } : null
@@ -585,10 +743,12 @@ export default function Community() {
 
       const senderName = user?.name || user?.email?.split('@')[0] || 'Student';
       const postData = {
+        college: collegeName,
         author: {
           name: senderName,
           avatar: user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || senderName)}`,
-          role: user?.college || 'Student'
+          role: user?.college || 'Student',
+          college: collegeName
         },
         content: newPostText.trim(),
         imageUrl: uploadedImageUrl,
@@ -635,20 +795,19 @@ export default function Community() {
     const targetPoll = polls.find(p => p.id === pollId);
     if (!targetPoll) return;
 
-    const currentSelectedIndex = targetPoll.options?.findIndex(o => o.selected);
-    const isRemoving = currentSelectedIndex === optIndex;
+    const isMultiple = targetPoll.pollType === 'multiple';
 
     let deltaVotes = 0;
     const updatedOptions = targetPoll.options.map((o, idx) => {
       if (idx === optIndex) {
-        if (isRemoving) {
+        if (o.selected) {
           deltaVotes -= 1;
           return { ...o, votes: Math.max(0, o.votes - 1), selected: false };
         } else {
-          deltaVotes += (o.selected ? 0 : 1);
+          deltaVotes += 1;
           return { ...o, votes: o.votes + 1, selected: true };
         }
-      } else if (idx === currentSelectedIndex) {
+      } else if (!isMultiple && o.selected) {
         deltaVotes -= 1;
         return { ...o, votes: Math.max(0, o.votes - 1), selected: false };
       }
@@ -657,7 +816,7 @@ export default function Community() {
 
     const newTotalVotes = Math.max(0, (targetPoll.totalVotes || 0) + deltaVotes);
     setPolls(prev => prev.map(p => p.id === pollId ? { ...p, options: updatedOptions, totalVotes: newTotalVotes } : p));
-    showSuccess(isRemoving ? 'Vote removed' : 'Vote updated!');
+    showSuccess('Vote recorded!');
 
     if (targetPoll.docId) {
       try {
@@ -676,14 +835,15 @@ export default function Community() {
     if (!pollQuestion.trim()) return;
     const validOptions = pollOptions.filter(o => o.trim() !== '');
     if (validOptions.length < 2) { showWarning('At least 2 options required.'); return; }
-    const newPollData = { question: pollQuestion.trim(), totalVotes: 0, options: validOptions.map(optText => ({ text: optText.trim(), votes: 0, selected: false })), createdBy: user?.name || 'Student', createdAt: new Date().toISOString() };
-    try { const docRef = await addDoc(collection(db, 'community-polls'), newPollData); setPolls(prev => [{ id: docRef.id, docId: docRef.id, ...newPollData }, ...prev]); setIsCreatePollOpen(false); setPollQuestion(''); setPollOptions(['', '']); showSuccess('Poll created!'); } catch (e) { console.error(e); }
+    const newPollData = { college: collegeName, question: pollQuestion.trim(), pollType: pollType, totalVotes: 0, options: validOptions.map(optText => ({ text: optText.trim(), votes: 0, selected: false })), createdBy: user?.name || 'Student', createdAt: new Date().toISOString() };
+    try { const docRef = await addDoc(collection(db, 'community-polls'), newPollData); setPolls(prev => [{ id: docRef.id, docId: docRef.id, ...newPollData }, ...prev]); setIsCreatePollOpen(false); setPollQuestion(''); setPollOptions(['', '']); setPollType('single'); showSuccess('Poll created!'); } catch (e) { console.error(e); }
   };
+
 
   const handleShareFile = async (e) => {
     e.preventDefault();
     if (!newFileName.trim()) return;
-    const fileData = { name: newFileName.trim(), category: newFileCategory, uploadedBy: user?.name || 'Student', date: new Date().toISOString().split('T')[0], size: '1.2 MB' };
+    const fileData = { college: collegeName, name: newFileName.trim(), category: newFileCategory, uploadedBy: user?.name || 'Student', date: new Date().toISOString().split('T')[0], size: '1.2 MB' };
     try { const docRef = await addDoc(collection(db, 'community-files'), fileData); setFiles(prev => [{ id: docRef.id, docId: docRef.id, ...fileData }, ...prev]); setIsShareFileOpen(false); setNewFileName(''); showSuccess('Resource shared!'); } catch (e) { console.error(e); }
   };
 
@@ -714,11 +874,16 @@ export default function Community() {
       const groupData = {
         name: newGroupName.trim(),
         description: newGroupDesc.trim(),
-        type: newGroupType,
+        visibility: newGroupVisibility,
+        type: newGroupVisibility,
+        audience: newGroupAudience,
+        college: user?.college || collegeName,
+        joinControl: newGroupJoinControl,
         avatar: newGroupAvatar.trim() || null,
         creatorUid: user.uid,
         admins: [user.uid],
         members: [user.uid],
+        joinRequests: [],
         adminPermissions: {
           canEditInfo: true,
           canInviteMembers: true,
@@ -734,6 +899,7 @@ export default function Community() {
       setSelectedRoom(newGroup);
       setShowCreateModal(false);
       setNewGroupName(''); setNewGroupDesc(''); setNewGroupType('public'); setNewGroupAvatar('');
+      setNewGroupVisibility('public'); setNewGroupAudience('everyone'); setNewGroupJoinControl('direct');
       showSuccess(`"${groupData.name}" created!`);
     } catch (e) { console.error(e); showWarning('Failed to create.'); }
     finally { setIsCreatingGroup(false); }
@@ -743,7 +909,10 @@ export default function Community() {
     if (!selectedRoom) return;
     setEditGroupName(selectedRoom.name);
     setEditGroupDesc(selectedRoom.description || '');
-    setEditGroupType(selectedRoom.type || 'public');
+    setEditGroupType(selectedRoom.visibility || selectedRoom.type || 'public');
+    setEditGroupVisibility(selectedRoom.visibility || selectedRoom.type || 'public');
+    setEditGroupAudience(selectedRoom.audience || 'everyone');
+    setEditGroupJoinControl(selectedRoom.joinControl || 'direct');
     setEditGroupAvatar(selectedRoom.avatar || '');
     setEditAdminPermissions(selectedRoom.adminPermissions || {
       canEditInfo: true,
@@ -763,16 +932,80 @@ export default function Community() {
       const updatePayload = {
         name: editGroupName.trim(),
         description: editGroupDesc.trim(),
-        type: editGroupType,
+        visibility: editGroupVisibility,
+        type: editGroupVisibility,
+        audience: editGroupAudience,
+        joinControl: editGroupJoinControl,
         avatar: editGroupAvatar.trim() || null,
         adminPermissions: editAdminPermissions
       };
       await updateDoc(doc(db, 'userCommunities', selectedRoom.id), updatePayload);
       setSelectedRoom(prev => ({ ...prev, ...updatePayload }));
       setMyCommunities(prev => prev.map(c => c.id === selectedRoom.id ? { ...c, ...updatePayload } : c));
-      showSuccess('Settings updated!'); setManageTab('members');
+      showSuccess('Community settings updated!'); setManageTab('members');
     } catch (e) { console.error(e); }
   };
+
+  const handleRequestToJoin = async (community) => {
+    if (!community?.id || !user?.uid) return;
+    try {
+      const requestObj = {
+        uid: user.uid,
+        name: user.name || user.email?.split('@')[0] || 'Student',
+        avatar: user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.email || 'user')}`,
+        email: user.email || '',
+        college: user.college || collegeName,
+        requestedAt: new Date().toISOString()
+      };
+      await updateDoc(doc(db, 'userCommunities', community.id), {
+        joinRequests: arrayUnion(requestObj)
+      });
+      setMyCommunities(prev => prev.map(c => c.id === community.id ? {
+        ...c,
+        joinRequests: [...(c.joinRequests || []), requestObj]
+      } : c));
+      showSuccess('Join request sent to community admins!');
+    } catch (e) {
+      console.error(e);
+      showWarning('Failed to send join request.');
+    }
+  };
+
+  const handleAcceptRequest = async (requestObj) => {
+    if (!selectedRoom?.id || !requestObj?.uid) return;
+    try {
+      await updateDoc(doc(db, 'userCommunities', selectedRoom.id), {
+        members: arrayUnion(requestObj.uid),
+        joinRequests: arrayRemove(requestObj)
+      });
+      setSelectedRoom(prev => ({
+        ...prev,
+        members: [...(prev.members || []), requestObj.uid],
+        joinRequests: (prev.joinRequests || []).filter(r => (typeof r === 'string' ? r !== requestObj.uid : r.uid !== requestObj.uid))
+      }));
+      showSuccess(`Accepted request! Member added.`);
+    } catch (e) {
+      console.error(e);
+      showWarning('Failed to accept request.');
+    }
+  };
+
+  const handleRejectRequest = async (requestObj) => {
+    if (!selectedRoom?.id || !requestObj?.uid) return;
+    try {
+      await updateDoc(doc(db, 'userCommunities', selectedRoom.id), {
+        joinRequests: arrayRemove(requestObj)
+      });
+      setSelectedRoom(prev => ({
+        ...prev,
+        joinRequests: (prev.joinRequests || []).filter(r => (typeof r === 'string' ? r !== requestObj.uid : r.uid !== requestObj.uid))
+      }));
+      showSuccess('Join request rejected.');
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
 
   const handlePromoteAdmin = async (uid) => {
     if (!selectedRoom?.id) return;
@@ -1229,8 +1462,9 @@ export default function Community() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-xs justify-between">
-                  <span className="font-bold text-sm text-neutral-900 dark:text-white truncate">{collegeName} Community</span>
+                  <span className="font-bold text-sm text-neutral-900 dark:text-white truncate" title={collegeName}>{formatShortCollegeName(collegeName)} Community</span>
                   <ShieldCheck className="w-4 h-4 text-primary-500 flex-shrink-0" />
+
                 </div>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-xs">
                   {loading ? 'Loading...' : messages.length > 0 ? getLastMsgPreview(messages) : 'Campus community hub'}
@@ -1550,6 +1784,118 @@ export default function Community() {
             </div>
           )}
 
+          {/* ── Discover Public Communities */}
+          {discoverCommunities.filter(c => {
+            if (c.visibility === 'private' && !isUserMember(c) && !isUserAdmin(c)) return false;
+            if (c.audience === 'college_only' && c.college && c.college !== (user?.college || collegeName) && !isUserMember(c) && !isUserAdmin(c)) return false;
+            if (isUserMember(c)) return false;
+            if (searchQuery && !c.name.toLowerCase().includes(searchQuery.toLowerCase()) && !(c.description || '').toLowerCase().includes(searchQuery.toLowerCase())) return false;
+            return true;
+          }).length > 0 && (
+            <div className="px-md mt-md pt-sm border-t border-neutral-100 dark:border-neutral-800">
+              <div className="px-md mb-2 flex items-center justify-between">
+                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Discover Communities</p>
+                <span className="text-[10px] text-neutral-400 font-mono">Public</span>
+              </div>
+
+              {discoverCommunities
+                .filter(c => {
+                  if (c.visibility === 'private' && !isUserMember(c) && !isUserAdmin(c)) return false;
+                  if (c.audience === 'college_only' && c.college && c.college !== (user?.college || collegeName) && !isUserMember(c) && !isUserAdmin(c)) return false;
+                  if (isUserMember(c)) return false;
+                  if (searchQuery && !c.name.toLowerCase().includes(searchQuery.toLowerCase()) && !(c.description || '').toLowerCase().includes(searchQuery.toLowerCase())) return false;
+                  return true;
+                })
+                .map(c => {
+                  const isPending = isPendingRequest(c);
+
+                  return (
+                    <div
+                      key={c.id}
+                      className="p-3.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 mb-2 hover:border-neutral-300 dark:hover:border-neutral-700 transition-all space-y-2.5 shadow-sm"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        {c.avatar ? (
+                          <img src={c.avatar} alt={c.name} className="w-10 h-10 rounded-xl object-cover flex-shrink-0 border border-neutral-200 dark:border-neutral-800" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-neutral-900 dark:text-white font-bold text-base flex-shrink-0">
+                            {c.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-xs text-neutral-900 dark:text-neutral-100 truncate">{c.name}</h4>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 flex items-center gap-1">
+                              {c.visibility === 'private' ? (
+                                <>
+                                  <Lock className="w-3 h-3 text-amber-500" />
+                                  <span>Private</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Globe className="w-3 h-3 text-emerald-500" />
+                                  <span>Public</span>
+                                </>
+                              )}
+                            </span>
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 flex items-center gap-1">
+                              {c.audience === 'college_only' ? (
+                                <>
+                                  <GraduationCap className="w-3 h-3 text-purple-500" />
+                                  <span>College Only</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Users className="w-3 h-3 text-sky-500" />
+                                  <span>Everyone</span>
+                                </>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="text-[11.5px] text-neutral-600 dark:text-neutral-400 line-clamp-2 leading-relaxed font-normal">
+                        {c.description || 'Campus student community.'}
+                      </p>
+
+                      <div className="pt-2 flex items-center justify-between gap-2 border-t border-neutral-100 dark:border-neutral-800">
+                        <span className="text-[10px] text-neutral-400 font-mono">
+                          {c.members?.length || 1} members
+                        </span>
+
+                        {isPending ? (
+                          <button
+                            disabled
+                            type="button"
+                            className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 font-semibold text-xs cursor-not-allowed"
+                          >
+                            Pending Approval
+                          </button>
+                        ) : c.joinControl === 'request' ? (
+                          <button
+                            type="button"
+                            onClick={() => handleRequestToJoin(c)}
+                            className="px-3.5 py-1.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold text-xs hover:opacity-90 transition-all shadow-sm active:scale-95 cursor-pointer"
+                          >
+                            Request to Join
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleDirectJoin(c)}
+                            className="px-3.5 py-1.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold text-xs hover:opacity-90 transition-all shadow-sm active:scale-95 cursor-pointer"
+                          >
+                            Join Community
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+
           {/* Empty state */}
           {myCommunities.length === 0 && (
             <div className="px-lg mt-sm">
@@ -1562,6 +1908,7 @@ export default function Community() {
               </button>
             </div>
           )}
+
         </div>
         </Card>
       </div>
@@ -1598,7 +1945,13 @@ export default function Community() {
                 {collegeName.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="font-bold text-neutral-900 dark:text-white flex items-center gap-xs">{collegeName} Community <ShieldCheck className="w-4 h-4 text-primary-500" /></h2>
+                <h2 className="font-bold text-neutral-900 dark:text-white flex items-center gap-xs text-sm sm:text-base">
+                  <span className="truncate max-w-[200px] sm:max-w-xs md:max-w-md" title={collegeName}>
+                    {formatShortCollegeName(collegeName)} Community
+                  </span>
+                  <ShieldCheck className="w-4 h-4 text-primary-500 flex-shrink-0" />
+                </h2>
+
                 <p className="text-xs text-neutral-500 font-semibold">Campus Community Hub · {messages.length} messages</p>
               </div>
 
@@ -1840,23 +2193,127 @@ export default function Community() {
                       </div>
                     )}
                     {replyingTo && <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-sm flex justify-between items-center text-xs mb-xs"><div className="min-w-0"><span className="font-semibold text-[10px] text-neutral-400">Replying to {replyingTo.sender?.name}</span><p className="truncate text-neutral-600 dark:text-neutral-300 mt-xs">{replyingTo.content}</p></div><button onClick={() => setReplyingTo(null)} className="text-neutral-400 hover:text-neutral-600 ml-md"><X className="w-4 h-4" /></button></div>}
-                    <div className="flex gap-md items-center">
+                     <div className="flex gap-md items-center relative">
                       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-                      <button onClick={handleTriggerFilePicker} className="p-md text-neutral-400 hover:text-primary-500 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-full flex-shrink-0 transition-colors"><Paperclip className="w-5 h-5" /></button>
 
-                      {/* Voice Note Button or Recording UI */}
-                      {isRecording ? (
-                        <div className="flex-1 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-full px-md py-sm flex items-center justify-between text-xs text-rose-600 font-semibold animate-pulse">
-                          <span className="flex items-center gap-xs"><span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Recording audio... ({recordingTime}s)</span>
-                          <button onClick={handleStopRecording} className="px-md py-xs bg-rose-500 text-white rounded-full hover:bg-rose-600 font-bold">Stop & Attach</button>
-                        </div>
-                      ) : (
-                        <div className="flex-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full px-md py-sm flex items-center gap-md">
-                          <input type="text" placeholder="Type a message..." value={messageText} onChange={(e) => setMessageText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} className="bg-transparent text-sm outline-none flex-1 py-xs text-neutral-800 dark:text-neutral-200 placeholder-neutral-400" />
-                          <button onClick={handleStartRecording} className="text-neutral-400 hover:text-primary-500 p-xs" title="Record Voice Note"><Mic className="w-4 h-4" /></button>
-                          <button className="text-neutral-400 hover:text-neutral-600 p-xs"><Smile className="w-4 h-4" /></button>
-                        </div>
-                      )}
+                      {/* Attachment Popover */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowAttachMenuPop(!showAttachMenuPop)}
+                          className="p-md text-neutral-400 hover:text-purple-500 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-full flex-shrink-0 transition-colors cursor-pointer"
+                          title="Attach Options"
+                        >
+                          <Paperclip className="w-5 h-5" />
+                        </button>
+
+                        {showAttachMenuPop && (
+                          <div className="absolute bottom-full mb-2 left-0 z-50 w-56 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-2xl p-2 text-xs font-semibold space-y-1">
+                            <button
+                              type="button"
+                              onClick={() => { fileInputRef.current?.click(); setShowAttachMenuPop(false); }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                            >
+                              <Image className="w-4 h-4 text-sky-500" />
+                              <span>Photos / Gallery</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setIsCreatePollOpen(true); setShowAttachMenuPop(false); }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                            >
+                              <BarChart2 className="w-4 h-4 text-purple-500" />
+                              <span>Create Campus Poll</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { fileInputRef.current?.click(); setShowAttachMenuPop(false); }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                            >
+                              <FileText className="w-4 h-4 text-amber-500" />
+                              <span>Attach File / Doc</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Chat Input Container */}
+                      <div className="flex-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full px-md py-sm flex items-center gap-md relative">
+                        <input
+                          type="text"
+                          placeholder="Type a message..."
+                          value={messageText}
+                          onChange={(e) => setMessageText(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                          className="bg-transparent text-sm outline-none flex-1 py-xs text-neutral-800 dark:text-neutral-200 placeholder-neutral-400"
+                        />
+
+                        {/* Crazy Emoji Picker Toggle */}
+                        <button
+                          type="button"
+                          onClick={() => setShowEmojiPickerPop(!showEmojiPickerPop)}
+                          className={`p-xs transition-colors cursor-pointer ${showEmojiPickerPop ? 'text-purple-500' : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200'}`}
+                          title="Crazy Emoji Packs"
+                        >
+                          <Smile className="w-4.5 h-4.5" />
+                        </button>
+
+                        {/* WhatsApp Style Emoji Picker Drawer / Popover */}
+                        {showEmojiPickerPop && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-xs sm:bg-transparent"
+                              onClick={() => setShowEmojiPickerPop(false)}
+                            />
+
+                            <div className="fixed inset-x-0 bottom-0 z-[100] sm:absolute sm:inset-auto sm:bottom-full sm:right-2 sm:mb-3 w-full sm:w-80 h-72 sm:h-64 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl border-t sm:border border-neutral-200/90 dark:border-neutral-800 rounded-t-3xl sm:rounded-3xl shadow-2xl p-3 text-xs flex flex-col transition-all">
+                              <div className="w-10 h-1 bg-neutral-300 dark:bg-neutral-700 rounded-full mx-auto mb-2 sm:hidden flex-shrink-0" />
+
+                              <div className="flex items-center gap-1 pb-2 border-b border-neutral-100 dark:border-neutral-800 mb-2 overflow-x-auto scrollbar-none flex-shrink-0">
+                                {allPacks.map((pack, pIdx) => (
+                                  <button
+                                    key={pIdx}
+                                    type="button"
+                                    onClick={() => setActiveEmojiPack(pIdx)}
+                                    className={`px-2.5 py-1 rounded-xl font-bold text-[11px] transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
+                                      activeEmojiPack === pIdx
+                                        ? 'bg-purple-500 text-white shadow-xs'
+                                        : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                                    }`}
+                                  >
+                                    <span>{pack.name}</span>
+                                    {pack.id === 'recents' && (
+                                      <span className="text-[9px] opacity-75 font-mono">({pack.emojis.length})</span>
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+
+                              <div className="grid grid-cols-6 sm:grid-cols-5 gap-1.5 overflow-y-auto pr-1 flex-1 scrollbar-thin">
+                                {allPacks[activeEmojiPack]?.emojis.length > 0 ? (
+                                  allPacks[activeEmojiPack].emojis.map((emo, eIdx) => (
+                                    <button
+                                      key={eIdx}
+                                      type="button"
+                                      onClick={() => {
+                                        setMessageText(prev => prev + emo);
+                                        handleAddRecentEmoji(emo);
+                                      }}
+                                      className="w-10 h-10 sm:w-9 sm:h-9 flex items-center justify-center text-xl sm:text-lg rounded-xl hover:bg-purple-500/15 active:scale-125 transition-transform cursor-pointer"
+                                    >
+                                      {emo}
+                                    </button>
+                                  ))
+                                ) : (
+                                  <div className="col-span-full py-8 text-center text-neutral-400 text-xs italic">
+                                    No recent emojis used yet. Tap any emoji to save here!
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </>
+                        )}
+
+                      </div>
 
                       <button onClick={handleSendMessage} className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white flex items-center justify-center flex-shrink-0 transition-all active:scale-95 shadow-md shadow-sky-500/30 cursor-pointer"><Send className="w-4 h-4" /></button>
                     </div>
@@ -2266,29 +2723,121 @@ export default function Community() {
                 )}
                 {communityReplyingTo && <div className="bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-sm flex justify-between items-center text-xs mb-xs"><div className="min-w-0"><span className="font-semibold text-[10px] text-neutral-400">Replying to {communityReplyingTo.sender?.name}</span><p className="truncate text-neutral-600 dark:text-neutral-300 mt-xs">{communityReplyingTo.content}</p></div><button onClick={() => setCommunityReplyingTo(null)} className="text-neutral-400 hover:text-neutral-600 ml-md"><X className="w-4 h-4" /></button></div>}
 
-                <div className="flex gap-md items-center">
+                <div className="flex gap-md items-center relative">
                   <input type="file" ref={groupFileInputRef} onChange={handleGroupFileChange} className="hidden" />
-                  <button onClick={() => groupFileInputRef.current?.click()} className="p-md text-neutral-400 hover:text-primary-500 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-full flex-shrink-0 transition-colors" title="Attach file/media">
-                    <Paperclip className="w-5 h-5" />
-                  </button>
 
-                  {/* Voice Note Button or Recording UI */}
-                  {isRecording ? (
-                    <div className="flex-1 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-full px-md py-sm flex items-center justify-between text-xs text-rose-600 font-semibold animate-pulse">
-                      <span className="flex items-center gap-xs"><span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Recording audio... ({recordingTime}s)</span>
-                      <button onClick={handleStopRecording} className="px-md py-xs bg-rose-500 text-white rounded-full hover:bg-rose-600 font-bold">Stop & Attach</button>
-                    </div>
-                  ) : (
-                    <div className="flex-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full px-md py-sm flex items-center gap-md">
-                      <input type="text" placeholder="Type a message..." value={communityMsgText} onChange={(e) => setCommunityMsgText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendGroupMessage()} className="bg-transparent text-sm outline-none flex-1 py-xs text-neutral-800 dark:text-neutral-200 placeholder-neutral-400" />
-                      <button onClick={handleStartRecording} className="text-neutral-400 hover:text-primary-500 p-xs" title="Record Voice Note"><Mic className="w-4 h-4" /></button>
-                      <button className="text-neutral-400 hover:text-neutral-600 p-xs"><Smile className="w-4 h-4" /></button>
-                    </div>
-                  )}
+                  {/* Attachment Popover */}
+                  <div className="relative">
+                    <button onClick={() => setShowAttachMenuPop(!showAttachMenuPop)} className="p-md text-neutral-400 hover:text-purple-500 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-full flex-shrink-0 transition-colors cursor-pointer" title="Attach Options">
+                      <Paperclip className="w-5 h-5" />
+                    </button>
+
+                    {showAttachMenuPop && (
+                      <div className="absolute bottom-full mb-2 left-0 z-50 w-56 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-2xl p-2 text-xs font-semibold space-y-1">
+                        <button
+                          type="button"
+                          onClick={() => { groupFileInputRef.current?.click(); setShowAttachMenuPop(false); }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                        >
+                          <Image className="w-4 h-4 text-sky-500" />
+                          <span>Photos / Gallery</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setIsCreatePollOpen(true); setShowAttachMenuPop(false); }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                        >
+                          <BarChart2 className="w-4 h-4 text-purple-500" />
+                          <span>Create Poll</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { groupFileInputRef.current?.click(); setShowAttachMenuPop(false); }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                        >
+                          <FileText className="w-4 h-4 text-amber-500" />
+                          <span>Attach File / Doc</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Chat Input Container */}
+                  <div className="flex-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full px-md py-sm flex items-center gap-md relative">
+                    <input type="text" placeholder="Type a message..." value={communityMsgText} onChange={(e) => setCommunityMsgText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendGroupMessage()} className="bg-transparent text-sm outline-none flex-1 py-xs text-neutral-800 dark:text-neutral-200 placeholder-neutral-400" />
+
+                    {/* Crazy Emoji Picker Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setShowEmojiPickerPop(!showEmojiPickerPop)}
+                      className={`p-xs transition-colors cursor-pointer ${showEmojiPickerPop ? 'text-purple-500' : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200'}`}
+                      title="Crazy Emoji Packs"
+                    >
+                      <Smile className="w-4.5 h-4.5" />
+                    </button>
+
+                    {/* WhatsApp Style Emoji Picker Drawer / Popover */}
+                    {showEmojiPickerPop && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-xs sm:bg-transparent"
+                          onClick={() => setShowEmojiPickerPop(false)}
+                        />
+
+                        <div className="fixed inset-x-0 bottom-0 z-[100] sm:absolute sm:inset-auto sm:bottom-full sm:right-2 sm:mb-3 w-full sm:w-80 h-72 sm:h-64 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl border-t sm:border border-neutral-200/90 dark:border-neutral-800 rounded-t-3xl sm:rounded-3xl shadow-2xl p-3 text-xs flex flex-col transition-all">
+                          <div className="w-10 h-1 bg-neutral-300 dark:bg-neutral-700 rounded-full mx-auto mb-2 sm:hidden flex-shrink-0" />
+
+                          <div className="flex items-center gap-1 pb-2 border-b border-neutral-100 dark:border-neutral-800 mb-2 overflow-x-auto scrollbar-none flex-shrink-0">
+                            {allPacks.map((pack, pIdx) => (
+                              <button
+                                key={pIdx}
+                                type="button"
+                                onClick={() => setActiveEmojiPack(pIdx)}
+                                className={`px-2.5 py-1 rounded-xl font-bold text-[11px] transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
+                                  activeEmojiPack === pIdx
+                                    ? 'bg-purple-500 text-white shadow-xs'
+                                    : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                                }`}
+                              >
+                                <span>{pack.name}</span>
+                                {pack.id === 'recents' && (
+                                  <span className="text-[9px] opacity-75 font-mono">({pack.emojis.length})</span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+
+                          <div className="grid grid-cols-6 sm:grid-cols-5 gap-1.5 overflow-y-auto pr-1 flex-1 scrollbar-thin">
+                            {allPacks[activeEmojiPack]?.emojis.length > 0 ? (
+                              allPacks[activeEmojiPack].emojis.map((emo, eIdx) => (
+                                <button
+                                  key={eIdx}
+                                  type="button"
+                                  onClick={() => {
+                                    setCommunityMsgText(prev => prev + emo);
+                                    handleAddRecentEmoji(emo);
+                                  }}
+                                  className="w-10 h-10 sm:w-9 sm:h-9 flex items-center justify-center text-xl sm:text-lg rounded-xl hover:bg-purple-500/15 active:scale-125 transition-transform cursor-pointer"
+                                >
+                                  {emo}
+                                </button>
+                              ))
+                            ) : (
+                              <div className="col-span-full py-8 text-center text-neutral-400 text-xs italic">
+                                No recent emojis used yet. Tap any emoji to save here!
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                  </div>
 
                   <button onClick={handleSendGroupMessage} className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white flex items-center justify-center flex-shrink-0 transition-all active:scale-95 shadow-md shadow-sky-500/30 cursor-pointer"><Send className="w-4 h-4" /></button>
                 </div>
               </div>
+
             </div>
           </div>
         )}
@@ -2297,18 +2846,134 @@ export default function Community() {
       </div>
       </div>
 
-      {/* ── MODALS ── */}
-      <Modal isOpen={isCreatePollOpen} onClose={() => setIsCreatePollOpen(false)} title="Create a Poll" size="md">
-        <form onSubmit={handleCreatePoll} className="space-y-lg">
-          <Input label="Question" placeholder="e.g. When should we schedule the review?" value={pollQuestion} onChange={(e) => setPollQuestion(e.target.value)} />
+      {/* ── CREATE A POLL MODAL ── */}
+      <Modal isOpen={isCreatePollOpen} onClose={() => setIsCreatePollOpen(false)} title="Create Campus Poll" size="md">
+        <form onSubmit={handleCreatePoll} className="space-y-5 py-1">
+          {/* Question Input */}
           <div>
-            <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-md">Options</label>
-            <div className="space-y-md">{pollOptions.map((opt, idx) => <Input key={idx} placeholder={`Option ${idx + 1}`} value={opt} onChange={(e) => { const n = [...pollOptions]; n[idx] = e.target.value; setPollOptions(n); }} />)}</div>
-            <button type="button" onClick={() => setPollOptions([...pollOptions, ''])} className="text-xs text-primary-500 hover:text-primary-600 font-semibold mt-md">+ Add another option</button>
+            <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+              <span>Poll Question</span>
+              <span className="text-[10px] text-neutral-500 font-normal">Required</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. When should we schedule the exam review?"
+              value={pollQuestion}
+              onChange={(e) => setPollQuestion(e.target.value)}
+              className="w-full px-4 py-3 rounded-2xl bg-neutral-900 border border-neutral-800 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-700 transition-all font-medium"
+            />
           </div>
-          <div className="flex gap-md pt-md"><Button variant="secondary" className="flex-1" onClick={() => setIsCreatePollOpen(false)}>Cancel</Button><Button variant="primary" type="submit" className="flex-1">Publish Poll</Button></div>
+
+          {/* Voting Mode Toggle (Single vs Multiple choice) */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider">
+              Voting Mode
+            </label>
+            <div className="grid grid-cols-2 gap-2 p-1.5 bg-neutral-900/80 rounded-2xl border border-neutral-800">
+              <button
+                type="button"
+                onClick={() => setPollType('single')}
+                className={`py-2.5 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  pollType === 'single'
+                    ? 'bg-neutral-800 text-white border border-neutral-700 shadow-sm'
+                    : 'text-neutral-400 hover:text-neutral-200'
+                }`}
+              >
+                <CheckCircle2 className={`w-4 h-4 ${pollType === 'single' ? 'text-white' : 'text-neutral-500'}`} />
+                <span>Single Choice</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPollType('multiple')}
+                className={`py-2.5 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  pollType === 'multiple'
+                    ? 'bg-neutral-800 text-white border border-neutral-700 shadow-sm'
+                    : 'text-neutral-400 hover:text-neutral-200'
+                }`}
+              >
+                <CheckSquare className={`w-4 h-4 ${pollType === 'multiple' ? 'text-white' : 'text-neutral-500'}`} />
+                <span>Multiple Choice</span>
+              </button>
+            </div>
+            <p className="text-[11px] text-neutral-400 font-medium px-1">
+              {pollType === 'single'
+                ? 'Students can select only one answer.'
+                : 'Students can select multiple answers.'}
+            </p>
+          </div>
+
+          {/* Poll Options */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
+                Poll Options ({pollOptions.length}/6)
+              </label>
+              <span className="text-[10px] text-neutral-500 font-medium">Min 2 options</span>
+            </div>
+            <div className="space-y-2.5">
+              {pollOptions.map((opt, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      placeholder={`Option ${idx + 1}`}
+                      value={opt}
+                      onChange={(e) => {
+                        const n = [...pollOptions];
+                        n[idx] = e.target.value;
+                        setPollOptions(n);
+                      }}
+                      className="w-full pl-4 pr-10 py-2.5 rounded-2xl bg-neutral-900 border border-neutral-800 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-700 font-medium transition-all"
+                    />
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-neutral-500">
+                      #{idx + 1}
+                    </span>
+                  </div>
+                  {pollOptions.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
+                      className="p-2.5 rounded-2xl bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-rose-400 transition-colors cursor-pointer"
+                      title="Remove option"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {pollOptions.length < 6 && (
+              <button
+                type="button"
+                onClick={() => setPollOptions([...pollOptions, ''])}
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-300 hover:text-white transition-colors cursor-pointer px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Option
+              </button>
+            )}
+          </div>
+
+          {/* Modal Footer Buttons */}
+          <div className="flex gap-3 pt-3 border-t border-neutral-800/80">
+            <Button
+              variant="secondary"
+              type="button"
+              className="flex-1 rounded-2xl py-3 text-xs font-semibold cursor-pointer border-neutral-800 text-neutral-300 hover:bg-neutral-800"
+              onClick={() => setIsCreatePollOpen(false)}
+            >
+              Cancel
+            </Button>
+            <button
+              type="submit"
+              className="flex-1 rounded-2xl py-3 text-xs font-bold bg-white text-neutral-900 hover:bg-neutral-200 transition-all cursor-pointer shadow-md"
+            >
+              Publish Poll
+            </button>
+          </div>
         </form>
       </Modal>
+
 
       <Modal isOpen={isShareFileOpen} onClose={() => setIsShareFileOpen(false)} title="Share Resource" size="md">
         <form onSubmit={handleShareFile} className="space-y-lg">
@@ -2321,10 +2986,12 @@ export default function Community() {
         </form>
       </Modal>
 
+      {/* ── CREATE A COMMUNITY MODAL ── */}
       <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Create a Community" size="md">
-        <form onSubmit={handleCreateCommunity} className="space-y-lg">
+        <form onSubmit={handleCreateCommunity} className="space-y-5 py-1">
+          {/* Avatar Upload */}
           <div>
-            <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-md">Community Profile Photo</label>
+            <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Community Profile Photo</label>
             <input
               type="file"
               ref={createAvatarFileRef}
@@ -2349,7 +3016,7 @@ export default function Community() {
                 <button
                   type="button"
                   onClick={() => createAvatarFileRef.current?.click()}
-                  className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 hover:opacity-90 flex flex-col items-center justify-center text-white font-bold text-xl flex-shrink-0 shadow-md transition-all group"
+                  className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 hover:opacity-90 flex flex-col items-center justify-center text-white font-bold text-xl flex-shrink-0 shadow-md transition-all group cursor-pointer"
                   title="Upload photo"
                 >
                   <Camera className="w-6 h-6 group-hover:scale-110 transition-transform" />
@@ -2361,7 +3028,7 @@ export default function Community() {
                   <button
                     type="button"
                     onClick={() => createAvatarFileRef.current?.click()}
-                    className="px-md py-xs bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-xs font-semibold shadow-sm transition-all"
+                    className="px-md py-xs bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer"
                   >
                     Upload File
                   </button>
@@ -2369,7 +3036,7 @@ export default function Community() {
                     <button
                       type="button"
                       onClick={() => setNewGroupAvatar('')}
-                      className="px-md py-xs bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 rounded-lg text-xs font-semibold transition-colors"
+                      className="px-md py-xs bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
                     >
                       Remove
                     </button>
@@ -2384,51 +3051,108 @@ export default function Community() {
                 />
               </div>
             </div>
-            {/* Presets */}
-            <div className="mt-md">
-              <p className="text-[10px] font-semibold text-neutral-400 mb-xs">Or pick a preset theme photo:</p>
-              <div className="flex items-center gap-xs overflow-x-auto pb-xs scrollbar-thin">
-                {[
-                  { label: '🎨 Tech', url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=150&auto=format&fit=crop&q=80' },
-                  { label: '📚 Study', url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=150&auto=format&fit=crop&q=80' },
-                  { label: '⚽ Sports', url: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=150&auto=format&fit=crop&q=80' },
-                  { label: '🎮 Gaming', url: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=150&auto=format&fit=crop&q=80' },
-                  { label: '🚀 Startup', url: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=150&auto=format&fit=crop&q=80' },
-                  { label: '🎵 Music', url: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=80' },
-                  { label: '💡 AI', url: 'https://images.unsplash.com/photo-1677442136019-21780efad99a?w=150&auto=format&fit=crop&q=80' },
-                ].map(preset => (
-                  <button
-                    key={preset.label}
-                    type="button"
-                    onClick={() => setNewGroupAvatar(preset.url)}
-                    className={`px-md py-xs rounded-lg text-[10px] font-semibold flex-shrink-0 transition-colors ${newGroupAvatar === preset.url ? 'bg-primary-500 text-white' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200'}`}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
+
           <div>
-            <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-md">Community Name <span className="text-rose-500">*</span></label>
-            <input type="text" placeholder="e.g. AI Club, Study Squad, CSE 3rd Year" value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)} className="input-base" required />
+            <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Community Name *</label>
+            <input type="text" placeholder="e.g. AI Club, Study Squad, CSE 3rd Year" value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-neutral-900 border border-neutral-800 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-700 font-medium" required />
           </div>
+
           <div>
-            <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-md">Description</label>
-            <textarea placeholder="What is this community about?" value={newGroupDesc} onChange={(e) => setNewGroupDesc(e.target.value)} rows={3} className="input-base resize-none" />
+            <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Description</label>
+            <textarea placeholder="What is this community about?" value={newGroupDesc} onChange={(e) => setNewGroupDesc(e.target.value)} rows={2} className="w-full px-4 py-3 rounded-2xl bg-neutral-900 border border-neutral-800 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-700 font-medium resize-none" />
           </div>
-          <div>
-            <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-md">Privacy</label>
-            <div className="grid grid-cols-2 gap-md">
-              {[{ val: 'public', Icon: Globe, label: 'Public', desc: 'Anyone can find and join' }, { val: 'private', Icon: Lock, label: 'Private', desc: 'Invite only via link' }].map(({ val, Icon, label, desc }) => (
-                <button key={val} type="button" onClick={() => setNewGroupType(val)} className={`flex items-start gap-md p-lg rounded-xl border-2 transition-all text-left ${newGroupType === val ? 'border-primary-500 bg-primary-50/30 dark:bg-primary-950/20' : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300'}`}>
-                  <Icon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${newGroupType === val ? 'text-primary-500' : 'text-neutral-400'}`} />
-                  <div><p className={`font-bold text-sm ${newGroupType === val ? 'text-primary-600 dark:text-primary-400' : 'text-neutral-700 dark:text-neutral-300'}`}>{label}</p><p className="text-[10px] text-neutral-500 mt-xs leading-relaxed">{desc}</p></div>
+
+          {/* 1. Community Visibility */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider">1. Community Visibility</label>
+            <div className="grid grid-cols-2 gap-2.5">
+              {[
+                { val: 'public', Icon: Globe, label: 'Public Community', desc: 'Appears on main page & discoverable by everyone' },
+                { val: 'private', Icon: Lock, label: 'Private Community', desc: 'Not publicly discoverable. Invite/link access only' }
+              ].map(({ val, Icon, label, desc }) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setNewGroupVisibility(val)}
+                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                    newGroupVisibility === val
+                      ? 'border-purple-500 bg-purple-500/10 text-white'
+                      : 'border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-bold text-xs mb-1">
+                    <Icon className="w-4 h-4 text-purple-400" />
+                    <span>{label}</span>
+                  </div>
+                  <p className="text-[10px] text-neutral-400 leading-snug">{desc}</p>
                 </button>
               ))}
             </div>
           </div>
-          <div className="flex gap-md pt-md"><Button variant="secondary" className="flex-1" onClick={() => setShowCreateModal(false)}>Cancel</Button><Button variant="primary" type="submit" className="flex-1" disabled={isCreatingGroup || !newGroupName.trim()}>{isCreatingGroup ? 'Creating...' : 'Create Community'}</Button></div>
+
+          {/* 2. Community Audience */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider">2. Community Audience</label>
+            <div className="grid grid-cols-2 gap-2.5">
+              {[
+                { val: 'everyone', Icon: Users, label: 'Everyone', desc: 'Available to students regardless of their college' },
+                { val: 'college_only', Icon: ShieldCheck, label: 'College Only', desc: `Restricted to members of ${user?.college || collegeName}` }
+              ].map(({ val, Icon, label, desc }) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setNewGroupAudience(val)}
+                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                    newGroupAudience === val
+                      ? 'border-indigo-500 bg-indigo-500/10 text-white'
+                      : 'border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-bold text-xs mb-1">
+                    <Icon className="w-4 h-4 text-indigo-400" />
+                    <span>{label}</span>
+                  </div>
+                  <p className="text-[10px] text-neutral-400 leading-snug">{desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. Joining Controls (For Public Communities) */}
+          {newGroupVisibility === 'public' && (
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider">3. Joining Method</label>
+              <div className="grid grid-cols-2 gap-2.5">
+                {[
+                  { val: 'direct', Icon: CheckCircle2, label: 'Direct Join', desc: 'Users can join immediately without approval' },
+                  { val: 'request', Icon: FileText, label: 'Request to Join', desc: 'Users must request join. Creator approval required' }
+                ].map(({ val, Icon, label, desc }) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setNewGroupJoinControl(val)}
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                      newGroupJoinControl === val
+                        ? 'border-emerald-500 bg-emerald-500/10 text-white'
+                        : 'border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-bold text-xs mb-1">
+                      <Icon className="w-4 h-4 text-emerald-400" />
+                      <span>{label}</span>
+                    </div>
+                    <p className="text-[10px] text-neutral-400 leading-snug">{desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-3 border-t border-neutral-800">
+            <Button variant="secondary" type="button" className="flex-1 rounded-2xl py-3 text-xs font-semibold cursor-pointer border-neutral-800 text-neutral-300 hover:bg-neutral-800" onClick={() => setShowCreateModal(false)}>Cancel</Button>
+            <button type="submit" disabled={isCreatingGroup || !newGroupName.trim()} className="flex-1 rounded-2xl py-3 text-xs font-bold bg-white text-neutral-900 hover:bg-neutral-200 transition-all cursor-pointer shadow-md disabled:opacity-50">{isCreatingGroup ? 'Creating...' : 'Create Community'}</button>
+          </div>
         </form>
       </Modal>
 
@@ -2492,8 +3216,30 @@ export default function Community() {
                 <button onClick={() => setShowManageDrawer(false)} className="p-md rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500"><X className="w-5 h-5" /></button>
               </div>
               <div className="flex border-b border-neutral-100 dark:border-neutral-800 flex-shrink-0">
-                {['members', 'media', 'starred', ...(isAdmin ? ['settings'] : [])].map(tab => <button key={tab} onClick={() => setManageTab(tab)} className={`flex-1 py-md text-xs font-semibold capitalize transition-colors ${manageTab === tab ? 'text-primary-500 border-b-2 border-primary-500' : 'text-neutral-500'}`}>{tab}</button>)}
+                {['members', 'requests', 'media', 'starred', ...(isAdmin ? ['settings'] : [])].map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setManageTab(tab)}
+                    className={`flex-1 py-md text-xs font-semibold capitalize transition-colors relative ${
+                      manageTab === tab ? 'text-primary-500 border-b-2 border-primary-500' : 'text-neutral-500'
+                    }`}
+                  >
+                    {tab === 'requests' ? (
+                      <span className="flex items-center justify-center gap-1">
+                        Requests
+                        {(selectedRoom?.joinRequests || []).length > 0 && (
+                          <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold">
+                            {(selectedRoom.joinRequests || []).length}
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      tab
+                    )}
+                  </button>
+                ))}
               </div>
+
               <div className="flex-1 overflow-y-auto scrollbar-thin">
                 {manageTab === 'members' && (
                   <div className="p-xl space-y-lg">
@@ -2542,6 +3288,65 @@ export default function Community() {
                         </div>
                       )}
                     </div>
+                  </div>
+                )}
+                {manageTab === 'requests' && (
+                  <div className="p-xl space-y-md">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-bold text-sm text-neutral-700 dark:text-neutral-300">
+                        Pending Join Requests ({(selectedRoom?.joinRequests || []).length})
+                      </h3>
+                      <span className="text-[10px] text-neutral-400 font-medium">Approval Required</span>
+                    </div>
+
+                    {(selectedRoom?.joinRequests || []).length === 0 ? (
+                      <div className="text-center py-2xl">
+                        <ShieldCheck className="w-10 h-10 text-neutral-300 dark:text-neutral-700 mx-auto mb-md" />
+                        <p className="text-sm font-semibold text-neutral-500">No pending join requests</p>
+                        <p className="text-xs text-neutral-400 mt-xs">When users request to join this community, their requests will appear here for your approval.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-sm">
+                        {(selectedRoom.joinRequests || []).map((req, rIdx) => {
+                          const reqUid = typeof req === 'string' ? req : req.uid;
+                          const reqName = typeof req === 'string' ? 'Student' : (req.name || 'Student');
+                          const reqAvatar = typeof req === 'string' ? null : req.avatar;
+                          const reqCollege = typeof req === 'string' ? '' : (req.college || req.email || '');
+
+                          return (
+                            <div key={reqUid || rIdx} className="p-md rounded-2xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-700/60 flex items-center justify-between gap-md shadow-xs">
+                              <div className="flex items-center gap-md min-w-0">
+                                <img
+                                  src={reqAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(reqName)}`}
+                                  alt={reqName}
+                                  className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <p className="font-bold text-xs text-neutral-800 dark:text-neutral-200 truncate">{reqName}</p>
+                                  <p className="text-[10px] text-neutral-400 truncate">{reqCollege}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-xs flex-shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleAcceptRequest(req)}
+                                  className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition-all shadow-xs cursor-pointer"
+                                >
+                                  Accept
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRejectRequest(req)}
+                                  className="px-3 py-1.5 rounded-xl bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-rose-500 hover:text-white font-bold text-xs transition-colors cursor-pointer"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
                 {manageTab === 'media' && (
@@ -2609,17 +3414,91 @@ export default function Community() {
                   <div className="p-xl space-y-lg">
                     <div><label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-md">Community Name</label><input type="text" value={editGroupName} onChange={(e) => setEditGroupName(e.target.value)} className="input-base" /></div>
                     <div><label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-md">Description</label><textarea value={editGroupDesc} onChange={(e) => setEditGroupDesc(e.target.value)} rows={3} className="input-base resize-none" /></div>
-                    <div>
-                      <label className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-md">Privacy Mode</label>
-                      <div className="grid grid-cols-2 gap-md">
-                        {[{ val: 'public', Icon: Globe, label: 'Public', desc: 'Anyone can find & join' }, { val: 'private', Icon: Lock, label: 'Private', desc: 'Invite only by admins' }].map(({ val, Icon, label, desc }) => (
-                          <button key={val} type="button" onClick={() => setEditGroupType(val)} className={`flex items-start gap-md p-lg rounded-xl border-2 transition-all text-left ${editGroupType === val ? 'border-primary-500 bg-primary-50/30 dark:bg-primary-950/20' : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300'}`}>
-                            <Icon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${editGroupType === val ? 'text-primary-500' : 'text-neutral-400'}`} />
-                            <div><p className={`font-bold text-sm ${editGroupType === val ? 'text-primary-600 dark:text-primary-400' : 'text-neutral-700 dark:text-neutral-300'}`}>{label}</p><p className="text-[10px] text-neutral-500 mt-xs leading-relaxed">{desc}</p></div>
+
+                    {/* 1. Visibility Setting */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider">1. Community Visibility</label>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {[
+                          { val: 'public', Icon: Globe, label: 'Public Community', desc: 'Appears on main page & discoverable' },
+                          { val: 'private', Icon: Lock, label: 'Private Community', desc: 'Hidden from public listing' }
+                        ].map(({ val, Icon, label, desc }) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setEditGroupVisibility(val)}
+                            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                              editGroupVisibility === val
+                                ? 'border-purple-500 bg-purple-500/10 text-white'
+                                : 'border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 font-bold text-xs mb-1">
+                              <Icon className="w-4 h-4 text-purple-400" />
+                              <span>{label}</span>
+                            </div>
+                            <p className="text-[10px] text-neutral-400 leading-snug">{desc}</p>
                           </button>
                         ))}
                       </div>
                     </div>
+
+                    {/* 2. Audience Setting */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider">2. Community Audience</label>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {[
+                          { val: 'everyone', Icon: Users, label: 'Everyone', desc: 'Available to all colleges' },
+                          { val: 'college_only', Icon: ShieldCheck, label: 'College Only', desc: `Restricted to ${user?.college || collegeName}` }
+                        ].map(({ val, Icon, label, desc }) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setEditGroupAudience(val)}
+                            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                              editGroupAudience === val
+                                ? 'border-indigo-500 bg-indigo-500/10 text-white'
+                                : 'border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 font-bold text-xs mb-1">
+                              <Icon className="w-4 h-4 text-indigo-400" />
+                              <span>{label}</span>
+                            </div>
+                            <p className="text-[10px] text-neutral-400 leading-snug">{desc}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 3. Joining Controls Setting */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider">3. Joining Controls</label>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {[
+                          { val: 'direct', Icon: CheckCircle2, label: 'Direct Join', desc: 'Users join immediately' },
+                          { val: 'request', Icon: FileText, label: 'Request to Join', desc: 'Requires admin approval' }
+                        ].map(({ val, Icon, label, desc }) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setEditGroupJoinControl(val)}
+                            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                              editGroupJoinControl === val
+                                ? 'border-emerald-500 bg-emerald-500/10 text-white'
+                                : 'border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 font-bold text-xs mb-1">
+                              <Icon className="w-4 h-4 text-emerald-400" />
+                              <span>{label}</span>
+                            </div>
+                            <p className="text-[10px] text-neutral-400 leading-snug">{desc}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
 
                     {/* Creator Admin Permission Settings */}
                     {isCreator && (

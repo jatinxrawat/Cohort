@@ -37,6 +37,7 @@ import ShareModal from '@/components/ShareModal';
 import { formatRelativeTime } from '@/utils/helpers';
 import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, increment, arrayUnion, arrayRemove, getDocs, where } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
+import FeedToggle from '@/components/FeedToggle';
 
 const ANONYMOUS_NAMES = [
   'Anonymous Fox',
@@ -108,6 +109,7 @@ export default function AnonymousFeed({ defaultTab }) {
   };
 
   const [activeTab, setActiveTab] = useState(getInitialTab);
+  const [feedType, setFeedType] = useState('public');
   const [posts, setPosts] = useState([]);
   const [confessions, setConfessions] = useState([]);
   const [sharingPost, setSharingPost] = useState(null);
@@ -208,6 +210,7 @@ export default function AnonymousFeed({ defaultTab }) {
       } else {
         await addDoc(collection(db, 'anonymousPosts'), {
           authorUid: user?.uid || 'anonymous_guest',
+          college: user?.college || 'KIET',
           gender: user?.gender || 'Prefer not to say',
           anonymousName: chosenName,
           text: cardInputText.trim(),
@@ -595,6 +598,7 @@ export default function AnonymousFeed({ defaultTab }) {
       } else {
         await addDoc(collection(db, 'anonymousPosts'), {
           authorUid: user?.uid || 'anonymous_guest',
+          college: user?.college || 'KIET',
           gender: user?.gender || 'Prefer not to say',
           anonymousName: chosenName,
           text: inputText.trim(),
@@ -753,11 +757,22 @@ export default function AnonymousFeed({ defaultTab }) {
     }
   };
 
+  const userCollege = user?.college || 'KIET';
+  const displayedPosts = posts.filter(post => {
+    if (feedType === 'public') return true;
+    const postCollege = post.college || post.authorCollege || post.author?.college || post.author?.role;
+    if (!postCollege) return true;
+    const cleanPost = String(postCollege).toLowerCase().trim();
+    const cleanUser = String(userCollege).toLowerCase().trim();
+    return cleanPost.includes(cleanUser) || cleanUser.includes(cleanPost);
+  });
+
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-zinc-950 text-neutral-900 dark:text-zinc-100 p-md md:p-xl space-y-xl pb-24 lg:pb-12 transition-colors">
-      <SEO title={activeTab === 'confessions' ? "Confessions" : "Anonymous Feed"} />
+    <div className="section-container !py-6 !px-4 min-h-screen">
+      <SEO title={activeTab === 'confessions' ? '24-Hour Confessions' : 'Anonymous Campus Feed'} />
+
       {/* Header */}
-      <div className="flex items-center justify-between max-w-2xl mx-auto border-b border-neutral-200 dark:border-zinc-800/80 pb-lg">
+      <div className="flex items-center justify-between max-w-2xl mx-auto border-b border-neutral-200 dark:border-zinc-800/80 pb-lg mb-6">
         <div>
           <h1 className={`text-2xl md:text-3xl font-heading font-bold bg-clip-text text-transparent ${
             activeTab === 'confessions'
@@ -776,6 +791,15 @@ export default function AnonymousFeed({ defaultTab }) {
 
       {/* Main Content Area */}
       <div className="max-w-2xl mx-auto space-y-6">
+        {/* Toggle between Public Feed and My College Feed (Only shown on Anonymous Feed tab) */}
+        {activeTab === 'feed' && (
+          <FeedToggle
+            activeFeed={feedType}
+            onChangeFeed={setFeedType}
+            userCollege={userCollege}
+          />
+        )}
+
         {/* Inline Create Post Card */}
         <div className="border border-neutral-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl p-4 sm:p-5 shadow-lg shadow-black/5 dark:shadow-black/30 transition-all">
           <div className="flex gap-3 sm:gap-4">
@@ -877,9 +901,9 @@ export default function AnonymousFeed({ defaultTab }) {
           </div>
         ) : activeTab === 'feed' ? (
           /* FEED TAB */
-          posts.length > 0 ? (
+          displayedPosts.length > 0 ? (
             <div className="space-y-lg">
-              {posts.map(post => {
+              {displayedPosts.map(post => {
                 const isLiked = (post.likedUsers || []).includes(user?.uid || 'guest');
                 const isActualPostOwner = post.authorUid === user?.uid;
                 const isPostOwner = isActualPostOwner || isOfficialAdmin;
@@ -1244,14 +1268,18 @@ export default function AnonymousFeed({ defaultTab }) {
               })}
             </div>
           ) : (
-            <div className="text-center py-5xl border border-zinc-800/80 bg-zinc-900/40 rounded-3xl p-2xl space-y-lg shadow-xl">
-              <div className="w-14 h-14 bg-violet-950/40 rounded-full border border-violet-500/30 flex items-center justify-center text-violet-400 mx-auto">
+            <div className="text-center py-5xl border border-neutral-200 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/40 rounded-3xl p-2xl space-y-lg shadow-xl">
+              <div className="w-14 h-14 bg-violet-100 dark:bg-violet-950/40 rounded-full border border-violet-200 dark:border-violet-500/30 flex items-center justify-center text-violet-600 dark:text-violet-400 mx-auto">
                 <EyeOff className="w-7 h-7" />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-white">No anonymous posts yet</h3>
-                <p className="text-xs text-zinc-400 mt-xs">
-                  Be the first student to start the conversation safely and anonymously.
+                <h3 className="font-bold text-lg text-neutral-900 dark:text-white">
+                  {feedType === 'college' ? `No anonymous posts from ${userCollege} yet` : 'No anonymous posts yet'}
+                </h3>
+                <p className="text-xs text-neutral-500 dark:text-zinc-400 mt-xs">
+                  {feedType === 'college'
+                    ? `Be the first student from ${userCollege} to start the conversation safely and anonymously.`
+                    : 'Be the first student to start the conversation safely and anonymously.'}
                 </p>
               </div>
               <button

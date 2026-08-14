@@ -347,7 +347,7 @@ export default function MakeAFriend() {
     if (step === 'swiping') {
       fetchAndCalculateMatches();
     }
-  }, [step, genderFilter, campusFilter, user?.makeAFriendProfile?.swiped]);
+  }, [step, genderFilter, campusFilter]);
 
   // Fetch liked profiles when user swiped state changes
   useEffect(() => {
@@ -447,13 +447,14 @@ export default function MakeAFriend() {
 
         // Apply campus filter
         const matchesCampus = () => {
-          const myCollege = (user.college || 'KIET').toLowerCase();
-          const theirCollege = (data.college || 'KIET').toLowerCase();
-          if (campusFilter === 'On Campus') {
+          const myCollege = (user?.college || 'KIET').toLowerCase().trim();
+          const theirCollege = (data.college || 'KIET').toLowerCase().trim();
+          if (campusFilter === 'On Campus' || campusFilter === 'Same College') {
             return myCollege === theirCollege;
-          } else {
+          } else if (campusFilter === 'Outside Campus') {
             return myCollege !== theirCollege;
           }
+          return true; // 'All' or 'All Campuses'
         };
 
         if (!matchesCampus()) {
@@ -510,10 +511,11 @@ export default function MakeAFriend() {
       }
     });
 
-    let base = 40 + matchCount * 2.5;
+    let base = 45 + matchCount * 2.5;
 
-    if (collegeA && collegeB && collegeA.toLowerCase() === collegeB.toLowerCase()) {
-      base += 5;
+    // High compatibility boost (+20%) for Same College peers
+    if (collegeA && collegeB && collegeA.toLowerCase().trim() === collegeB.toLowerCase().trim()) {
+      base += 20;
     }
 
     const combinedUid = (uidA || '') + (uidB || '');
@@ -521,7 +523,7 @@ export default function MakeAFriend() {
     for (let i = 0; i < combinedUid.length; i++) {
       hash = combinedUid.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const variance = (Math.abs(hash) % 49) / 10;
+    const variance = (Math.abs(hash) % 30) / 10;
     const finalPct = base + variance;
 
     return Math.min(100, Math.round(finalPct * 10) / 10);
@@ -593,12 +595,18 @@ export default function MakeAFriend() {
     });
   };
 
-  // Swiping functions
+  // Swiping functions (Fixed skipping bug)
   const handleSwipe = async (direction) => {
     if (profiles.length === 0 || currentProfileIndex >= profiles.length) return;
 
     const targetProfile = profiles[currentProfileIndex];
     setSwipeDirection(direction);
+
+    // Advance card index smoothly without triggering re-fetch reset
+    setTimeout(() => {
+      setCurrentProfileIndex((prev) => prev + 1);
+      setSwipeDirection(null);
+    }, 250);
 
     const updatedSwipes = {
       ...(user?.makeAFriendProfile?.swiped || {}),
@@ -610,15 +618,17 @@ export default function MakeAFriend() {
       swiped: updatedSwipes
     };
 
-    const taskList = [
-      updateUser({
+    try {
+      await updateUser({
         makeAFriendProfile: updatedProfile
-      })
-    ];
+      });
+    } catch (e) {
+      console.error('Error updating swipe profile:', e);
+    }
 
     if (direction === 'right') {
-      taskList.push(
-        addDoc(collection(db, 'notifications'), {
+      try {
+        await addDoc(collection(db, 'notifications'), {
           recipientUid: targetProfile.uid,
           senderUid: user.uid,
           senderName: user.name || 'Student',
@@ -627,34 +637,29 @@ export default function MakeAFriend() {
           text: `you were right swiped by ${user.name || 'Student'}.`,
           read: false,
           time: new Date()
-        })
-      );
+        });
 
-      const targetUserSnap = await getDocs(collection(db, 'users'));
-      let targetUserLikedUs = false;
-      targetUserSnap.forEach((d) => {
-        if (d.id === targetProfile.uid) {
-          const swipedList = d.data()?.makeAFriendProfile?.swiped || {};
-          if (swipedList[user.uid] === 'right') {
-            targetUserLikedUs = true;
+        const targetUserSnap = await getDocs(collection(db, 'users'));
+        let targetUserLikedUs = false;
+        targetUserSnap.forEach((d) => {
+          if (d.id === targetProfile.uid) {
+            const swipedList = d.data()?.makeAFriendProfile?.swiped || {};
+            if (swipedList[user.uid] === 'right') {
+              targetUserLikedUs = true;
+            }
           }
+        });
+
+        const isMatch = targetUserLikedUs || Math.random() < 0.25;
+
+        if (isMatch) {
+          setMatchedProfile(targetProfile);
+          setIsMatchOverlayOpen(true);
         }
-      });
-
-      const isMatch = targetUserLikedUs || Math.random() < 0.25;
-
-      if (isMatch) {
-        setMatchedProfile(targetProfile);
-        setIsMatchOverlayOpen(true);
+      } catch (e) {
+        console.error('Error handling right swipe match:', e);
       }
     }
-
-    Promise.all(taskList).catch((e) => console.error('Error writing swipe state:', e));
-
-    setTimeout(() => {
-      setCurrentProfileIndex((prev) => prev + 1);
-      setSwipeDirection(null);
-    }, 300);
   };
 
   const handleResetSwipes = async () => {
@@ -810,21 +815,21 @@ export default function MakeAFriend() {
           {/* Campus Match Toggle */}
           <Card className="w-full bg-white/90 dark:bg-zinc-900/90 border border-neutral-200 dark:border-zinc-800 p-4 mb-6 rounded-2xl max-w-xs shadow-xl">
             <label className="block text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider mb-3 flex items-center justify-center gap-1.5">
-              <MapPin className="w-4 h-4 text-primary-600 dark:text-primary-400" /> Matching Radius
+              <MapPin className="w-4 h-4 text-primary-600 dark:text-primary-400" /> Campus Filter
             </label>
-            <div className="flex bg-neutral-100 dark:bg-zinc-950 p-1 rounded-xl border border-neutral-200 dark:border-zinc-800">
-              {['On Campus', 'Outside Campus'].map((opt) => (
+            <div className="flex bg-neutral-100 dark:bg-zinc-950 p-1 rounded-xl border border-neutral-200 dark:border-zinc-800 gap-1">
+              {['On Campus', 'All Campuses', 'Outside Campus'].map((opt) => (
                 <button
                   key={opt}
                   type="button"
                   onClick={() => setCampusFilter(opt)}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
+                  className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg transition-all duration-200 cursor-pointer ${
                     campusFilter === opt
                       ? 'bg-primary-600 text-white shadow-xs'
                       : 'text-neutral-600 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-zinc-200'
                   }`}
                 >
-                  {opt}
+                  {opt === 'On Campus' ? 'My Campus' : opt === 'All Campuses' ? 'All' : 'Other'}
                 </button>
               ))}
             </div>
@@ -917,8 +922,8 @@ export default function MakeAFriend() {
                 <span className="text-[10px] font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-violet-500 dark:text-violet-400" /> Radius
                 </span>
-                <div className="flex bg-neutral-200/70 dark:bg-zinc-950 p-0.5 rounded-lg border border-neutral-300/70 dark:border-zinc-800">
-                  {['On Campus', 'Outside Campus'].map((opt) => (
+                <div className="flex bg-neutral-200/70 dark:bg-zinc-950 p-0.5 rounded-lg border border-neutral-300/70 dark:border-zinc-800 gap-0.5">
+                  {['On Campus', 'All Campuses', 'Outside Campus'].map((opt) => (
                     <button
                       key={opt}
                       type="button"
@@ -934,13 +939,13 @@ export default function MakeAFriend() {
                           });
                         }
                       }}
-                      className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all duration-200 cursor-pointer ${
+                      className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all duration-200 cursor-pointer ${
                         campusFilter === opt
                           ? 'bg-white dark:bg-white/15 border border-neutral-300 dark:border-white/20 text-neutral-900 dark:text-white shadow-xs'
                           : 'text-neutral-600 dark:text-zinc-400 hover:text-neutral-900 dark:hover:text-white'
                       }`}
                     >
-                      {opt}
+                      {opt === 'On Campus' ? 'My Campus' : opt === 'All Campuses' ? 'All' : 'Other'}
                     </button>
                   ))}
                 </div>
@@ -1056,10 +1061,15 @@ export default function MakeAFriend() {
                                       {profile.name}
                                     </h3>
                                     <p className="text-xs text-neutral-500 dark:text-zinc-400 font-semibold mt-0.5 truncate">{profile.college}</p>
-                                    <div className="flex items-center gap-1.5 mt-1">
+                                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                                       <span className="inline-flex px-2.5 py-0.5 bg-neutral-100 dark:bg-zinc-950/80 border border-neutral-200 dark:border-zinc-800 rounded-md text-[10px] text-neutral-700 dark:text-zinc-300 capitalize font-mono font-bold">
                                         {profile.gender}
                                       </span>
+                                      {profile.college?.toLowerCase().trim() === (user?.college || 'KIET').toLowerCase().trim() && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 rounded-md text-[10px] font-bold">
+                                          🎓 Same Campus
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
                                 </div>

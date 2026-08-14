@@ -12,6 +12,7 @@ import { Camera, AlertTriangle } from 'lucide-react';
 import { ImageCropper } from '@/components/ImageCropper';
 import { UserAvatar } from '@/components/UserAvatar';
 import SEO from '@/components/SEO';
+import CollegeSelector from '@/components/CollegeSelector';
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -181,12 +182,10 @@ export default function EditProfile() {
             />
           </div>
 
-          {/* College / University */}
-          <Input
-            label="College / University"
+          {/* College / University Selector with Toggle */}
+          <CollegeSelector
             value={formData.college}
-            onChange={(e) => setFormData({ ...formData, college: e.target.value })}
-            required
+            onChange={(newCollege) => setFormData({ ...formData, college: newCollege })}
           />
 
           {/* Gender and Year of Study */}

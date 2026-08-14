@@ -15,6 +15,7 @@ import ShareModal from '@/components/ShareModal';
 import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, query, where, deleteDoc, increment, onSnapshot, orderBy } from 'firebase/firestore';
 import { ExpandableCaption } from '@/components/PostCard';
 import { db } from '@/utils/firebase';
+import CollegeSelector from '@/components/CollegeSelector';
 
 const renderGenderBadge = (gender) => {
   if (!gender || gender === 'Prefer not to say') return null;
@@ -104,6 +105,7 @@ export default function Profile() {
   const [isUploadingOfficialAvatar, setIsUploadingOfficialAvatar] = useState(false);
   const [isSavingOfficial, setIsSavingOfficial] = useState(false);
   const officialFileInputRef = useRef(null);
+
 
   const [selectedPostForComments, setSelectedPostForComments] = useState(null);
   const [commentsList, setCommentsList] = useState([]);
