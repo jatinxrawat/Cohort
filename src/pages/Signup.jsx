@@ -8,6 +8,11 @@ import SpecularButton from '@/components/SpecularButton';
 import Scanner from '@/components/Scanner';
 import SEO from '@/components/SEO';
 
+// Firebase imports
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, getDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from '@/utils/firebase';
+
 export default function Signup() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,16 +20,34 @@ export default function Signup() {
   const { showError, showSuccess } = useNotification();
   
   const [isSignup, setIsSignup] = useState(location.pathname === '/signup');
+  const [signupStep, setSignupStep] = useState(1); // 1 = enter email, 2 = enter otp
+  const [otpInput, setOtpInput] = useState('');
+  const [resendTimer, setResendTimer] = useState(0);
 
   useEffect(() => {
     setIsSignup(location.pathname === '/signup');
+    setSignupStep(1);
+    setOtpInput('');
   }, [location.pathname]);
+
+  // Resend OTP Countdown Timer
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const interval = setInterval(() => {
+        setResendTimer(prev => prev - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [resendTimer]);
 
   const toggleAuthMode = () => {
     const nextIsSignup = !isSignup;
     setIsSignup(nextIsSignup);
+    setSignupStep(1);
+    setOtpInput('');
     navigate(nextIsSignup ? '/signup' : '/login');
   };
+  
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -82,8 +105,172 @@ export default function Signup() {
     }
   };
 
+  // Generate and send OTP helper
+  const sendVerificationCode = async (targetEmail) => {
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Save to Firestore 'otps' collection
+    const emailKey = targetEmail.trim().toLowerCase();
+    await setDoc(doc(db, 'otps', emailKey), {
+      otp: generatedOtp,
+      createdAt: new Date().toISOString()
+    });
+
+    // Call serverless send-otp API
+    const origin = window.location.origin;
+    const isMobileApp = origin.startsWith('capacitor://') || (origin.startsWith('http://localhost') && !window.location.port) || origin.startsWith('file://');
+    const apiUrl = isMobileApp ? `https://cohortnow.online/api/send-otp` : '/api/send-otp';
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: emailKey, otp: generatedOtp }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to send OTP code');
+    }
+
+    const resData = await response.json();
+    return resData;
+  };
+
+  const handleSendOTP = async () => {
+    const emailToUse = formData.email.trim();
+    if (!emailToUse) {
+      setErrors({ email: 'Email address is required' });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailToUse)) {
+      setErrors({ email: 'Please enter a valid email address' });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Check if email already exists in Firestore users
+      const q = query(collection(db, 'users'), where('email', '==', emailToUse.toLowerCase()));
+      const querySnap = await getDocs(q);
+      if (!querySnap.empty) {
+        showError('This email is already registered. Please sign in instead.');
+        setIsLoading(false);
+        return;
+      }
+
+      const resData = await sendVerificationCode(emailToUse);
+      showSuccess('Verification code sent to your email!');
+      
+      if (resData.otp) {
+        console.log(`%c[OTP Code (Dev Mode)] ${resData.otp}`, 'color: #9333ea; font-size: 16px; font-weight: bold;');
+        if (resData.previewUrl) {
+          console.log(`[Email Preview Link] ${resData.previewUrl}`);
+        }
+        showSuccess(`[Dev Mode] OTP code is ${resData.otp} (Logged to console)`);
+      }
+      
+      setSignupStep(2);
+      setResendTimer(30);
+    } catch (err) {
+      console.error(err);
+      showError(err.message || 'Failed to send verification code. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (resendTimer > 0) return;
+    try {
+      await sendVerificationCode(formData.email);
+      showSuccess('Verification code resent!');
+      setResendTimer(30);
+    } catch (err) {
+      console.error(err);
+      showError(err.message || 'Failed to resend code.');
+    }
+  };
+
+  const handleVerifyAndSignup = async (e) => {
+    e.preventDefault();
+    if (!otpInput || otpInput.trim().length !== 6) {
+      showError('Please enter the 6-digit verification code.');
+      return;
+    }
+
+    setIsLoading(true);
+    const emailKey = formData.email.trim().toLowerCase();
+
+    try {
+      const otpDocRef = doc(db, 'otps', emailKey);
+      const otpSnap = await getDoc(otpDocRef);
+
+      if (!otpSnap.exists()) {
+        showError('Verification code not found. Please request a new one.');
+        setIsLoading(false);
+        return;
+      }
+
+      const otpData = otpSnap.data();
+      if (otpData.otp !== otpInput.trim()) {
+        showError('Incorrect verification code. Please check and try again.');
+        setIsLoading(false);
+        return;
+      }
+
+      const timeDiff = Date.now() - new Date(otpData.createdAt).getTime();
+      if (timeDiff > 10 * 60 * 1000) { // 10 minutes expiry
+        showError('Verification code expired. Please request a new one.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Cleanup OTP document from Firestore
+      await deleteDoc(otpDocRef).catch(err => console.warn('Failed to delete verified OTP doc:', err));
+
+      // Sign up in Firebase Authentication with temporary password
+      const tempPassword = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const userCredential = await createUserWithEmailAndPassword(auth, emailKey, tempPassword);
+      const uid = userCredential.user.uid;
+
+      // Create user document in Firestore with onboarded: false, hasPassword: false
+      const profile = {
+        email: emailKey,
+        college: '',
+        joinedDate: new Date().toISOString(),
+        onboarded: false,
+        hasPassword: false
+      };
+
+      await setDoc(doc(db, 'users', uid), profile);
+      showSuccess('Email verified successfully! Setup your profile.');
+      navigate('/home');
+
+    } catch (err) {
+      console.error('OTP Verification signup error:', err);
+      showError(err.message || 'Signup failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (isSignup) {
+      if (signupStep === 1) {
+        await handleSendOTP();
+      } else {
+        await handleVerifyAndSignup(e);
+      }
+      return;
+    }
+
+    // Login Form Submit logic
     const newErrors = {};
 
     if (!formData.email.trim()) {
@@ -118,6 +305,7 @@ export default function Signup() {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="relative min-h-screen w-full bg-[#08080C] text-neutral-100 flex flex-col justify-start overflow-x-hidden select-none pb-28 sm:pb-36 lg:pb-44">
@@ -237,62 +425,116 @@ export default function Signup() {
               <span className="bg-black px-3 text-[10px] font-bold text-neutral-500 uppercase tracking-widest absolute">or</span>
             </div>
 
-            {/* Form Inputs for Email / Password */}
-            <form onSubmit={handleSubmit} className="space-y-2.5">
-              <div>
-                <input
-                  type="text"
-                  placeholder="Email or username"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={`w-full bg-black border ${
-                    errors.email ? 'border-rose-500' : 'border-neutral-800 focus:border-purple-500'
-                  } rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-neutral-500 font-medium focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all`}
-                />
-                {errors.email && (
-                  <p className="text-xs text-rose-400 mt-1 font-medium">{errors.email}</p>
-                )}
-              </div>
+            {/* Form Inputs for Email / Password / OTP */}
+            <form onSubmit={handleSubmit} className="space-y-3">
+              {isSignup && signupStep === 2 ? (
+                // State 2: Enter Verification Code (OTP)
+                <div className="space-y-3">
+                  <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs leading-relaxed">
+                    We sent a 6-digit verification code to <span className="font-bold text-white">{formData.email}</span>.
+                    Please check your inbox (and spam) and enter it below.
+                  </div>
 
-              {!isSignup && (
-                <div>
-                  <div className="relative">
+                  <div>
                     <input
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Password"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
-                      className={`w-full bg-black border ${
-                        errors.password ? 'border-rose-500' : 'border-neutral-800 focus:border-purple-500'
-                      } rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-neutral-500 font-medium focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all`}
+                      type="text"
+                      maxLength={6}
+                      placeholder="Enter 6-digit verification code"
+                      value={otpInput}
+                      onChange={(e) => setOtpInput(e.target.value.replace(/[^0-9]/g, ''))}
+                      className="w-full bg-black border border-neutral-800 focus:border-purple-500 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-center font-mono font-bold tracking-widest text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all"
+                      required
                     />
+                  </div>
+
+                  {/* Action Button */}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-extrabold text-xs sm:text-sm rounded-full transition-all cursor-pointer shadow-lg shadow-purple-500/20 active:scale-[0.99] flex items-center justify-center gap-2"
+                  >
+                    {isLoading ? 'Verifying...' : 'Verify & Continue'}
+                  </button>
+
+                  <div className="flex items-center justify-between text-xs pt-1">
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-500 hover:text-neutral-300 transition-colors"
+                      onClick={() => setSignupStep(1)}
+                      className="text-neutral-400 hover:text-white font-semibold cursor-pointer transition-colors"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      Change Email
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleResendOTP}
+                      disabled={resendTimer > 0}
+                      className={`font-black cursor-pointer transition-colors ${
+                        resendTimer > 0 ? 'text-neutral-600 cursor-not-allowed' : 'text-purple-400 hover:text-purple-300'
+                      }`}
+                    >
+                      {resendTimer > 0 ? `Resend Code (${resendTimer}s)` : 'Resend Code'}
                     </button>
                   </div>
-                  {errors.password && (
-                    <p className="text-xs text-rose-400 mt-1 font-medium">{errors.password}</p>
-                  )}
-                  <div className="text-right mt-1">
-                    <Link to="/forgot-password" className="text-xs text-purple-400 hover:text-purple-300 font-semibold">
-                      Forgot password?
-                    </Link>
+                </div>
+              ) : (
+                // State 1: Enter Email (for Signup) or Email/Password (for Login)
+                <div className="space-y-2.5">
+                  <div>
+                    <input
+                      type="text"
+                      placeholder={isSignup ? "University email address" : "Email or username"}
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className={`w-full bg-black border ${
+                        errors.email ? 'border-rose-500' : 'border-neutral-800 focus:border-purple-500'
+                      } rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-neutral-500 font-medium focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all`}
+                    />
+                    {errors.email && (
+                      <p className="text-xs text-rose-400 mt-1 font-medium">{errors.email}</p>
+                    )}
                   </div>
+
+                  {!isSignup && (
+                    <div>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="Password"
+                          value={formData.password}
+                          onChange={(e) => handleInputChange('password', e.target.value)}
+                          className={`w-full bg-black border ${
+                            errors.password ? 'border-rose-500' : 'border-neutral-800 focus:border-purple-500'
+                          } rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-neutral-500 font-medium focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-500 hover:text-neutral-300 transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      {errors.password && (
+                        <p className="text-xs text-rose-400 mt-1 font-medium">{errors.password}</p>
+                      )}
+                      <div className="text-right mt-1">
+                        <Link to="/forgot-password" className="text-xs text-purple-400 hover:text-purple-300 font-semibold">
+                          Forgot password?
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Button */}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-extrabold text-xs sm:text-sm rounded-full transition-all cursor-pointer border border-neutral-700 active:scale-[0.99] flex items-center justify-center gap-2"
+                  >
+                    {isLoading ? 'Processing...' : isSignup ? 'Send Verification Code' : 'Sign In'}
+                  </button>
                 </div>
               )}
-
-              {/* Action Button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-extrabold text-xs sm:text-sm rounded-full transition-all cursor-pointer border border-neutral-700 active:scale-[0.99] flex items-center justify-center gap-2"
-              >
-                {isLoading ? 'Processing...' : isSignup ? 'Create Account' : 'Sign In'}
-              </button>
             </form>
 
             <p className="text-[10px] text-neutral-500 font-medium leading-relaxed pt-1">

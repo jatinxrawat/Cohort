@@ -1,31 +1,20 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 import { Button } from '@/components/Button';
 import { uploadImageToCloudinary } from '@/utils/cloudinary';
-import { Camera, AtSign, Sparkles, Building2, User, GraduationCap, Calendar } from 'lucide-react';
+import { Camera, AtSign, Sparkles, Building2, User, GraduationCap, Calendar, Eye, EyeOff } from 'lucide-react';
 import { ImageCropper } from '@/components/ImageCropper';
 
-const COLLEGES = [
-  { id: 1, name: 'Delhi University', abbr: 'DU', location: 'Delhi' },
-  { id: 2, name: 'IIT Mumbai', abbr: 'IITB', location: 'Mumbai' },
-  { id: 3, name: 'BITS Pilani', abbr: 'BITS', location: 'Pilani' },
-  { id: 4, name: 'Ashoka University', abbr: 'AU', location: 'Delhi' },
-  { id: 5, name: 'Delhi School of Economics', abbr: 'DSE', location: 'Delhi' },
-  { id: 6, name: 'IIT Delhi', abbr: 'IITD', location: 'Delhi' },
-  { id: 7, name: 'Presidency University', abbr: 'PU', location: 'Bangalore' },
-  { id: 8, name: 'Christ University', abbr: 'CU', location: 'Bangalore' },
-  { id: 9, name: 'VIT Vellore', abbr: 'VIT', location: 'Vellore' },
-  { id: 10, name: 'Manipal Academy', abbr: 'MAHE', location: 'Manipal' },
-];
-
 export const UsernameModal = () => {
-  const { user, updateUser, isAuthenticated } = useAuth();
+  const { user, updateUser, isAuthenticated, setPasswordForUser } = useAuth();
   const { showSuccess } = useNotification();
 
   const [usernameInput, setUsernameInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [checking, setChecking] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -37,6 +26,8 @@ export const UsernameModal = () => {
   const [collegeInput, setCollegeInput] = useState(user?.college || '');
   const [showCollegeDropdown, setShowCollegeDropdown] = useState(false);
   const [collegeSearch, setCollegeSearch] = useState('');
+  const [collegesList, setCollegesList] = useState([]);
+  const [isLoadingColleges, setIsLoadingColleges] = useState(false);
 
   const [gender, setGender] = useState('Prefer not to say');
   const [year, setYear] = useState('1st Year');
@@ -44,15 +35,38 @@ export const UsernameModal = () => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
 
+  // Fetch colleges dynamically with debounce
+  useEffect(() => {
+    const fetchColleges = async () => {
+      setIsLoadingColleges(true);
+      try {
+        const origin = window.location.origin;
+        const isMobileApp = origin.startsWith('capacitor://') || (origin.startsWith('http://localhost') && !window.location.port) || origin.startsWith('file://');
+        const apiUrl = isMobileApp ? `https://cohortnow.online/api/search-colleges?q=${encodeURIComponent(collegeSearch)}` : `/api/search-colleges?q=${encodeURIComponent(collegeSearch)}`;
+        
+        const res = await fetch(apiUrl);
+        if (res.ok) {
+          const data = await res.json();
+          setCollegesList(data);
+        }
+      } catch (err) {
+        console.error('Failed to search colleges:', err);
+      } finally {
+        setIsLoadingColleges(false);
+      }
+    };
+
+    const delayDebounce = setTimeout(() => {
+      fetchColleges();
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [collegeSearch]);
+
   // Keep modal open if authenticated and either username or onboarding incomplete
   if (!isAuthenticated || !user || (user.username && user.onboarded)) {
     return null;
   }
-
-  const filteredColleges = COLLEGES.filter(c =>
-    c.name.toLowerCase().includes(collegeSearch.toLowerCase()) ||
-    c.abbr.toLowerCase().includes(collegeSearch.toLowerCase())
-  );
 
   const handleCreateUsername = async (e) => {
     e.preventDefault();
@@ -63,6 +77,13 @@ export const UsernameModal = () => {
     if (!cleanUsername || cleanUsername.length < 3) {
       setErrorMsg('Username must be at least 3 characters long (letters, numbers, underscores).');
       return;
+    }
+
+    if (!user.hasPassword) {
+      if (!passwordInput || passwordInput.length < 6) {
+        setErrorMsg('Password must be at least 6 characters long.');
+        return;
+      }
     }
 
     if (!collegeInput.trim()) {
@@ -94,14 +115,19 @@ export const UsernameModal = () => {
         return;
       }
 
-      // Upload profile picture if selected
+      // 1. Set chosen password in Firebase Auth first if user does not have a password
+      if (!user.hasPassword) {
+        await setPasswordForUser(passwordInput);
+      }
+
+      // 2. Upload profile picture if selected
       let uploadedAvatarUrl = user.avatar || null;
       if (avatarFile) {
         setIsUploading(true);
         uploadedAvatarUrl = await uploadImageToCloudinary(avatarFile);
       }
 
-      // Update Firestore user document
+      // 3. Update Firestore user document
       const userRef = doc(db, 'users', user.uid);
       const onboardingData = {
         username: cleanUsername,
@@ -118,7 +144,7 @@ export const UsernameModal = () => {
       showSuccess(`Welcome! Your unique username is @${cleanUsername}`);
     } catch (err) {
       console.error('Error during onboarding setup:', err);
-      setErrorMsg('Failed to complete onboarding. Please try again.');
+      setErrorMsg(err.message || 'Failed to complete onboarding. Please try again.');
     } finally {
       setChecking(false);
       setIsUploading(false);
@@ -214,6 +240,35 @@ export const UsernameModal = () => {
             )}
           </div>
 
+          {/* Choose Password (only shown if not set) */}
+          {!user.hasPassword && (
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-xs">
+                Choose Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Choose password (min 6 chars)"
+                  value={passwordInput}
+                  onChange={(e) => {
+                    setPasswordInput(e.target.value);
+                    setErrorMsg('');
+                  }}
+                  className="input-base pr-2xl text-sm"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-md flex items-center text-neutral-400 hover:text-neutral-200 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* University/College */}
           <div className="relative">
             <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-xs">
@@ -243,10 +298,14 @@ export const UsernameModal = () => {
                   />
                 </div>
                 <div className="overflow-y-auto flex-1 scrollbar-thin">
-                  {filteredColleges.length > 0 ? (
-                    filteredColleges.map(college => (
+                  {isLoadingColleges ? (
+                    <div className="p-md text-center text-xs text-neutral-400">
+                      Searching colleges database...
+                    </div>
+                  ) : collegesList.length > 0 ? (
+                    collegesList.map((college, idx) => (
                       <button
-                        key={college.id}
+                        key={idx}
                         type="button"
                         onClick={() => {
                           setCollegeInput(college.name);
@@ -256,7 +315,7 @@ export const UsernameModal = () => {
                         className="w-full text-left px-md py-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 border-b border-neutral-100 dark:border-neutral-800 last:border-b-0"
                       >
                         <p className="font-bold text-xs text-neutral-900 dark:text-white">{college.name}</p>
-                        <p className="text-[10px] text-neutral-500">{college.location}</p>
+                        <p className="text-[10px] text-neutral-500">{college.location || college.university}</p>
                       </button>
                     ))
                   ) : (
