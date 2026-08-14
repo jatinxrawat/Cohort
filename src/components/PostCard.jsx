@@ -19,7 +19,11 @@ import {
   Zap,
   PenSquare,
   ShieldCheck,
-  Sparkles
+  Sparkles,
+  BarChart2,
+  FileText,
+  Paperclip,
+  Camera
 } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
@@ -260,12 +264,14 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
           username: user?.username || null,
           avatar: user?.avatar || null
         },
+        college: user?.college || 'KIET',
         author: {
           uid: myUid || null,
           name: user?.name || 'Student',
           username: user?.username || null,
           avatar: user?.avatar || null,
-          role: user?.college || 'KIET'
+          role: user?.college || 'KIET',
+          college: user?.college || 'KIET'
         },
         thought: '',
         content: '',
@@ -343,12 +349,14 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
           username: user?.username || null,
           avatar: user?.avatar || null
         },
+        college: user?.college || 'KIET',
         author: {
           uid: myUid || null,
           name: user?.name || 'Student',
           username: user?.username || null,
           avatar: user?.avatar || null,
-          role: user?.college || 'KIET'
+          role: user?.college || 'KIET',
+          college: user?.college || 'KIET'
         },
         thought: thoughtCaption.trim(),
         content: thoughtCaption.trim(),
@@ -867,6 +875,99 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
             alt="Post attachment"
             className="w-full h-auto max-h-[700px] object-contain rounded-2xl transition-transform duration-300 hover:scale-[1.005]"
           />
+        </div>
+      )}
+
+      {/* Interactive Post Poll */}
+      {post.poll && (
+        <div className="mb-xl p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900/80 border border-neutral-200/80 dark:border-neutral-800 space-y-3 shadow-xs">
+          <h4 className="font-bold text-sm text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+            <BarChart2 className="w-4 h-4 text-purple-500 flex-shrink-0" />
+            <span>{post.poll.question}</span>
+          </h4>
+          <div className="space-y-2">
+            {post.poll.options?.map((opt, idx) => {
+              const total = post.poll.totalVotes || 0;
+              const votes = opt.votes || 0;
+              const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+              const hasVoted = post.poll.votedUsers?.includes(user?.uid);
+              const isMyChoice = post.poll.userChoices?.[user?.uid] === idx;
+
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={async () => {
+                    if (!user?.uid || !post.docId) return;
+                    const votedUsers = post.poll.votedUsers || [];
+                    if (votedUsers.includes(user.uid)) return;
+
+                    const updatedOptions = post.poll.options.map((o, i) =>
+                      i === idx ? { ...o, votes: (o.votes || 0) + 1 } : o
+                    );
+                    const updatedPoll = {
+                      ...post.poll,
+                      totalVotes: (post.poll.totalVotes || 0) + 1,
+                      options: updatedOptions,
+                      votedUsers: [...votedUsers, user.uid],
+                      userChoices: { ...(post.poll.userChoices || {}), [user.uid]: idx }
+                    };
+                    try {
+                      await updateDoc(doc(db, 'posts', post.docId), { poll: updatedPoll });
+                      showSuccess('Vote recorded!');
+                    } catch (e) {
+                      console.error('Error voting on poll:', e);
+                    }
+                  }}
+                  className={`w-full relative overflow-hidden rounded-xl p-3 text-left border transition-all cursor-pointer ${
+                    isMyChoice
+                      ? 'border-purple-500 bg-purple-500/10 text-purple-600 dark:text-purple-300 font-bold'
+                      : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 text-neutral-800 dark:text-neutral-200 hover:border-purple-500/40 font-medium'
+                  }`}
+                >
+                  {hasVoted && (
+                    <div
+                      className="absolute inset-y-0 left-0 bg-purple-500/20 dark:bg-purple-500/30 transition-all duration-500"
+                      style={{ width: `${pct}%` }}
+                    />
+                  )}
+                  <div className="relative z-10 flex items-center justify-between text-xs sm:text-sm">
+                    <span className="truncate pr-2">{opt.text}</span>
+                    {hasVoted && (
+                      <span className="font-mono font-bold flex-shrink-0 text-xs">
+                        {pct}% ({votes})
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <div className="text-[11px] font-medium text-neutral-400 dark:text-neutral-500 flex items-center justify-between">
+            <span>{post.poll.totalVotes || 0} votes</span>
+            {post.poll.votedUsers?.includes(user?.uid) && (
+              <span className="text-purple-500 dark:text-purple-400 font-semibold">✓ Voted</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Attached File/Document */}
+      {post.attachedFile && (
+        <div className="mb-xl p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-900/90 border border-neutral-200/80 dark:border-neutral-800 flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/20 flex items-center justify-center flex-shrink-0">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-neutral-100 truncate">
+                {post.attachedFile.name}
+              </p>
+              <p className="text-[11px] text-neutral-400 font-medium">
+                {post.attachedFile.size || 'Attached document'}
+              </p>
+            </div>
+          </div>
         </div>
       )}
 

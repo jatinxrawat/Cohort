@@ -8,11 +8,55 @@ import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { Input } from '@/components/Input';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, CheckCheck, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Eye, Paperclip, Image, Video, Download, Maximize2, Share2, ExternalLink, ArrowRight } from 'lucide-react';
+import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, CheckCheck, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Eye, Paperclip, Image, Video, Download, Maximize2, Share2, ExternalLink, ArrowRight, Smile, BarChart2, FileText, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { formatRelativeTime } from '@/utils/helpers';
 import { UserAvatar } from '@/components/UserAvatar';
+
+const CRAZY_EMOJI_PACKS = [
+  {
+    id: 'vibe',
+    name: '🔥 Vibe',
+    emojis: [
+      '🔥', '✨', '💯', '⚡', '💀', '🗿', '🎯', '🚀', '👑', '💥', '🥳', '🎉', '💅', '🧠', '🤯',
+      '🌟', '💫', '💎', '🏆', '🌶️', '🌊', '🦄', '🔮', '🕶️', '🦾', '🧿', '💸', '📈', '🚩', '🧿'
+    ]
+  },
+  {
+    id: 'memes',
+    name: '😂 Memes',
+    emojis: [
+      '😂', '🤣', '💀', '🤡', '👁️👄👁️', '🙃', '🫠', '🫡', '😭', '🌚', '🌝', '🤓', '🤪', '😜',
+      '😈', '👹', '💩', '👻', '🙈', '🤏', '🤫', '🤥', '🤢', '🤧', '🥸', '👺', '☠️', '🪦', '🤖', '🫥'
+    ]
+  },
+  {
+    id: 'campus',
+    name: '😎 Campus',
+    emojis: [
+      '🎒', '📚', '💻', '☕', '🍕', '🎓', '📝', '🎧', '🛌', '⏰', '😴', '🍔', '🥤', '🍻', '🎸',
+      '⚽', '🏀', '🎮', '🕹️', '📱', '💡', '📌', '🧪', '🧃', '🍿', '🍩', '🍟', '🍜', '🍱', '🎬'
+    ]
+  },
+  {
+    id: 'love',
+    name: '❤️ Love',
+    emojis: [
+      '❤️', '💖', '🥺', '🥰', '😍', '🫶', '💔', '🖤', '💜', '💋', '🫂', '💌', '🌹', '💐', '⭐',
+      '👍', '🙌', '👏', '🤝', '✌️', '🌸', '🧸', '💘', '💝', '💗', '💓', '💞', '💕', '❣️', '🤍'
+    ]
+  },
+  {
+    id: 'food',
+    name: '🍕 Food',
+    emojis: [
+      '🍕', '🍔', '🍟', '🌭', '🍿', '🥓', '🍳', '🧇', '🥞', '🧋', '🧃', '🍺', '🍻', '🥂', '🍾',
+      '🍹', '🍩', '🍦', '🍧', '🎂', '🧁', '🍫', '🍬', '🍭', '🍒', '🥑', '🌶️', '🍉', '🍇', '🍓'
+    ]
+  }
+];
+
 
 const FAKE_CHAT_NAMES = [
   'priya sharma',
@@ -103,6 +147,27 @@ export default function Messages() {
       document.documentElement.classList.remove('in-active-chat');
     };
   }, [mobileView]);
+
+  // Attachment & Emoji Popover State
+  const [showAttachMenuPop, setShowAttachMenuPop] = useState(false);
+  const [showEmojiPickerPop, setShowEmojiPickerPop] = useState(false);
+  const [activeEmojiPack, setActiveEmojiPack] = useState(0);
+
+  // Intercept back button / history state when emoji tray or attachment popover is open
+  useEffect(() => {
+    if (showEmojiPickerPop || showAttachMenuPop) {
+      window.history.pushState({ trayOpen: true }, '');
+      const handlePopState = () => {
+        setShowEmojiPickerPop(false);
+        setShowAttachMenuPop(false);
+      };
+      window.addEventListener('popstate', handlePopState);
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [showEmojiPickerPop, showAttachMenuPop]);
+
   const [allStarredCommunityMsgs, setAllStarredCommunityMsgs] = useState([]);
   const [isCommunityStarredModalOpen, setIsCommunityStarredModalOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState(null);
@@ -110,6 +175,144 @@ export default function Messages() {
   const [msgToDeleteModal, setMsgToDeleteModal] = useState(null);
   const [revealedDeletedMsgs, setRevealedDeletedMsgs] = useState([]);
   const mediaInputRef = useRef(null);
+  const docInputRef = useRef(null);
+
+
+  // DM Poll Modal State
+  const [isCreatePollOpen, setIsCreatePollOpen] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState(['', '']);
+  const [pollType, setPollType] = useState('single');
+
+  // Recents Emoji Storage
+  const [recentEmojis, setRecentEmojis] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cohort_recent_emojis');
+      return saved ? JSON.parse(saved) : ['🔥', '😂', '💀', '✨', '❤️', '💯', '🗿', '🫡', '😭', '🥳', '🚀', '🎒', '😍', '☕'];
+    } catch (e) {
+      return ['🔥', '😂', '💀', '✨', '❤️', '💯', '🗿', '🫡', '😭', '🥳'];
+    }
+  });
+
+  const handleAddRecentEmoji = (emoji) => {
+    setRecentEmojis(prev => {
+      const filtered = prev.filter(e => e !== emoji);
+      const updated = [emoji, ...filtered].slice(0, 25);
+      try { localStorage.setItem('cohort_recent_emojis', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
+  };
+
+  const allPacks = [
+    { id: 'recents', name: '🕒 Recents', emojis: recentEmojis },
+    ...CRAZY_EMOJI_PACKS
+  ];
+
+  const handleDocumentSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedMedia({
+        file,
+        url: URL.createObjectURL(file),
+        type: 'file',
+        name: file.name
+      });
+      showSuccess(`Document attached: ${file.name}`);
+    }
+  };
+
+  const handleCreatePoll = async (e) => {
+    e.preventDefault();
+    if (!pollQuestion.trim()) return;
+    const validOptions = pollOptions.filter(o => o.trim() !== '');
+    if (validOptions.length < 2) { showSuccess('At least 2 options required.'); return; }
+
+    const targetConv = conversations.find(c => c.id === selectedId);
+    if (!targetConv) return;
+
+    const myName = user?.name || user?.email?.split('@')[0] || 'Me';
+    const pollObj = {
+      question: pollQuestion.trim(),
+      pollType: pollType,
+      totalVotes: 0,
+      options: validOptions.map(optText => ({ text: optText.trim(), votes: 0, selected: false }))
+    };
+
+    const newMsg = {
+      sender: user?.uid || 'me',
+      senderUid: user?.uid || null,
+      senderName: myName,
+      text: `📊 Poll: ${pollQuestion.trim()}`,
+      poll: pollObj,
+      type: 'poll',
+      time: new Date(),
+      deletedFor: []
+    };
+
+    setIsCreatePollOpen(false);
+    setPollQuestion('');
+    setPollOptions(['', '']);
+    setPollType('single');
+
+    const updatedMsgs = [...(targetConv.messages || []), newMsg];
+    setConversations(prev => prev.map(c => c.id === selectedId ? { ...c, messages: updatedMsgs } : c));
+
+    if (targetConv.docId) {
+      try {
+        await updateDoc(doc(db, 'direct-messages', targetConv.docId), {
+          messages: updatedMsgs,
+          lastMessage: `📊 Poll: ${pollQuestion.trim()}`,
+          lastTime: new Date()
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    showSuccess('Poll published in chat!');
+  };
+
+  const handleMessagePollVote = async (msgIndex, optIndex) => {
+    const targetConv = conversations.find(c => c.id === selectedId);
+    if (!targetConv || !targetConv.messages?.[msgIndex]?.poll) return;
+
+    const currentMsg = targetConv.messages[msgIndex];
+    const targetPoll = currentMsg.poll;
+    const isMultiple = targetPoll.pollType === 'multiple';
+
+    let deltaVotes = 0;
+    const updatedOptions = targetPoll.options.map((o, idx) => {
+      if (idx === optIndex) {
+        if (o.selected) {
+          deltaVotes -= 1;
+          return { ...o, votes: Math.max(0, o.votes - 1), selected: false };
+        } else {
+          deltaVotes += 1;
+          return { ...o, votes: o.votes + 1, selected: true };
+        }
+      } else if (!isMultiple && o.selected) {
+        deltaVotes -= 1;
+        return { ...o, votes: Math.max(0, o.votes - 1), selected: false };
+      }
+      return o;
+    });
+
+    const newTotalVotes = Math.max(0, (targetPoll.totalVotes || 0) + deltaVotes);
+    const updatedPoll = { ...targetPoll, options: updatedOptions, totalVotes: newTotalVotes };
+    const updatedMsg = { ...currentMsg, poll: updatedPoll };
+
+    const updatedMsgs = targetConv.messages.map((m, i) => i === msgIndex ? updatedMsg : m);
+    setConversations(prev => prev.map(c => c.id === selectedId ? { ...c, messages: updatedMsgs } : c));
+    showSuccess('Vote recorded!');
+
+    if (targetConv.docId) {
+      try {
+        await updateDoc(doc(db, 'direct-messages', targetConv.docId), { messages: updatedMsgs });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
 
   const handleToggleRevealDeleted = (msgKey) => {
     setRevealedDeletedMsgs(prev =>
@@ -1979,6 +2182,14 @@ export default function Messages() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (showEmojiPickerPop) {
+                            setShowEmojiPickerPop(false);
+                            return;
+                          }
+                          if (showAttachMenuPop) {
+                            setShowAttachMenuPop(false);
+                            return;
+                          }
                           setMobileView('list');
                           setSelectedId(null);
                         }}
@@ -1987,6 +2198,7 @@ export default function Messages() {
                       >
                         <ChevronLeft className="w-6 h-6" />
                       </button>
+
 
                       <div className="relative">
                         <UserAvatar
@@ -2398,12 +2610,52 @@ export default function Messages() {
                                      </div>
                                    )}
 
+                                   {/* Poll Card Rendering inside DM Chat */}
+                                   {msg.poll && (
+                                     <div className="my-2 p-3 rounded-2xl bg-neutral-900/90 border border-neutral-800 text-neutral-100 text-xs space-y-2 max-w-sm">
+                                       <div className="flex items-center justify-between font-bold text-neutral-200">
+                                         <span>{msg.poll.question}</span>
+                                         <span className="text-[10px] text-neutral-400 px-2 py-0.5 rounded-full bg-neutral-800 border border-neutral-700">
+                                           {msg.poll.pollType === 'multiple' ? 'Multiple Choice' : 'Single Choice'}
+                                         </span>
+                                       </div>
+                                       <div className="space-y-1.5">
+                                         {msg.poll.options?.map((opt, oIdx) => {
+                                           const percent = msg.poll.totalVotes > 0 ? Math.round((opt.votes / msg.poll.totalVotes) * 100) : 0;
+                                           return (
+                                             <button
+                                               key={oIdx}
+                                               type="button"
+                                               onClick={() => handleMessagePollVote(msgIndex, oIdx)}
+                                               className={`w-full text-left p-2 rounded-xl border transition-all cursor-pointer relative overflow-hidden flex items-center justify-between text-xs ${
+                                                 opt.selected
+                                                   ? 'border-purple-500 bg-purple-500/10 font-bold'
+                                                   : 'border-neutral-800 bg-neutral-850 hover:bg-neutral-800'
+                                               }`}
+                                             >
+                                               <div
+                                                 className="absolute left-0 top-0 bottom-0 bg-purple-500/20 transition-all"
+                                                 style={{ width: `${percent}%` }}
+                                               />
+                                               <span className="relative z-10 font-medium">{opt.text}</span>
+                                               <span className="relative z-10 font-mono text-[10px] text-neutral-400">{percent}% ({opt.votes})</span>
+                                             </button>
+                                           );
+                                         })}
+                                       </div>
+                                       <div className="text-[10px] text-neutral-500 text-right font-medium">
+                                         Total votes: {msg.poll.totalVotes || 0}
+                                       </div>
+                                     </div>
+                                   )}
+
                                    {/* Message Text (Hidden if it's a shared post to prevent duplicate raw text & URLs) */}
                                    {msg.text && !msg.isSharedPost && !msg.sharedPostData && !msg.text.startsWith('Shared post by') && (
                                      <span className="text-[13.5px] leading-snug break-words font-normal">
                                        {msg.text}
                                      </span>
                                    )}
+
                                   {isStarred && (
                                     <Star className="w-3 h-3 text-amber-400 fill-amber-400 inline-block ml-1" title="Starred message" />
                                   )}
@@ -2599,14 +2851,14 @@ export default function Messages() {
                         {selectedMedia.name}
                       </p>
                       <span className="text-[10px] font-bold text-primary-500 uppercase tracking-wider">
-                        {selectedMedia.type === 'video' ? '🎬 Video Attached' : '🖼️ Photo Attached'}
+                        {selectedMedia.type === 'video' ? 'Video Attached' : selectedMedia.type === 'file' ? 'Document Attached' : 'Photo Attached'}
                       </span>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setSelectedMedia(null)}
-                    className="p-xs hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white transition-colors ml-md"
+                    className="p-xs hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white transition-colors ml-md cursor-pointer"
                     title="Remove attachment"
                   >
                     <X className="w-4 h-4" />
@@ -2614,10 +2866,10 @@ export default function Messages() {
                 </div>
               )}
 
-              {/* Input Area */}
+              {/* Chat Input Form */}
               <form
                 onSubmit={handleSendMessage}
-                className={`flex-shrink-0 z-30 p-2.5 sm:p-3.5 border-t flex gap-2 sm:gap-3 items-center transition-all ${
+                className={`flex-shrink-0 z-30 p-2.5 sm:p-3.5 border-t flex gap-2 sm:gap-3 items-center transition-all relative ${
                   activeConversation.isVanishMode
                     ? 'bg-neutral-950 border-amber-500/30 shadow-[0_-4px_20px_rgba(245,158,11,0.15)]'
                     : 'bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border-neutral-200/80 dark:border-neutral-800 shadow-lg'
@@ -2630,15 +2882,54 @@ export default function Messages() {
                   onChange={handleMediaSelect}
                   className="hidden"
                 />
+                <input
+                  type="file"
+                  ref={docInputRef}
+                  onChange={handleDocumentSelect}
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.zip"
+                  className="hidden"
+                />
 
-                <button
-                  type="button"
-                  onClick={() => mediaInputRef.current?.click()}
-                  className="p-2.5 text-neutral-400 hover:text-sky-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors flex-shrink-0 cursor-pointer"
-                  title="Attach Photo or Video"
-                >
-                  <Paperclip className="w-5 h-5" />
-                </button>
+                {/* Attachment Menu Popover */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowAttachMenuPop(!showAttachMenuPop)}
+                    className="p-2.5 text-neutral-400 hover:text-purple-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors flex-shrink-0 cursor-pointer"
+                    title="Attach Options"
+                  >
+                    <Paperclip className="w-5 h-5" />
+                  </button>
+
+                  {showAttachMenuPop && (
+                    <div className="absolute bottom-full mb-2 left-0 z-50 w-56 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-2xl p-2 text-xs font-semibold space-y-1">
+                      <button
+                        type="button"
+                        onClick={() => { mediaInputRef.current?.click(); setShowAttachMenuPop(false); }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                      >
+                        <Image className="w-4 h-4 text-sky-500" />
+                        <span>Photos / Gallery</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setIsCreatePollOpen(true); setShowAttachMenuPop(false); }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                      >
+                        <BarChart2 className="w-4 h-4 text-purple-500" />
+                        <span>Create Campus Poll</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { docInputRef.current?.click(); setShowAttachMenuPop(false); }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                      >
+                        <FileText className="w-4 h-4 text-amber-500" />
+                        <span>Attach File / Doc</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 {activeConversation.isVanishMode && (
                   <button
@@ -2656,14 +2947,82 @@ export default function Messages() {
                   </button>
                 )}
 
+                {/* Input Container with Emoji Picker */}
                 <div className="flex-1 relative flex items-center">
                   <input
                     type="text"
                     placeholder={`Message ${activeConversation.name}...`}
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
-                    className="w-full bg-neutral-100 dark:bg-neutral-800/90 border border-neutral-200 dark:border-neutral-700/80 rounded-full px-4 py-2.5 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all"
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(e)}
+                    className="w-full bg-neutral-100 dark:bg-neutral-800/90 border border-neutral-200 dark:border-neutral-700/80 rounded-full pl-4 pr-10 py-2.5 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all"
                   />
+
+                  {/* Smile Emoji Button inside Input */}
+                  <button
+                    type="button"
+                    onClick={() => setShowEmojiPickerPop(!showEmojiPickerPop)}
+                    className={`absolute right-3 p-1 transition-colors cursor-pointer ${showEmojiPickerPop ? 'text-purple-500' : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200'}`}
+                    title="Crazy Emoji Packs"
+                  >
+                    <Smile className="w-4.5 h-4.5" />
+                  </button>
+
+                  {/* WhatsApp Style Emoji Picker Drawer / Popover */}
+                  {showEmojiPickerPop && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-xs sm:bg-transparent"
+                        onClick={() => setShowEmojiPickerPop(false)}
+                      />
+
+                      <div className="fixed inset-x-0 bottom-0 z-[100] sm:absolute sm:inset-auto sm:bottom-full sm:right-0 sm:mb-3 w-full sm:w-80 h-72 sm:h-64 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl border-t sm:border border-neutral-200/90 dark:border-neutral-800 rounded-t-3xl sm:rounded-3xl shadow-2xl p-3 text-xs flex flex-col transition-all">
+                        <div className="w-10 h-1 bg-neutral-300 dark:bg-neutral-700 rounded-full mx-auto mb-2 sm:hidden flex-shrink-0" />
+
+                        <div className="flex items-center gap-1 pb-2 border-b border-neutral-100 dark:border-neutral-800 mb-2 overflow-x-auto scrollbar-none flex-shrink-0">
+                          {allPacks.map((pack, pIdx) => (
+                            <button
+                              key={pIdx}
+                              type="button"
+                              onClick={() => setActiveEmojiPack(pIdx)}
+                              className={`px-2.5 py-1 rounded-xl font-bold text-[11px] transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
+                                activeEmojiPack === pIdx
+                                  ? 'bg-purple-500 text-white shadow-xs'
+                                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                              }`}
+                            >
+                              <span>{pack.name}</span>
+                              {pack.id === 'recents' && (
+                                <span className="text-[9px] opacity-75 font-mono">({pack.emojis.length})</span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="grid grid-cols-6 sm:grid-cols-5 gap-1.5 overflow-y-auto pr-1 flex-1 scrollbar-thin">
+                          {allPacks[activeEmojiPack]?.emojis.length > 0 ? (
+                            allPacks[activeEmojiPack].emojis.map((emo, eIdx) => (
+                              <button
+                                key={eIdx}
+                                type="button"
+                                onClick={() => {
+                                  setMessageText(prev => prev + emo);
+                                  handleAddRecentEmoji(emo);
+                                }}
+                                className="w-10 h-10 sm:w-9 sm:h-9 flex items-center justify-center text-xl sm:text-lg rounded-xl hover:bg-purple-500/15 active:scale-125 transition-transform cursor-pointer"
+                              >
+                                {emo}
+                              </button>
+                            ))
+                          ) : (
+                            <div className="col-span-full py-8 text-center text-neutral-400 text-xs italic">
+                              No recent emojis used yet. Tap any emoji to save here!
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <button
@@ -3545,6 +3904,123 @@ export default function Messages() {
             </div>
           </div>
         )}
+
+        {/* ── CREATE CAMPUS POLL MODAL ── */}
+        <Modal isOpen={isCreatePollOpen} onClose={() => setIsCreatePollOpen(false)} title="Create Campus Poll" size="md">
+          <form onSubmit={handleCreatePoll} className="space-y-5 py-1">
+            {/* Question Input */}
+            <div>
+              <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+                <span>Poll Question</span>
+                <span className="text-[10px] text-neutral-500 font-normal">Required</span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. When should we schedule the exam review?"
+                value={pollQuestion}
+                onChange={(e) => setPollQuestion(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl bg-neutral-900 border border-neutral-800 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-700 transition-all font-medium"
+                required
+              />
+            </div>
+
+            {/* Voting Mode Toggle (Single vs Multiple choice) */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider">
+                Voting Mode
+              </label>
+              <div className="grid grid-cols-2 gap-2 p-1.5 bg-neutral-900/80 rounded-2xl border border-neutral-800">
+                <button
+                  type="button"
+                  onClick={() => setPollType('single')}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    pollType === 'single'
+                      ? 'bg-neutral-800 text-white border border-neutral-700 shadow-sm'
+                      : 'text-neutral-400 hover:text-neutral-200'
+                  }`}
+                >
+                  <CheckCircle2 className={`w-4 h-4 ${pollType === 'single' ? 'text-white' : 'text-neutral-500'}`} />
+                  <span>Single Choice</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPollType('multiple')}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    pollType === 'multiple'
+                      ? 'bg-neutral-800 text-white border border-neutral-700 shadow-sm'
+                      : 'text-neutral-400 hover:text-neutral-200'
+                  }`}
+                >
+                  <CheckSquare className={`w-4 h-4 ${pollType === 'multiple' ? 'text-white' : 'text-neutral-500'}`} />
+                  <span>Multiple Choice</span>
+                </button>
+              </div>
+              <p className="text-[11px] text-neutral-400 font-medium px-1">
+                {pollType === 'single'
+                  ? 'Students can select only one answer.'
+                  : 'Students can select multiple answers.'}
+              </p>
+            </div>
+
+            {/* Poll Options */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
+                  Poll Options ({pollOptions.length}/6)
+                </label>
+                <span className="text-[10px] text-neutral-500 font-medium">Min 2 options</span>
+              </div>
+              <div className="space-y-2.5">
+                {pollOptions.map((opt, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        placeholder={`Option ${idx + 1}`}
+                        value={opt}
+                        onChange={(e) => {
+                          const n = [...pollOptions];
+                          n[idx] = e.target.value;
+                          setPollOptions(n);
+                        }}
+                        className="w-full pl-4 pr-10 py-2.5 rounded-2xl bg-neutral-900 border border-neutral-800 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:border-neutral-700 font-medium transition-all"
+                      />
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-neutral-500">
+                        #{idx + 1}
+                      </span>
+                    </div>
+                    {pollOptions.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
+                        className="p-2.5 rounded-2xl bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-rose-400 transition-colors cursor-pointer"
+                        title="Remove option"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {pollOptions.length < 6 && (
+                <button
+                  type="button"
+                  onClick={() => setPollOptions([...pollOptions, ''])}
+                  className="w-full mt-3 py-2.5 border border-dashed border-neutral-800 hover:border-neutral-700 bg-neutral-900/40 hover:bg-neutral-900 rounded-2xl text-xs font-semibold text-neutral-300 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Option</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-3 border-t border-neutral-800">
+              <Button variant="secondary" type="button" className="flex-1 rounded-2xl py-3 text-xs font-semibold cursor-pointer border-neutral-800 text-neutral-300 hover:bg-neutral-800" onClick={() => setIsCreatePollOpen(false)}>Cancel</Button>
+              <button type="submit" disabled={!pollQuestion.trim() || pollOptions.filter(o => o.trim()).length < 2} className="flex-1 rounded-2xl py-3 text-xs font-bold bg-white text-neutral-900 hover:bg-neutral-200 transition-all cursor-pointer shadow-md disabled:opacity-50">Publish Poll</button>
+            </div>
+          </form>
+        </Modal>
       </AnimatePresence>
     </div>
   );

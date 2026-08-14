@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/Card';
@@ -26,6 +26,7 @@ import { db } from '@/utils/firebase';
 export default function Search() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const inputRef = useRef(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('All');
@@ -33,6 +34,18 @@ export default function Search() {
   
   const [peopleResults, setPeopleResults] = useState([]);
   const [postsResults, setPostsResults] = useState([]);
+
+  // Cmd+K / Ctrl+K keyboard shortcut listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Read URL query parameter e.g. ?q=%23Cohort or ?hashtag=Cohort
   useEffect(() => {
@@ -208,11 +221,15 @@ export default function Search() {
 
       {/* Modern Search Input Container */}
       <div className="relative group">
-        <div className="flex items-center bg-white dark:bg-neutral-900 border-2 border-neutral-200 dark:border-neutral-800 rounded-2xl p-sm shadow-md group-focus-within:border-primary-500 group-focus-within:ring-4 group-focus-within:ring-primary-500/10 transition-all">
-          <SearchIcon className="w-5 h-5 text-neutral-400 ml-md flex-shrink-0" />
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/30 via-sky-500/30 to-indigo-500/30 rounded-3xl blur-md opacity-0 group-focus-within:opacity-100 group-hover:opacity-70 transition-all duration-500" />
+
+        <div className="relative flex items-center bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl border border-neutral-200/90 dark:border-neutral-800 rounded-2xl px-4 py-3 shadow-xl group-focus-within:border-purple-500/60 dark:group-focus-within:border-purple-500/60 transition-all duration-300">
+          <SearchIcon className="w-5 h-5 text-neutral-400 group-focus-within:text-purple-500 transition-colors flex-shrink-0 mr-3" />
+
           <input
+            ref={inputRef}
             type="text"
-            placeholder="Search by student name, @username, or post content..."
+            placeholder="Search student names, @username, #hashtags, or posts..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => {
@@ -220,37 +237,49 @@ export default function Search() {
                 addToHistory(searchTerm);
               }
             }}
-            className="w-full bg-transparent px-md py-sm text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none"
+            className="w-full bg-transparent text-sm md:text-base text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none font-medium"
           />
-          {searchTerm && (
+
+          {searchTerm ? (
             <button
               onClick={() => setSearchTerm('')}
-              className="p-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-white mr-sm rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800"
+              className="p-1.5 text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors flex-shrink-0 cursor-pointer"
+              title="Clear search"
             >
               <X className="w-4 h-4" />
             </button>
+          ) : (
+            <kbd className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-mono font-bold text-neutral-400 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/80 rounded-lg flex-shrink-0 select-none">
+              ⌘K
+            </kbd>
           )}
         </div>
       </div>
 
       {/* Filter Tabs */}
-      {searchTerm && (
-        <div className="flex items-center gap-sm border-b border-neutral-100 dark:border-neutral-800 pb-sm">
-          {tabs.map(tab => (
+      <div className="flex items-center gap-2 border-b border-neutral-100 dark:border-neutral-800 pb-3 overflow-x-auto scrollbar-none">
+        {tabs.map(tab => {
+          const count = tab === 'Students' ? peopleResults.length : tab === 'Posts' ? postsResults.length : null;
+          return (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-xl py-xs rounded-full text-xs font-bold transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
                 activeTab === tab
-                  ? 'bg-primary-500 text-white shadow-sm'
+                  ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-md scale-[1.02]'
                   : 'bg-neutral-100 dark:bg-neutral-800/80 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
               }`}
             >
-              {tab === 'Students' ? `Students (${peopleResults.length})` : tab === 'Posts' ? `Posts (${postsResults.length})` : tab}
+              <span>{tab}</span>
+              {searchTerm && count !== null && count > 0 && (
+                <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono ${activeTab === tab ? 'bg-white/20 dark:bg-black/20 text-white dark:text-neutral-900' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-500'}`}>
+                  {count}
+                </span>
+              )}
             </button>
-          ))}
-        </div>
-      )}
+          );
+        })}
+      </div>
 
       {/* Search Results / Discovery Body */}
       <AnimatePresence mode="wait">
