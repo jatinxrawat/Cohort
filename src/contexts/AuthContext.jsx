@@ -303,12 +303,50 @@ export const AuthProvider = ({ children }) => {
   };
 
   const setPasswordForUser = async (newPassword) => {
-    if (!auth.currentUser) throw new Error("No authenticated user");
-    await updatePassword(auth.currentUser, newPassword);
+    if (!auth.currentUser) {
+      console.error('[setPasswordForUser] No authenticated user found.');
+      throw new Error("No authenticated user");
+    }
+    
+    try {
+      console.log('[setPasswordForUser] Attempting to update password for:', auth.currentUser.email);
+      await updatePassword(auth.currentUser, newPassword);
+      console.log('[setPasswordForUser] Password updated successfully on first try.');
+    } catch (error) {
+      console.warn('[setPasswordForUser] Update password failed. Error code:', error.code, 'Error message:', error.message);
+      if (error.code === 'auth/requires-recent-login') {
+        const tempPassword = localStorage.getItem('cohort_temp_signup_password');
+        console.log('[setPasswordForUser] Found tempPassword in localStorage:', !!tempPassword);
+        if (tempPassword) {
+          try {
+            const { EmailAuthProvider, reauthenticateWithCredential } = await import('firebase/auth');
+            console.log('[setPasswordForUser] Re-authenticating with temp password...');
+            const credential = EmailAuthProvider.credential(auth.currentUser.email, tempPassword);
+            await reauthenticateWithCredential(auth.currentUser, credential);
+            console.log('[setPasswordForUser] Re-authentication successful. Retrying password update...');
+            await updatePassword(auth.currentUser, newPassword);
+            console.log('[setPasswordForUser] Password updated successfully after re-authentication.');
+            localStorage.removeItem('cohort_temp_signup_password');
+          } catch (reauthErr) {
+            console.error('[setPasswordForUser] Re-authentication or retried update failed:', reauthErr);
+            throw reauthErr;
+          }
+        } else {
+          console.error('[setPasswordForUser] auth/requires-recent-login occurred but no temporary signup password was found in localStorage.');
+          throw error;
+        }
+      } else {
+        throw error;
+      }
+    }
+
     const uid = auth.currentUser.uid;
     const docRef = doc(db, 'users', uid);
     await updateDoc(docRef, { hasPassword: true });
     setUser(prev => ({ ...prev, hasPassword: true }));
+    
+    // Clean up temporary password on success
+    localStorage.removeItem('cohort_temp_signup_password');
   };
 
   const signup = async (userData) => {
