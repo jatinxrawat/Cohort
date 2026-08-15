@@ -5,17 +5,29 @@ import { ArrowLeft, Heart, Clock, Calendar, Share2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Logo } from '@/components/Logo';
+import { db } from '@/utils/firebase';
+import { doc, onSnapshot, setDoc, getDoc, increment } from 'firebase/firestore';
 
 export default function IntrovertGuide() {
   const { isDark } = useTheme();
-  const [claps, setClaps] = useState(() => {
-    const saved = localStorage.getItem('claps_introvert-guide');
-    return saved ? parseInt(saved, 10) : 98;
-  });
+  const [claps, setClaps] = useState(98);
   const [hasClapped, setHasClapped] = useState(() => {
     return localStorage.getItem('has_clapped_introvert-guide') === 'true';
   });
   const [showShareTooltip, setShowShareTooltip] = useState(false);
+
+  // Subscribe to real-time claps from Firestore
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'uncutClaps', 'introvert-guide'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (typeof data.count === 'number') {
+          setClaps(data.count);
+        }
+      }
+    });
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     const schema = {
@@ -35,13 +47,22 @@ export default function IntrovertGuide() {
     return () => document.head.removeChild(script);
   }, []);
 
-  const handleClap = () => {
+  const handleClap = async () => {
     if (hasClapped) return;
-    const newClaps = claps + 1;
-    setClaps(newClaps);
     setHasClapped(true);
-    localStorage.setItem('claps_introvert-guide', String(newClaps));
     localStorage.setItem('has_clapped_introvert-guide', 'true');
+
+    try {
+      const docRef = doc(db, 'uncutClaps', 'introvert-guide');
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        await setDoc(docRef, { count: increment(1) }, { merge: true });
+      } else {
+        await setDoc(docRef, { count: 99 }, { merge: true });
+      }
+    } catch (err) {
+      console.error("Failed to update clap in Firestore:", err);
+    }
   };
 
   const handleShare = () => {

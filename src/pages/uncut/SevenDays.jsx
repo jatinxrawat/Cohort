@@ -7,18 +7,30 @@ import BorderGlow from '@/components/BorderGlow';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
+import { db } from '@/utils/firebase';
+import { doc, onSnapshot, setDoc, getDoc, increment } from 'firebase/firestore';
 
 export default function SevenDays() {
   const { isDark } = useTheme();
   const { isAuthenticated } = useAuth();
-  const [claps, setClaps] = useState(() => {
-    const saved = localStorage.getItem('claps_seven-days-changed-us');
-    return saved ? parseInt(saved, 10) : 412;
-  });
+  const [claps, setClaps] = useState(412);
   const [hasClapped, setHasClapped] = useState(() => {
     return localStorage.getItem('has_clapped_seven-days-changed-us') === 'true';
   });
   const [showShareTooltip, setShowShareTooltip] = useState(false);
+
+  // Subscribe to real-time claps from Firestore
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'uncutClaps', 'seven-days-changed-us'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (typeof data.count === 'number') {
+          setClaps(data.count);
+        }
+      }
+    });
+    return () => unsub();
+  }, []);
 
   // Inject Google Article Schema JSON-LD for search engines
   useEffect(() => {
@@ -58,13 +70,22 @@ export default function SevenDays() {
     };
   }, []);
 
-  const handleClap = () => {
+  const handleClap = async () => {
     if (hasClapped) return;
-    const newClaps = claps + 1;
-    setClaps(newClaps);
     setHasClapped(true);
-    localStorage.setItem('claps_seven-days-changed-us', String(newClaps));
     localStorage.setItem('has_clapped_seven-days-changed-us', 'true');
+
+    try {
+      const docRef = doc(db, 'uncutClaps', 'seven-days-changed-us');
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        await setDoc(docRef, { count: increment(1) }, { merge: true });
+      } else {
+        await setDoc(docRef, { count: 413 }, { merge: true });
+      }
+    } catch (err) {
+      console.error("Failed to update clap in Firestore:", err);
+    }
   };
 
   const handleShare = () => {
