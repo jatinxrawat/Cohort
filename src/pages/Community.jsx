@@ -76,7 +76,7 @@ const formatShortCollegeName = (rawName) => {
 
 export default function Community() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { showSuccess, showWarning } = useNotification();
 
@@ -782,7 +782,7 @@ export default function Community() {
 
   const handleGroupPollVote = async (msgId, optIndex) => {
     if (!selectedRoom?.id) return;
-    const targetMsg = messages.find(m => m.id === msgId);
+    const targetMsg = communityMessages.find(m => m.id === msgId || m.docId === msgId);
     if (!targetMsg || !targetMsg.poll) return;
 
     const targetPoll = targetMsg.poll;
@@ -814,12 +814,13 @@ export default function Community() {
     const updatedPoll = { ...targetPoll, options: updatedOptions, totalVotes: newTotalVotes };
     const updatedMsg = { ...targetMsg, poll: updatedPoll };
 
-    setMessages(prev => prev.map(m => m.id === msgId ? updatedMsg : m));
+    setCommunityMessages(prev => prev.map(m => (m.id === msgId || m.docId === msgId) ? updatedMsg : m));
     showSuccess('Vote recorded!');
 
-    if (targetMsg.docId) {
+    const targetDocId = targetMsg.docId || targetMsg.id;
+    if (targetDocId && selectedRoom?.id) {
       try {
-        await updateDoc(doc(db, 'userCommunities', selectedRoom.id, 'messages', targetMsg.docId), {
+        await updateDoc(doc(db, 'userCommunities', selectedRoom.id, 'messages', targetDocId), {
           poll: updatedPoll
         });
       } catch (e) {
@@ -2256,7 +2257,7 @@ export default function Community() {
                                                <button
                                                  key={oIdx}
                                                  type="button"
-                                                 onClick={() => (selectedRoom?.id ? handleGroupPollVote(msg.id, oIdx) : handleCollegePollVote(msg.id, oIdx))}
+                                                 onClick={() => (isGroupRoom ? handleGroupPollVote(msg.id, oIdx) : handleCollegePollVote(msg.id, oIdx))}
                                                  className={`w-full text-left p-2.5 rounded-xl border transition-all cursor-pointer relative overflow-hidden flex items-center justify-between text-xs group ${
                                                    isVotedByMe
                                                      ? 'border-purple-500/60 bg-purple-500/15 font-bold shadow-xs'
