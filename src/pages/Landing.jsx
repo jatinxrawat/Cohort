@@ -102,6 +102,8 @@ export default function Landing() {
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [notifyLaunch, setNotifyLaunch] = useState(true);
 
+  const isModalOpen = showDownloadModal || isAllFeaturesModalOpen;
+
   // Confession state
   const [localConfessions] = useState([
     { text: "I've been using ChatGPT to write all my weekly email check-ins to my advisor and today he told me my writing style is 'deeply poetic'. 😭", likes: 89, time: 'Just now', user: 'Anonymous Coping' }
@@ -157,6 +159,7 @@ export default function Landing() {
               blend={0.6}
               amplitude={1.2}
               speed={0.6}
+              paused={isModalOpen}
             />
           </div>
 
@@ -196,6 +199,7 @@ export default function Landing() {
                   lineColor="#c084fc"
                   baseColor="#6b21a8"
                   autoAnimate={true}
+                  paused={isModalOpen}
                 >
                   <span className="whitespace-nowrap">Enter App</span>
                 </SpecularButton>
@@ -218,6 +222,7 @@ export default function Landing() {
                     lineColor="#c084fc"
                     baseColor="#6b21a8"
                     autoAnimate={true}
+                    paused={isModalOpen}
                   >
                     <span className="whitespace-nowrap">Sign Up Free</span>
                   </SpecularButton>
@@ -263,32 +268,29 @@ export default function Landing() {
                   autoAnimate={true}
                   shineSize={15}
                   className="w-full sm:w-auto justify-center"
+                  paused={isModalOpen}
                 >
                   <span className="whitespace-nowrap">Sign Up Free</span>
                   <ChevronRight className="w-5 h-5 stroke-[3]" />
                 </SpecularButton>
-                <button
-                  type="button"
+                <SpecularButton
                   onClick={() => setShowDownloadModal(true)}
-                  className="cursor-pointer border-none bg-transparent p-0 active:scale-95 transition-transform w-full sm:w-auto"
+                  size="lg"
+                  radius={999}
+                  tint="#171717"
+                  tintOpacity={0.8}
+                  textColor="#e5e5e5"
+                  lineColor="#a855f7"
+                  baseColor="#262626"
+                  autoAnimate={false}
+                  className="w-full sm:w-auto justify-center active:scale-95 transition-transform"
+                  paused={isModalOpen}
                 >
-                  <SpecularButton
-                    size="lg"
-                    radius={999}
-                    tint="#171717"
-                    tintOpacity={0.8}
-                    textColor="#e5e5e5"
-                    lineColor="#a855f7"
-                    baseColor="#262626"
-                    autoAnimate={false}
-                    className="w-full sm:w-auto justify-center"
-                  >
-                    <div className="flex items-center justify-center gap-2 whitespace-nowrap">
-                      <Download className="w-4 h-4 text-purple-400" />
-                      <span>Download App</span>
-                    </div>
-                  </SpecularButton>
-                </button>
+                  <div className="flex items-center justify-center gap-2 whitespace-nowrap">
+                    <Download className="w-4 h-4 text-purple-400" />
+                    <span>Download App</span>
+                  </div>
+                </SpecularButton>
               </div>
             </div>
 
@@ -654,6 +656,7 @@ export default function Landing() {
               baseColor="#e9d5ff"
               autoAnimate={true}
               shineSize={20}
+              paused={isModalOpen}
             >
               <div className="flex items-center gap-1">
                 <span>Sign Up Free</span>
@@ -661,26 +664,24 @@ export default function Landing() {
               </div>
             </SpecularButton>
 
-            <div
+            <SpecularButton
               onClick={() => setShowDownloadModal(true)}
-              className="cursor-pointer active:scale-95 transition-transform"
+              size="lg"
+              radius={999}
+              tint="#000000"
+              tintOpacity={0.4}
+              textColor="#ffffff"
+              lineColor="#f472b6"
+              baseColor="#3b0764"
+              autoAnimate={false}
+              className="active:scale-95 transition-transform"
+              paused={isModalOpen}
             >
-              <SpecularButton
-                size="lg"
-                radius={999}
-                tint="#000000"
-                tintOpacity={0.4}
-                textColor="#ffffff"
-                lineColor="#f472b6"
-                baseColor="#3b0764"
-                autoAnimate={false}
-              >
-                <div className="flex items-center gap-2">
-                  <Download className="w-4.5 h-4.5 text-purple-200" />
-                  <span>Download App</span>
-                </div>
-              </SpecularButton>
-            </div>
+              <div className="flex items-center gap-2">
+                <Download className="w-4.5 h-4.5 text-purple-200" />
+                <span>Download App</span>
+              </div>
+            </SpecularButton>
           </div>
 
           {/* Footer links */}
@@ -765,11 +766,18 @@ export default function Landing() {
         {/* Download App Modal Popup */}
         <AnimatePresence>
           {showDownloadModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+            >
               <motion.div
                 initial={{ opacity: 0, scale: 0.92, y: 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.92, y: 15 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 350 }}
                 className="relative w-full max-w-sm bg-neutral-900 border border-purple-500/30 rounded-3xl p-6 shadow-2xl text-center space-y-5 overflow-hidden"
               >
                 {/* Glow Ambient Highlights */}
@@ -871,7 +879,7 @@ export default function Landing() {
                   Close
                 </button>
               </motion.div>
-            </div>
+            </motion.div>
           )}
         </AnimatePresence>
 

@@ -87,13 +87,14 @@ const SpecularButton = ({
   disabled = false,
   onClick,
   className = '',
-  type = 'button'
+  type = 'button',
+  paused = false
 }) => {
   const btnRef = useRef(null);
   const fxRef = useRef(null);
   const propsRef = useRef({});
 
-  propsRef.current = { radius, lineColor, baseColor, intensity, shineSize, shineFade, thickness, speed, followMouse, proximity, autoAnimate };
+  propsRef.current = { radius, lineColor, baseColor, intensity, shineSize, shineFade, thickness, speed, followMouse, proximity, autoAnimate, paused };
 
   useEffect(() => {
     const btn = btnRef.current;
@@ -193,6 +194,8 @@ const SpecularButton = ({
       if (!isMobile || proximityT > 0) {
         raf = requestAnimationFrame(update);
       }
+
+      if (p.paused) return;
 
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
