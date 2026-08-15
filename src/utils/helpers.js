@@ -29,6 +29,21 @@ export const formatRelativeTime = (date) => {
   return formatDate(date);
 };
 
+export const formatShortCollegeName = (rawName) => {
+  if (!rawName) return 'Campus';
+  let short = String(rawName).trim();
+  if (short.includes(' - ')) {
+    short = short.split(' - ')[0].trim();
+  }
+  if (short.includes(' (')) {
+    short = short.split(' (')[0].trim();
+  }
+  if (short.includes(',')) {
+    short = short.split(',')[0].trim();
+  }
+  return short;
+};
+
 export const validateEmail = (email) => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(email);
