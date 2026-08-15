@@ -61,7 +61,7 @@ function AnalyticsTracker() {
 async function checkForCohortUpdate() {
   if (!Capacitor.isNativePlatform()) return;
   try {
-    const res = await fetch('https://cohortnow.online/ota/manifest.json?t=' + Date.now(), {
+    const res = await fetch('https://www.cohortnow.online/ota/manifest.json?t=' + Date.now(), {
       cache: 'no-store'
     });
     if (!res.ok) {
