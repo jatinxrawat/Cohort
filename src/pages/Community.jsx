@@ -2514,7 +2514,7 @@ export default function Community() {
                               onClick={() => setShowEmojiPickerPop(false)}
                             />
 
-                            <div className="fixed inset-x-0 bottom-0 z-[100] sm:absolute sm:inset-auto sm:bottom-full sm:right-2 sm:mb-3 w-full sm:w-80 h-72 sm:h-64 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl border-t sm:border border-neutral-200/90 dark:border-neutral-800 rounded-t-3xl sm:rounded-3xl shadow-2xl p-3 text-xs flex flex-col transition-all">
+                            <div className="absolute bottom-full left-0 right-0 mb-3 sm:left-auto sm:right-0 sm:mb-3 w-full sm:w-80 h-72 sm:h-64 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl border border-neutral-200/90 dark:border-neutral-800 rounded-3xl shadow-2xl p-3 text-xs flex flex-col transition-all z-[100]">
                               <div className="w-10 h-1 bg-neutral-300 dark:bg-neutral-700 rounded-full mx-auto mb-2 sm:hidden flex-shrink-0" />
 
                               <div className="flex items-center gap-1 pb-2 border-b border-neutral-100 dark:border-neutral-800 mb-2 overflow-x-auto scrollbar-none flex-shrink-0">
@@ -3249,7 +3249,7 @@ export default function Community() {
                           onClick={() => setShowEmojiPickerPop(false)}
                         />
 
-                        <div className="fixed inset-x-0 bottom-0 z-[100] sm:absolute sm:inset-auto sm:bottom-full sm:right-2 sm:mb-3 w-full sm:w-80 h-72 sm:h-64 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl border-t sm:border border-neutral-200/90 dark:border-neutral-800 rounded-t-3xl sm:rounded-3xl shadow-2xl p-3 text-xs flex flex-col transition-all">
+                        <div className="absolute bottom-full left-0 right-0 mb-3 sm:left-auto sm:right-0 sm:mb-3 w-full sm:w-80 h-72 sm:h-64 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl border border-neutral-200/90 dark:border-neutral-800 rounded-3xl shadow-2xl p-3 text-xs flex flex-col transition-all z-[100]">
                           <div className="w-10 h-1 bg-neutral-300 dark:bg-neutral-700 rounded-full mx-auto mb-2 sm:hidden flex-shrink-0" />
 
                           <div className="flex items-center gap-1 pb-2 border-b border-neutral-100 dark:border-neutral-800 mb-2 overflow-x-auto scrollbar-none flex-shrink-0">
