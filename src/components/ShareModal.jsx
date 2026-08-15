@@ -185,6 +185,20 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
         });
       });
 
+      const sanitizeForFirestore = (val) => {
+        if (val === undefined) return null;
+        if (val === null || typeof val !== 'object') return val;
+        if (val instanceof Date) return val;
+        if (Array.isArray(val)) return val.map(sanitizeForFirestore);
+        const clean = {};
+        for (const key of Object.keys(val)) {
+          if (val[key] !== undefined) {
+            clean[key] = sanitizeForFirestore(val[key]);
+          }
+        }
+        return clean;
+      };
+
       const sendPromises = selectedUsers.map(async (targetUser) => {
         const targetUid = cleanStr(targetUser.uid);
         const targetName = cleanStr(targetUser.name, 'Campus Student');
@@ -193,8 +207,8 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
           `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(targetUid)}`
         );
 
-        const isUncut = safeUrl.includes('/uncut') || post?.id?.includes('-') || post?.category;
-        const messageObj = {
+        const isUncut = Boolean(safeUrl.includes('/uncut') || post?.id?.includes('-') || post?.category);
+        const messageObj = sanitizeForFirestore({
           id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           sender: myUid,
           senderUid: myUid,
@@ -215,7 +229,7 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
             url: safeUrl,
             mediaUrl: safeMediaUrl
           }
-        };
+        });
 
         const existingDoc = existingDocsMap.get(targetUid);
 
@@ -225,10 +239,13 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
           const rawData = freshSnap.exists() ? freshSnap.data() : existingDoc;
 
           const rawMsgs = Array.isArray(rawData.messages) ? rawData.messages : [];
-          const cleanExistingMsgs = rawMsgs.map((m) => ({
-            ...m,
-            time: m.time?.toDate ? m.time.toDate().toISOString() : (m.time ? String(m.time) : nowIso)
-          }));
+          const cleanExistingMsgs = rawMsgs.map((m) => {
+            const cleanM = sanitizeForFirestore(m);
+            return {
+              ...cleanM,
+              time: m.time?.toDate ? m.time.toDate().toISOString() : (m.time ? String(m.time) : nowIso)
+            };
+          });
 
           const resetHidden = {};
           if (rawData.hiddenFor) {
@@ -237,7 +254,7 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
             });
           }
 
-          await updateDoc(chatRef, {
+          const updatePayload = sanitizeForFirestore({
             messages: [...cleanExistingMsgs, messageObj],
             lastMessage: lastMsgSummary,
             time: new Date(),
@@ -246,8 +263,10 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
             [`participantMap.${targetUid}`]: { name: targetName, avatar: targetAvatar },
             ...resetHidden
           });
+
+          await updateDoc(chatRef, updatePayload);
         } else {
-          const newConvData = {
+          const newConvData = sanitizeForFirestore({
             recipientUid: targetUid,
             recipientName: targetName,
             recipientAvatar: targetAvatar,
@@ -264,7 +283,7 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
             lastMessage: lastMsgSummary,
             time: new Date(),
             messages: [messageObj]
-          };
+          });
           await addDoc(collection(db, 'messages'), newConvData);
         }
       });
