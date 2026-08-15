@@ -123,6 +123,22 @@ export default function Messages() {
     }
   }, [showAttachMenuPop]);
 
+  const [allStarredCommunityMsgs, setAllStarredCommunityMsgs] = useState([]);
+  const [isCommunityStarredModalOpen, setIsCommunityStarredModalOpen] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState(null);
+  const [previewImageModal, setPreviewImageModal] = useState(null);
+  const [msgToDeleteModal, setMsgToDeleteModal] = useState(null);
+  const [revealedDeletedMsgs, setRevealedDeletedMsgs] = useState([]);
+  const mediaInputRef = useRef(null);
+  const docInputRef = useRef(null);
+  const messageInputRef = useRef(null);
+
+  // DM Poll Modal State
+  const [isCreatePollOpen, setIsCreatePollOpen] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState(['', '']);
+  const [pollType, setPollType] = useState('single');
+
   const handleDocumentSelect = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -1141,6 +1157,13 @@ export default function Messages() {
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
     if ((!messageText.trim() && !selectedMedia) || !selectedId) return;
+
+    const textToSend = messageText.trim();
+    setMessageText('');
+    setSelectedMedia(null);
+    setTimeout(() => {
+      messageInputRef.current?.focus();
+    }, 10);
 
     const targetConv = conversations.find(c => c.id === selectedId);
     if (!targetConv) return;
@@ -2970,6 +2993,7 @@ export default function Messages() {
                 {/* Input Container */}
                 <div className="flex-1 flex items-center bg-neutral-100 dark:bg-neutral-800/90 border border-neutral-200 dark:border-neutral-700/80 rounded-full px-4 py-1.5">
                   <input
+                    ref={messageInputRef}
                     type="text"
                     placeholder={`Message ${activeConversation.name}...`}
                     value={messageText}
@@ -2981,6 +3005,8 @@ export default function Messages() {
 
                 <button
                   type="submit"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onTouchStart={(e) => e.preventDefault()}
                   disabled={!messageText.trim() && !selectedMedia}
                   className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 active:scale-95 text-white flex items-center justify-center shadow-md shadow-sky-500/30 disabled:opacity-40 disabled:scale-100 transition-all cursor-pointer flex-shrink-0"
                 >

@@ -260,6 +260,8 @@ export default function Community() {
 
 
   const cameraInputRef = useRef(null);
+  const collegeInputRef = useRef(null);
+  const groupInputRef = useRef(null);
   const createAvatarFileRef = useRef(null);
   const editAvatarFileRef = useRef(null);
   const drawerHeaderAvatarFileRef = useRef(null);
@@ -627,16 +629,21 @@ export default function Community() {
   // ── College send message
   const handleSendMessage = async () => {
     if (!messageText.trim() && !attachedFile) return;
+    const textToSend = messageText.trim();
+    setMessageText(''); setReplyingTo(null); setAttachedFile(null);
+    setTimeout(() => {
+      collegeInputRef.current?.focus();
+    }, 10);
+
     const senderName = user?.name || user?.email?.split('@')[0] || 'Student';
     const messageData = {
       college: collegeName,
       sender: { name: senderName, avatar: user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || senderName)}`, role: user?.college || 'Student', college: collegeName, uid: user?.uid || null },
-      content: messageText.trim() + (attachedFile ? ` \n📎 Attached: ${attachedFile.name}` : ''),
+      content: textToSend + (attachedFile ? ` \n📎 Attached: ${attachedFile.name}` : ''),
       timestamp: new Date(), reactions: [],
       replyTo: replyingTo ? { name: replyingTo.sender.name, text: replyingTo.content } : null
     };
     try {
-      setMessageText(''); setReplyingTo(null); setAttachedFile(null);
       await addDoc(collection(db, 'community-messages'), messageData);
     } catch (e) { console.error(e); }
   };
@@ -1171,10 +1178,16 @@ export default function Community() {
 
   const handleSendGroupMessage = async () => {
     if ((!communityMsgText.trim() && !attachedGroupFile) || !selectedRoom?.id) return;
+    const textToSend = communityMsgText.trim();
+    setCommunityMsgText(''); setCommunityReplyingTo(null); setAttachedGroupFile(null);
+    setTimeout(() => {
+      groupInputRef.current?.focus();
+    }, 10);
+
     const senderName = user?.name || user?.email?.split('@')[0] || 'Student';
     const msgData = {
       sender: { name: senderName, avatar: user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(senderName)}`, uid: user?.uid },
-      content: communityMsgText.trim() + (attachedGroupFile ? ` \n📎 Attached: ${attachedGroupFile.name}` : ''),
+      content: textToSend + (attachedGroupFile ? ` \n📎 Attached: ${attachedGroupFile.name}` : ''),
       fileUrl: attachedGroupFile ? URL.createObjectURL(attachedGroupFile) : null,
       fileName: attachedGroupFile ? attachedGroupFile.name : null,
       timestamp: new Date(),
@@ -1184,7 +1197,6 @@ export default function Community() {
     try {
       await addDoc(collection(db, 'userCommunities', selectedRoom.id, 'messages'), msgData);
       await updateDoc(doc(db, 'userCommunities', selectedRoom.id), { lastActivity: new Date() });
-      setCommunityMsgText(''); setCommunityReplyingTo(null); setAttachedGroupFile(null);
     } catch (e) { console.error(e); }
   };
 
@@ -2417,6 +2429,7 @@ export default function Community() {
                       {/* Chat Input Container */}
                       <div className="flex-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full px-md py-sm flex items-center gap-md">
                         <input
+                          ref={collegeInputRef}
                           type="text"
                           placeholder="Type a message..."
                           value={messageText}
@@ -2426,7 +2439,15 @@ export default function Community() {
                         />
                       </div>
 
-                      <button onClick={handleSendMessage} className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white flex items-center justify-center flex-shrink-0 transition-all active:scale-95 shadow-md shadow-sky-500/30 cursor-pointer"><Send className="w-4 h-4" /></button>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onTouchStart={(e) => e.preventDefault()}
+                        onClick={handleSendMessage}
+                        className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white flex items-center justify-center flex-shrink-0 transition-all active:scale-95 shadow-md shadow-sky-500/30 cursor-pointer"
+                      >
+                        <Send className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -3091,10 +3112,18 @@ export default function Community() {
 
                   {/* Chat Input Container */}
                   <div className="flex-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full px-md py-sm flex items-center gap-md">
-                    <input type="text" placeholder="Type a message..." value={communityMsgText} onChange={(e) => setCommunityMsgText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendGroupMessage()} className="bg-transparent text-sm outline-none flex-1 py-xs text-neutral-800 dark:text-neutral-200 placeholder-neutral-400" />
+                    <input ref={groupInputRef} type="text" placeholder="Type a message..." value={communityMsgText} onChange={(e) => setCommunityMsgText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendGroupMessage()} className="bg-transparent text-sm outline-none flex-1 py-xs text-neutral-800 dark:text-neutral-200 placeholder-neutral-400" />
                   </div>
 
-                  <button onClick={handleSendGroupMessage} className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white flex items-center justify-center flex-shrink-0 transition-all active:scale-95 shadow-md shadow-sky-500/30 cursor-pointer"><Send className="w-4 h-4" /></button>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onTouchStart={(e) => e.preventDefault()}
+                    onClick={handleSendGroupMessage}
+                    className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white flex items-center justify-center flex-shrink-0 transition-all active:scale-95 shadow-md shadow-sky-500/30 cursor-pointer"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </div>
