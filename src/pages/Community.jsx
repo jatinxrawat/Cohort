@@ -2040,7 +2040,7 @@ export default function Community() {
               /* ── COLLEGE COMMUNITY ROOM ── */
               <div className="flex-1 flex flex-col min-h-0 max-w-full min-w-0 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center gap-md px-lg py-md bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 flex-shrink-0 shadow-sm z-40 w-full max-w-full min-w-0 overflow-hidden">
+            <div className="flex items-center gap-md px-lg py-md bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 flex-shrink-0 shadow-sm z-40 w-full max-w-full min-w-0 relative">
               <button onClick={() => { setSelectedRoom(null); setSearchParams({}, { replace: true }); }} className="p-md rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors flex-shrink-0 cursor-pointer active:scale-95 z-10" title="Back to Communities List">
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -2089,8 +2089,8 @@ export default function Community() {
 
                   {showHeaderMenu && (
                     <>
-                      <div className="fixed inset-0 z-20" onClick={() => setShowHeaderMenu(false)} />
-                      <div className="absolute right-0 top-full mt-xs w-60 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-xl z-30 py-xs text-xs font-medium space-y-xs">
+                      <div className="fixed inset-0 z-40" onClick={() => setShowHeaderMenu(false)} />
+                      <div className="absolute right-2 top-full mt-xs w-60 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-2xl z-50 py-xs text-xs font-medium space-y-xs">
                         <button
                           onClick={() => { setShowHeaderMenu(false); setIsAutoClearModalOpen(true); }}
                           className="w-full px-lg py-md text-left text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/20 flex items-center gap-md font-semibold"
@@ -2710,7 +2710,7 @@ export default function Community() {
           /* ── GROUP ROOM ── */
           <div className="flex-1 flex flex-col min-h-0 max-w-full min-w-0 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center gap-md px-lg py-md bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 flex-shrink-0 shadow-sm z-40 w-full max-w-full min-w-0 overflow-hidden">
+            <div className="flex items-center gap-md px-lg py-md bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 flex-shrink-0 shadow-sm z-40 w-full max-w-full min-w-0 relative">
               <button onClick={() => { setSelectedRoom(null); setSearchParams({}, { replace: true }); }} className="p-md rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors flex-shrink-0 cursor-pointer active:scale-95 z-10" title="Back to Communities List">
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -2759,8 +2759,8 @@ export default function Community() {
 
                   {showHeaderMenu && (
                     <>
-                      <div className="fixed inset-0 z-20" onClick={() => setShowHeaderMenu(false)} />
-                      <div className="absolute right-0 top-full mt-xs w-60 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-xl z-30 py-xs text-xs font-medium space-y-xs">
+                      <div className="fixed inset-0 z-40" onClick={() => setShowHeaderMenu(false)} />
+                      <div className="absolute right-2 top-full mt-xs w-60 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-2xl z-50 py-xs text-xs font-medium space-y-xs">
                         <button
                           onClick={() => { setShowHeaderMenu(false); setIsAutoClearModalOpen(true); }}
                           className="w-full px-lg py-md text-left text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/20 flex items-center gap-md font-semibold"
