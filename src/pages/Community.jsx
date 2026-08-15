@@ -32,7 +32,7 @@ const fakeSenderNames = ['fake_bot_user_never_matches'];
 const SwipeableMessageRow = ({ children, onReply, isMe }) => {
   const [dragOffset, setDragOffset] = useState(0);
   return (
-    <div className="relative w-full flex items-center">
+    <div className="relative w-full flex items-center overflow-x-hidden max-w-full min-w-0">
       <div
         className={`absolute top-1/2 -translate-y-1/2 z-0 transition-opacity duration-150 flex items-center justify-center ${
           isMe ? 'right-2' : 'left-2'
@@ -1467,13 +1467,13 @@ export default function Community() {
 };
 
   return (
-    <div className="max-w-7xl mx-auto p-0 md:p-md h-full w-full flex flex-col font-sans antialiased text-neutral-900 dark:text-white overflow-hidden">
+    <div className="max-w-7xl mx-auto p-0 md:p-md h-full w-full flex flex-col font-sans antialiased text-neutral-900 dark:text-white overflow-x-hidden overflow-y-hidden max-w-full min-w-0">
       <SEO title="Campus Circles" />
 
       {/* ──────── JOIN BANNER ──────── */}
       <AnimatePresence>
         {joinBanner && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-md bg-white dark:bg-neutral-900 border border-primary-200 dark:border-primary-800 rounded-2xl shadow-2xl p-lg mx-4">
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-neutral-900 border border-primary-200 dark:border-primary-800 rounded-2xl shadow-2xl p-lg">
             <div className="flex items-start gap-md">
               <div className="w-12 h-12 rounded-xl bg-primary-500 flex items-center justify-center text-white font-bold text-xl flex-shrink-0">{joinBanner.name.charAt(0).toUpperCase()}</div>
               <div className="flex-1 min-w-0">
@@ -1491,10 +1491,10 @@ export default function Community() {
         )}
       </AnimatePresence>
 
-      <div className="flex flex-col md:flex-row gap-0 md:gap-lg h-full min-h-0 flex-1 overflow-hidden">
+      <div className="flex flex-col md:flex-row gap-0 md:gap-lg h-full min-h-0 flex-1 overflow-hidden max-w-full min-w-0">
         {/* ──────── LEFT SIDEBAR ──────── */}
-        <div className={`w-full md:w-80 lg:w-96 flex-shrink-0 flex flex-col h-full overflow-hidden ${selectedRoom ? 'hidden md:flex' : 'flex'}`}>
-          <Card className="flex-1 flex flex-col p-0 overflow-hidden rounded-none md:rounded-xl border-none md:border">
+        <div className={`w-full md:w-80 lg:w-96 flex-shrink-0 flex flex-col h-full overflow-hidden max-w-full min-w-0 ${selectedRoom ? 'hidden md:flex' : 'flex'}`}>
+          <Card className="flex-1 flex flex-col p-0 overflow-hidden rounded-none md:rounded-xl border-none md:border max-w-full min-w-0">
 
         {/* Sidebar Header */}
         <div className="px-lg pt-lg pb-md flex-shrink-0">
@@ -2017,7 +2017,7 @@ export default function Community() {
       </div>
 
       {/* ──────── MAIN CHAT AREA ──────── */}
-      <div className={`flex-1 h-full min-h-0 flex flex-col overflow-hidden ${selectedRoom ? 'flex' : 'hidden md:flex'}`}>
+      <div className={`flex-1 h-full min-h-0 flex flex-col overflow-hidden max-w-full min-w-0 ${selectedRoom ? 'flex' : 'hidden md:flex'}`}>
 
         {!selectedRoom ? (
           /* Welcome screen */
@@ -2035,12 +2035,12 @@ export default function Community() {
             </button>
           </Card>
         ) : (
-          <Card className="flex-1 flex flex-col p-0 overflow-hidden border-none md:border rounded-none md:rounded-xl border-neutral-100 dark:border-neutral-800 h-full min-h-0">
+          <Card className="flex-1 flex flex-col p-0 overflow-hidden border-none md:border rounded-none md:rounded-xl border-neutral-100 dark:border-neutral-800 h-full min-h-0 max-w-full min-w-0">
             {!isGroupRoom ? (
               /* ── COLLEGE COMMUNITY ROOM ── */
-              <div className="flex-1 flex flex-col min-h-0">
+              <div className="flex-1 flex flex-col min-h-0 max-w-full min-w-0 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center gap-md px-lg py-md bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 flex-shrink-0 shadow-sm z-40 w-full">
+            <div className="flex items-center gap-md px-lg py-md bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 flex-shrink-0 shadow-sm z-40 w-full max-w-full min-w-0 overflow-hidden">
               <button onClick={() => { setSelectedRoom(null); setSearchParams({}, { replace: true }); }} className="p-md rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors flex-shrink-0 cursor-pointer active:scale-95 z-10" title="Back to Communities List">
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -2184,12 +2184,12 @@ export default function Community() {
             )}
 
             {/* Chat Content */}
-            <div className="flex-1 min-h-0 flex flex-col relative">
+            <div className="flex-1 min-h-0 flex flex-col relative overflow-x-hidden max-w-full min-w-0">
 
               {/* CHAT */}
               {collegeTab === 'Chat' && (
-                <div className="flex-1 flex flex-col min-h-0">
-                  <div ref={chatRef} onScroll={handleChatScroll} className="flex-1 overflow-y-auto px-lg py-md space-y-md scroll-smooth scrollbar-thin">
+                <div className="flex-1 flex flex-col min-h-0 overflow-x-hidden max-w-full min-w-0">
+                  <div ref={chatRef} onScroll={handleChatScroll} className="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-lg py-md space-y-md scroll-smooth scrollbar-thin max-w-full min-w-0">
                     {loading ? (
                       <div className="space-y-lg pt-md">{[1,2,3,4].map(i => <div key={i} className={`flex gap-md max-w-[60%] ${i % 2 === 0 ? 'ml-auto flex-row-reverse' : ''}`}><div className="w-8 h-8 rounded-full skeleton flex-shrink-0 mt-xs"/><div className="h-14 flex-1 skeleton rounded-2xl"/></div>)}</div>
                     ) : messages.length > 0 ? messages
@@ -2204,14 +2204,14 @@ export default function Community() {
                           return (
                             <div key={msg.id} id={`msg-${msg.id}`} className={`transition-all duration-300 ${highlightedMsgId === msg.id ? 'ring-4 ring-amber-400 rounded-2xl p-1 bg-amber-500/20 shadow-2xl animate-pulse z-20' : ''}`}>
                               <SwipeableMessageRow isMe={isMe} onReply={() => setReplyingTo(msg)}>
-                              <div className={`flex gap-md max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : ''} ${isSelected ? 'opacity-80 scale-[0.98]' : ''}`}>
+                              <div className={`flex gap-md max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : ''} ${isSelected ? 'opacity-80 scale-[0.98]' : ''} min-w-0`}>
                                 {isSelectMode && (
                                   <button onClick={() => handleToggleSelectMsg(msg.id)} className="self-center p-xs text-indigo-500">
                                     {isSelected ? <CheckSquare className="w-5 h-5 text-indigo-600 fill-indigo-100" /> : <Square className="w-5 h-5 text-neutral-400" />}
                                   </button>
                                 )}
                                 <img src={msg.sender?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(msg.sender?.name || 'u')}`} alt={msg.sender?.name} className="w-8 h-8 rounded-full flex-shrink-0 mt-xs object-cover" />
-                                <div className="space-y-xs relative group">
+                                <div className="space-y-xs relative group min-w-0 max-w-full">
                                   {!isMe && <span className="text-[10px] font-bold text-neutral-500 ml-sm">{msg.sender?.name}{msg.sender?.role && ` · ${msg.sender?.role}`}</span>}
                                   {msg.isDeletedForEveryone || msg.content === 'This message was deleted by sender' || msg.text === 'This message was deleted by sender' ? (
                                     <div className="my-xs max-w-sm">
@@ -2223,7 +2223,7 @@ export default function Community() {
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className={`text-[13.5px] leading-relaxed relative overflow-hidden transition-all ${isMe ? 'bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-500 dark:to-indigo-600 text-white rounded-2xl rounded-tr-xs shadow-xs px-3.5 py-1.5' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border border-neutral-200/80 dark:border-neutral-700/60 rounded-2xl rounded-tl-xs px-3.5 py-1.5 shadow-xs'}`}>
+                                    <div className={`text-[13.5px] leading-relaxed relative overflow-hidden transition-all break-words max-w-full ${isMe ? 'bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-500 dark:to-indigo-600 text-white rounded-2xl rounded-tr-xs shadow-xs px-3.5 py-1.5' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border border-neutral-200/80 dark:border-neutral-700/60 rounded-2xl rounded-tl-xs px-3.5 py-1.5 shadow-xs'}`}>
                                       {msg.replyTo && <div className={`p-1 px-2 rounded-lg border text-xs mb-1 ${isMe ? 'bg-black/25 text-white border-white/90' : 'bg-primary-500/10 text-neutral-800 dark:text-neutral-100 border-primary-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
                                       {msg.poll && (
                                        <div className="my-2 p-3.5 rounded-2xl bg-neutral-900/95 border border-neutral-800 text-neutral-100 text-xs space-y-3 max-w-sm shadow-xl backdrop-blur-md">
@@ -2364,7 +2364,7 @@ export default function Community() {
                   </div>
                   {showScrollBtn && <button onClick={() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }} className="absolute bottom-20 right-lg w-10 h-10 rounded-full bg-primary-500 text-white shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 z-20"><ArrowDown className="w-5 h-5" /></button>}
                   {/* Chat Input */}
-                  <div className="flex-shrink-0 z-30 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 p-2 sm:p-3 shadow-lg">
+                  <div className="flex-shrink-0 z-30 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 p-2 sm:p-3 shadow-lg w-full max-w-full min-w-0 overflow-hidden">
                     {editingMsg && (
                       <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded-lg p-sm flex justify-between items-center text-xs mb-xs">
                         <div className="flex-1 min-w-0 mr-md">
@@ -2384,7 +2384,7 @@ export default function Community() {
                       </div>
                     )}
                     {replyingTo && <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-sm flex justify-between items-center text-xs mb-xs"><div className="min-w-0"><span className="font-semibold text-[10px] text-neutral-400">Replying to {replyingTo.sender?.name}</span><p className="truncate text-neutral-600 dark:text-neutral-300 mt-xs">{replyingTo.content}</p></div><button onClick={() => setReplyingTo(null)} className="text-neutral-400 hover:text-neutral-600 ml-md"><X className="w-4 h-4" /></button></div>}
-                     <div className="flex gap-md items-center relative">
+                     <div className="flex gap-md items-center relative min-w-0 max-w-full overflow-hidden">
                       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
 
                       {/* Attachment Popover */}
@@ -2708,9 +2708,9 @@ export default function Community() {
           </div>
         ) : (
           /* ── GROUP ROOM ── */
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 flex flex-col min-h-0 max-w-full min-w-0 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center gap-md px-lg py-md bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 flex-shrink-0 shadow-sm z-40 w-full">
+            <div className="flex items-center gap-md px-lg py-md bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 flex-shrink-0 shadow-sm z-40 w-full max-w-full min-w-0 overflow-hidden">
               <button onClick={() => { setSelectedRoom(null); setSearchParams({}, { replace: true }); }} className="p-md rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors flex-shrink-0 cursor-pointer active:scale-95 z-10" title="Back to Communities List">
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -2860,8 +2860,8 @@ export default function Community() {
             )}
 
             {/* Group Chat */}
-            <div className="flex-1 flex flex-col min-h-0">
-              <div ref={groupChatRef} className="flex-1 overflow-y-auto px-lg py-md space-y-md scroll-smooth scrollbar-thin">
+            <div className="flex-1 flex flex-col min-h-0 overflow-x-hidden max-w-full min-w-0">
+              <div ref={groupChatRef} className="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-lg py-md space-y-md scroll-smooth scrollbar-thin max-w-full min-w-0">
                 {communityMessages.length === 0 ? (
                   <div className="text-center py-5xl">
                     <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-950/20 rounded-2xl flex items-center justify-center mx-auto mb-lg"><Users className="w-8 h-8 text-indigo-400" /></div>
@@ -2880,12 +2880,12 @@ export default function Community() {
                       return (
                         <div key={msg.id} id={`msg-${msg.id}`} className={`transition-all duration-300 ${highlightedMsgId === msg.id ? 'ring-4 ring-amber-400 rounded-2xl p-1 bg-amber-500/20 shadow-2xl animate-pulse z-20' : ''}`}>
                           <SwipeableMessageRow isMe={isMe} onReply={() => setCommunityReplyingTo(msg)}>
-                            <div className={`flex gap-md max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : ''} ${isSelected ? 'opacity-80 scale-[0.98]' : ''}`}>
+                            <div className={`flex gap-md max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : ''} ${isSelected ? 'opacity-80 scale-[0.98]' : ''} min-w-0`}>
                               {isSelectMode && (
                                 <button onClick={() => handleToggleSelectMsg(msg.id)} className="self-center p-xs text-indigo-500">
                                   {isSelected ? <CheckSquare className="w-5 h-5 text-indigo-600 fill-indigo-100" /> : <Square className="w-5 h-5 text-neutral-400" />}
                                 </button>
-                              )}                               <div className="space-y-xs relative group">
+                              )}                               <div className="space-y-xs relative group min-w-0 max-w-full">
                                 {!isMe && <span className="text-[10px] font-bold text-neutral-500 ml-sm">{msg.sender?.name}</span>}
                                 {msg.isDeletedForEveryone || msg.content === 'This message was deleted by sender' || msg.text === 'This message was deleted by sender' ? (
                                   <div className="my-xs max-w-sm">
@@ -2897,7 +2897,7 @@ export default function Community() {
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className={`text-[13.5px] leading-relaxed relative overflow-hidden transition-all ${isMe ? 'bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-500 dark:to-indigo-600 text-white rounded-2xl rounded-tr-xs shadow-xs px-3.5 py-1.5' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border border-neutral-200/80 dark:border-neutral-700/60 rounded-2xl rounded-tl-xs px-3.5 py-1.5 shadow-xs'}`}>
+                                  <div className={`text-[13.5px] leading-relaxed relative overflow-hidden transition-all break-words max-w-full ${isMe ? 'bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-500 dark:to-indigo-600 text-white rounded-2xl rounded-tr-xs shadow-xs px-3.5 py-1.5' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border border-neutral-200/80 dark:border-neutral-700/60 rounded-2xl rounded-tl-xs px-3.5 py-1.5 shadow-xs'}`}>
                                     {msg.replyTo && <div className={`p-1 px-2 rounded-lg border text-xs mb-1 ${isMe ? 'bg-black/25 text-white border-white/90' : 'bg-primary-500/10 text-neutral-800 dark:text-neutral-100 border-primary-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
                                     {msg.poll && (
                                       <div className="my-2 p-3.5 rounded-2xl bg-neutral-900/95 border border-neutral-800 text-neutral-100 text-xs space-y-3 max-w-sm shadow-xl backdrop-blur-md">
@@ -3051,7 +3051,7 @@ export default function Community() {
               </div>
 
               {/* Chat Input Bar */}
-              <div className="flex-shrink-0 z-30 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 p-2 sm:p-3 shadow-lg">
+              <div className="flex-shrink-0 z-30 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 p-2 sm:p-3 shadow-lg w-full max-w-full min-w-0 overflow-hidden">
                 {editingMsg && (
                   <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded-lg p-sm flex justify-between items-center text-xs mb-xs">
                     <div className="flex-1 min-w-0 mr-md">
@@ -3072,7 +3072,7 @@ export default function Community() {
                 )}
                 {communityReplyingTo && <div className="bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-sm flex justify-between items-center text-xs mb-xs"><div className="min-w-0"><span className="font-semibold text-[10px] text-neutral-400">Replying to {communityReplyingTo.sender?.name}</span><p className="truncate text-neutral-600 dark:text-neutral-300 mt-xs">{communityReplyingTo.content}</p></div><button onClick={() => setCommunityReplyingTo(null)} className="text-neutral-400 hover:text-neutral-600 ml-md"><X className="w-4 h-4" /></button></div>}
 
-                <div className="flex gap-md items-center relative">
+                <div className="flex gap-md items-center relative min-w-0 max-w-full overflow-hidden">
                   <input type="file" ref={groupFileInputRef} onChange={handleGroupFileChange} className="hidden" />
 
                   {/* Attachment Popover */}

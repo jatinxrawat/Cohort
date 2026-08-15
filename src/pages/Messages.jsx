@@ -2381,7 +2381,7 @@ export default function Messages() {
               </div>
 
               {/* Chat Messages Log with Immersive Secret Theme in Vanish Mode */}
-              <div className={`flex-1 overflow-y-auto p-md sm:p-lg space-y-md transition-colors duration-500 ${
+              <div className={`flex-1 overflow-y-auto overflow-x-hidden max-w-full min-w-0 p-md sm:p-lg space-y-md transition-colors duration-500 ${
                 activeConversation.isVanishMode
                   ? 'bg-neutral-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-950/20 via-neutral-950 to-black'
                   : 'bg-neutral-50/50 dark:bg-neutral-950/40'
