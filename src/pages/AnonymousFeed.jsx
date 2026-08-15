@@ -28,7 +28,8 @@ import {
   X,
   Image as ImageIcon,
   Smile,
-  ShieldAlert
+  ShieldAlert,
+  Globe
 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
