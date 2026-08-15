@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { formatRelativeTime } from '@/utils/helpers';
 import { UserAvatar } from '@/components/UserAvatar';
+import FormattedText from '@/components/FormattedText';
 
 
 
@@ -2691,7 +2692,7 @@ export default function Messages() {
                                    {/* Message Text (Hidden if it's a shared post or poll to prevent duplicate text) */}
                                    {msg.text && !msg.isSharedPost && !msg.sharedPostData && !msg.text.startsWith('Shared post by') && !msg.poll && msg.type !== 'poll' && (
                                      <span className="text-[13.5px] leading-snug break-words font-normal">
-                                       {msg.text}
+                                       <FormattedText text={msg.text} />
                                      </span>
                                    )}
 

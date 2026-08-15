@@ -6,12 +6,22 @@ export const FormattedText = ({ text, className = '' }) => {
 
   if (!text) return null;
 
-  // Split text by hashtags (#word) and mentions (@username) while preserving the tokens
-  const tokens = text.split(/((?:#[a-zA-Z0-9_\u0600-\u06FF]+)|(?:@[a-zA-Z0-9_.-]+))/g);
+  // Regex to match URLs, hashtags, and mentions
+  const URL_HASHTAG_MENTION_REGEX = /(https?:\/\/[^\s]+|www\.[^\s]+|(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\/[^\s]*)?|#[a-zA-Z0-9_\u0600-\u06FF]+|@[a-zA-Z0-9_.-]+)/g;
+
+  const isUrl = (str) => {
+    if (!str) return false;
+    if (str.startsWith('http://') || str.startsWith('https://') || str.startsWith('www.')) return true;
+    return /^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\/[^\s]*)?$/.test(str);
+  };
+
+  const tokens = text.split(URL_HASHTAG_MENTION_REGEX);
 
   return (
-    <span className={className}>
+    <span className={`break-words ${className}`}>
       {tokens.map((token, idx) => {
+        if (!token) return null;
+
         if (token.startsWith('#')) {
           return (
             <span
@@ -40,6 +50,32 @@ export const FormattedText = ({ text, className = '' }) => {
             >
               {token}
             </span>
+          );
+        } else if (isUrl(token)) {
+          let cleanUrl = token;
+          let trailingPunct = '';
+          if (/[.,!?;:]$/.test(cleanUrl)) {
+            trailingPunct = cleanUrl.slice(-1);
+            cleanUrl = cleanUrl.slice(0, -1);
+          }
+
+          const href = cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')
+            ? cleanUrl
+            : `https://${cleanUrl}`;
+
+          return (
+            <React.Fragment key={idx}>
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="font-medium text-sky-500 dark:text-sky-400 hover:underline transition-colors break-all underline decoration-sky-500/40 underline-offset-2"
+              >
+                {cleanUrl}
+              </a>
+              {trailingPunct}
+            </React.Fragment>
           );
         }
         return token;

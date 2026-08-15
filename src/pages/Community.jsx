@@ -24,6 +24,7 @@ import {
 } from 'firebase/firestore';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '@/utils/firebase';
+import FormattedText from '@/components/FormattedText';
 
 const chatEmojis = ['👍', '❤️', '🔥', '🙌', '😂', '😮'];
 const fakeSenderNames = ['fake_bot_user_never_matches'];
@@ -2320,7 +2321,7 @@ export default function Community() {
                                         </div>
                                       )}
                                       <div className="relative inline-block max-w-full">
-                                        <span className="text-[13.5px] leading-snug break-words font-normal">{msg.content}</span>
+                                        <span className="text-[13.5px] leading-snug break-words font-normal"><FormattedText text={msg.content || msg.text} /></span>
                                         {msg.edited && <span className="text-[9px] opacity-60 ml-xs italic">(edited)</span>}
                                         {isStarred && <Star className="w-3 h-3 text-amber-400 fill-amber-400 inline-block ml-1" title="Starred message" />}
 
@@ -3007,7 +3008,7 @@ export default function Community() {
                                       </div>
                                     )}
                                     <div className="relative inline-block max-w-full">
-                                      <span className="text-[13.5px] leading-snug break-words font-normal">{msg.content}</span>
+                                      <span className="text-[13.5px] leading-snug break-words font-normal"><FormattedText text={msg.content || msg.text} /></span>
                                       {msg.edited && <span className="text-[9px] opacity-60 ml-xs italic">(edited)</span>}
                                       {isStarred && <Star className="w-3 h-3 text-amber-400 fill-amber-400 inline-block ml-1" title="Starred message" />}
 
