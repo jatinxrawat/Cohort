@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { collection, addDoc, doc, deleteDoc, updateDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 import { PostCard } from '@/components/PostCard';
-import { Image, Smile, AlertCircle, X, Pin, BarChart3, Check, Camera, BarChart2, Paperclip, FileText, Plus, ShieldAlert } from 'lucide-react';
+import { Image, Smile, AlertCircle, X, Pin, BarChart3, Check, Camera, BarChart2, Paperclip, FileText, Plus, ShieldAlert, Globe, GraduationCap } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/contexts/AuthContext';
