@@ -54,12 +54,7 @@ export default function IntrovertGuide() {
 
     try {
       const docRef = doc(db, 'uncutClaps', 'introvert-guide');
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        await setDoc(docRef, { count: increment(1) }, { merge: true });
-      } else {
-        await setDoc(docRef, { count: 99 }, { merge: true });
-      }
+      await setDoc(docRef, { count: increment(1) }, { merge: true });
     } catch (err) {
       console.error("Failed to update clap in Firestore:", err);
     }

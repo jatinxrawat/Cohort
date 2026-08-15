@@ -54,12 +54,7 @@ export default function CoffeeClub() {
 
     try {
       const docRef = doc(db, 'uncutClaps', '3am-coffee-club');
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        await setDoc(docRef, { count: increment(1) }, { merge: true });
-      } else {
-        await setDoc(docRef, { count: 143 }, { merge: true });
-      }
+      await setDoc(docRef, { count: increment(1) }, { merge: true });
     } catch (err) {
       console.error("Failed to update clap in Firestore:", err);
     }

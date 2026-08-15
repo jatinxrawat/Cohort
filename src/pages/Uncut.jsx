@@ -180,14 +180,7 @@ export default function Uncut() {
 
     try {
       const docRef = doc(db, 'uncutClaps', id);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        await setDoc(docRef, { count: increment(1) }, { merge: true });
-      } else {
-        const defaultArt = MOCK_ARTICLES.find(a => a.id === id);
-        const defaultCount = defaultArt ? defaultArt.claps : 0;
-        await setDoc(docRef, { count: defaultCount + 1 }, { merge: true });
-      }
+      await setDoc(docRef, { count: increment(1) }, { merge: true });
     } catch (err) {
       console.error("Failed to update clap in Firestore:", err);
     }

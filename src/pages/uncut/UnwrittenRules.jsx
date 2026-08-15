@@ -54,12 +54,7 @@ export default function UnwrittenRules() {
 
     try {
       const docRef = doc(db, 'uncutClaps', 'unwritten-rules');
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        await setDoc(docRef, { count: increment(1) }, { merge: true });
-      } else {
-        await setDoc(docRef, { count: 216 }, { merge: true });
-      }
+      await setDoc(docRef, { count: increment(1) }, { merge: true });
     } catch (err) {
       console.error("Failed to update clap in Firestore:", err);
     }
