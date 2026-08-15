@@ -5,6 +5,8 @@ import { ArrowLeft, Heart, Clock, Calendar, Share2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Logo } from '@/components/Logo';
+import { db } from '@/utils/firebase';
+import { doc, onSnapshot, setDoc, increment } from 'firebase/firestore';
 import ShareModal from '@/components/ShareModal';
 
 export default function IntrovertGuide() {

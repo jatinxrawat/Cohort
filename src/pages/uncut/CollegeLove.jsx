@@ -7,6 +7,8 @@ import BorderGlow from '@/components/BorderGlow';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
+import { db } from '@/utils/firebase';
+import { doc, onSnapshot, setDoc, increment } from 'firebase/firestore';
 import ShareModal from '@/components/ShareModal';
 
 export default function CollegeLove() {

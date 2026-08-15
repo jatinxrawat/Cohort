@@ -15,8 +15,31 @@
     }
   ],
   "rewrites": [
-    { "source": "/post/:postId", "destination": "/api/post?postId=:postId" },
-    { "source": "/uncut/:storyId", "destination": "/api/uncut?storyId=:storyId" },
-    { "source": "/((?!api|ota|assets|.*\\.).*)", "destination": "/index.html" }
+    {
+      "source": "/uncut/:storyId",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(whatsapp|facebookexternalhit|twitterbot|slackbot|linkedinbot|telegram|embedly|discordbot).*"
+        }
+      ],
+      "destination": "/api/uncut?storyId=:storyId"
+    },
+    {
+      "source": "/post/:postId",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(whatsapp|facebookexternalhit|twitterbot|slackbot|linkedinbot|telegram|embedly|discordbot).*"
+        }
+      ],
+      "destination": "/api/post?postId=:postId"
+    },
+    {
+      "source": "/((?!api|ota|assets|.*\\.).*)",
+      "destination": "/index.html"
+    }
   ]
 }
