@@ -9,6 +9,12 @@ export default async function handler(req, res) {
     }
 
     const STORIES_MAP = {
+      'seven-days-changed-us': {
+        title: 'Seven Days that Changed us | Cohort Uncut',
+        desc: 'Some things teach you more about yourself than anything else ever could. For us, building Cohort has been one of those things. Written by Team Cohort.',
+        image: 'https://cohortnow.online/og-image.png',
+        path: '/uncut/seven-days-changed-us'
+      },
       'college-love': {
         title: 'College, Love Stories and the Dilemma | Cohort Uncut',
         desc: 'Why falling in love in college feels like choosing between who you are, who you want to become, and who you want beside you. Written by Sanya Sahani.',
@@ -53,12 +59,13 @@ export default async function handler(req, res) {
     const safeDesc = escapeHtml(rawDesc);
     const safeImage = escapeHtml(rawImage);
     const canonicalUrl = `https://cohortnow.online/uncut/${targetStoryId || ''}`;
-    const redirectUrl = storyData.path || `/uncut/${targetStoryId || ''}`;
+    const redirectUrl = storyData.path || (targetStoryId ? `/uncut/${targetStoryId}` : '/uncut');
 
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0;url=${redirectUrl}">
   <title>${safeTitle}</title>
   <meta name="description" content="${safeDesc}">
 
@@ -82,9 +89,7 @@ export default async function handler(req, res) {
 
   <!-- Instant Browser Redirect to React Uncut Story Route -->
   <script>
-    if (!navigator.userAgent.includes("WhatsApp") && !navigator.userAgent.includes("facebookexternalhit") && !navigator.userAgent.includes("Twitterbot")) {
-      window.location.replace("${redirectUrl}");
-    }
+    window.location.replace("${redirectUrl}");
   </script>
 </head>
 <body>
