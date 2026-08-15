@@ -375,7 +375,7 @@ export default function Signup() {
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-300 bg-clip-text text-transparent">hub.</span>
             </h1>
             <p className="font-jakarta text-sm sm:text-base text-neutral-300 font-bold tracking-tight">
-              COHORT OTA TEST 🚀
+              {isSignup ? 'Join your campus community today.' : 'Sign in to access your campus world.'}
             </p>
           </div>
 
