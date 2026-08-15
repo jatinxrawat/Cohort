@@ -8,7 +8,7 @@ import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { Input } from '@/components/Input';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, CheckCheck, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Eye, Paperclip, Image, Video, Download, Maximize2, Share2, ExternalLink, ArrowRight, Smile, BarChart2, FileText, CheckCircle2 } from 'lucide-react';
+import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, CheckCheck, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Eye, Paperclip, Image, Video, Download, Maximize2, Share2, ExternalLink, ArrowRight, Smile, BarChart2, FileText, CheckCircle2, Keyboard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { formatRelativeTime } from '@/utils/helpers';
@@ -3053,81 +3053,29 @@ export default function Messages() {
                 )}
 
                 {/* Input Container with Emoji Picker */}
-                <div className="flex-1 relative flex items-center">
+                <div className="flex-1 flex items-center bg-neutral-100 dark:bg-neutral-800/90 border border-neutral-200 dark:border-neutral-700/80 rounded-full px-3 py-1.5">
+                  {/* WhatsApp Left Toggle Button: Smile when closed, Keyboard when open */}
+                  <button
+                    type="button"
+                    onClick={() => setShowEmojiPickerPop(!showEmojiPickerPop)}
+                    className={`p-1 transition-colors cursor-pointer flex-shrink-0 ${showEmojiPickerPop ? 'text-purple-400' : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200'}`}
+                    title={showEmojiPickerPop ? 'Switch to Keyboard' : 'Open Emoji Keyboard'}
+                  >
+                    {showEmojiPickerPop ? (
+                      <Keyboard className="w-4.5 h-4.5 text-purple-400" />
+                    ) : (
+                      <Smile className="w-4.5 h-4.5" />
+                    )}
+                  </button>
+
                   <input
                     type="text"
                     placeholder={`Message ${activeConversation.name}...`}
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(e)}
-                    className="w-full bg-neutral-100 dark:bg-neutral-800/90 border border-neutral-200 dark:border-neutral-700/80 rounded-full pl-4 pr-10 py-2.5 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all"
+                    className="w-full bg-transparent border-0 pl-2 pr-3 py-1 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none"
                   />
-
-                  {/* Smile Emoji Button inside Input */}
-                  <button
-                    type="button"
-                    onClick={() => setShowEmojiPickerPop(!showEmojiPickerPop)}
-                    className={`absolute right-3 p-1 transition-colors cursor-pointer ${showEmojiPickerPop ? 'text-purple-500' : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200'}`}
-                    title="Crazy Emoji Packs"
-                  >
-                    <Smile className="w-4.5 h-4.5" />
-                  </button>
-
-                  {/* WhatsApp Style Emoji Picker Drawer / Popover */}
-                  {showEmojiPickerPop && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-xs sm:bg-transparent"
-                        onClick={() => setShowEmojiPickerPop(false)}
-                      />
-
-                      <div className="absolute bottom-full left-0 right-0 mb-3 sm:left-auto sm:right-0 sm:mb-3 w-full sm:w-80 h-72 sm:h-64 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl border border-neutral-200/90 dark:border-neutral-800 rounded-3xl shadow-2xl p-3 text-xs flex flex-col transition-all z-[100]">
-                        <div className="w-10 h-1 bg-neutral-300 dark:bg-neutral-700 rounded-full mx-auto mb-2 sm:hidden flex-shrink-0" />
-
-                        <div className="flex items-center gap-1 pb-2 border-b border-neutral-100 dark:border-neutral-800 mb-2 overflow-x-auto scrollbar-none flex-shrink-0">
-                          {allPacks.map((pack, pIdx) => (
-                            <button
-                              key={pIdx}
-                              type="button"
-                              onClick={() => setActiveEmojiPack(pIdx)}
-                              className={`px-2.5 py-1 rounded-xl font-bold text-[11px] transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
-                                activeEmojiPack === pIdx
-                                  ? 'bg-purple-500 text-white shadow-xs'
-                                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
-                              }`}
-                            >
-                              <span>{pack.name}</span>
-                              {pack.id === 'recents' && (
-                                <span className="text-[9px] opacity-75 font-mono">({pack.emojis.length})</span>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-
-                        <div className="grid grid-cols-6 sm:grid-cols-5 gap-1.5 overflow-y-auto pr-1 flex-1 scrollbar-thin">
-                          {allPacks[activeEmojiPack]?.emojis.length > 0 ? (
-                            allPacks[activeEmojiPack].emojis.map((emo, eIdx) => (
-                              <button
-                                key={eIdx}
-                                type="button"
-                                onClick={() => {
-                                  setMessageText(prev => prev + emo);
-                                  handleAddRecentEmoji(emo);
-                                }}
-                                className="w-10 h-10 sm:w-9 sm:h-9 flex items-center justify-center text-xl sm:text-lg rounded-xl hover:bg-purple-500/15 active:scale-125 transition-transform cursor-pointer"
-                              >
-                                {emo}
-                              </button>
-                            ))
-                          ) : (
-                            <div className="col-span-full py-8 text-center text-neutral-400 text-xs italic">
-                              No recent emojis used yet. Tap any emoji to save here!
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </>
-                  )}
                 </div>
 
                 <button
@@ -3138,6 +3086,63 @@ export default function Messages() {
                   <Send className="w-4 h-4" />
                 </button>
               </form>
+
+              {/* WhatsApp Style Mobile Bottom Emoji Keyboard Drawer */}
+              {showEmojiPickerPop && (
+                <div className="mt-2 w-full h-72 sm:h-64 sm:absolute sm:bottom-full sm:right-2 sm:mb-3 sm:w-80 bg-white/95 dark:bg-[#0b141a]/95 backdrop-blur-2xl border-t sm:border border-neutral-200/90 dark:border-neutral-800 sm:rounded-3xl shadow-2xl p-3 text-xs flex flex-col z-[100] transition-all flex-shrink-0">
+                  <div className="flex items-center justify-between pb-2 border-b border-neutral-100 dark:border-neutral-800 mb-2 flex-shrink-0">
+                    <div className="flex items-center gap-1 overflow-x-auto scrollbar-none pr-2">
+                      {allPacks.map((pack, pIdx) => (
+                        <button
+                          key={pIdx}
+                          type="button"
+                          onClick={() => setActiveEmojiPack(pIdx)}
+                          className={`px-2.5 py-1 rounded-xl font-bold text-[11px] transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
+                            activeEmojiPack === pIdx
+                              ? 'bg-purple-500 text-white shadow-xs'
+                              : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <span>{pack.name}</span>
+                          {pack.id === 'recents' && (
+                            <span className="text-[9px] opacity-75 font-mono">({pack.emojis.length})</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowEmojiPickerPop(false)}
+                      className="p-1 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 flex-shrink-0"
+                      title="Close Emoji Keyboard"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-8 sm:grid-cols-7 gap-y-2 gap-x-1 auto-rows-max content-start overflow-y-auto pr-1 flex-1 scrollbar-thin py-1">
+                    {allPacks[activeEmojiPack]?.emojis.length > 0 ? (
+                      allPacks[activeEmojiPack].emojis.map((emo, eIdx) => (
+                        <button
+                          key={eIdx}
+                          type="button"
+                          onClick={() => {
+                            setMessageText(prev => prev + emo);
+                            handleAddRecentEmoji(emo);
+                          }}
+                          className="w-10 h-10 sm:w-9 sm:h-9 flex items-center justify-center text-2xl sm:text-xl rounded-xl hover:bg-purple-500/15 active:scale-125 transition-transform cursor-pointer"
+                        >
+                          {emo}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="col-span-full py-8 text-center text-neutral-400 text-xs italic">
+                        No recent emojis used yet. Tap any emoji to save here!
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </Card>
           ) : (
             <Card className="flex-1 flex items-center justify-center p-2xl text-center">
