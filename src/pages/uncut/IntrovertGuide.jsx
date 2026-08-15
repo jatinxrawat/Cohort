@@ -8,8 +8,13 @@ import { Logo } from '@/components/Logo';
 
 export default function IntrovertGuide() {
   const { isDark } = useTheme();
-  const [claps, setClaps] = useState(98);
-  const [hasClapped, setHasClapped] = useState(false);
+  const [claps, setClaps] = useState(() => {
+    const saved = localStorage.getItem('claps_introvert-guide');
+    return saved ? parseInt(saved, 10) : 98;
+  });
+  const [hasClapped, setHasClapped] = useState(() => {
+    return localStorage.getItem('has_clapped_introvert-guide') === 'true';
+  });
   const [showShareTooltip, setShowShareTooltip] = useState(false);
 
   useEffect(() => {
@@ -32,8 +37,11 @@ export default function IntrovertGuide() {
 
   const handleClap = () => {
     if (hasClapped) return;
-    setClaps(prev => prev + 1);
+    const newClaps = claps + 1;
+    setClaps(newClaps);
     setHasClapped(true);
+    localStorage.setItem('claps_introvert-guide', String(newClaps));
+    localStorage.setItem('has_clapped_introvert-guide', 'true');
   };
 
   const handleShare = () => {

@@ -598,23 +598,23 @@ export default function Landing() {
                   </span>
 
                   <h3 className="font-display font-black text-base text-white mt-2 mb-3 leading-snug group-hover:text-pink-400 transition-colors">
-                    College, Love Stories and the Dilemma
+                    Seven Days that Changed us
                   </h3>
 
                   <p className="text-xs text-neutral-400 line-clamp-3 mb-4 leading-relaxed">
-                    Why falling in love in college feels like choosing between who you are, who you want to become, and who you want beside you.
+                    Some things teach you more about yourself than anything else ever could. For us, building Cohort has been one of those things.
                   </p>
 
                   <div className="flex items-center justify-between text-[11px] text-neutral-500 font-bold border-t border-neutral-800/85 pt-3">
-                    <span>6 min read</span>
+                    <span>4 min read</span>
                     <div className="flex items-center gap-1.5 text-pink-400">
                       <span>Read Article</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
 
-                  {/* Cover Link to /uncut/college-love */}
-                  <Link to="/uncut/college-love" className="absolute inset-0 z-20 cursor-pointer" aria-label="Read full article" />
+                  {/* Cover Link to /uncut/seven-days-changed-us */}
+                  <Link to="/uncut/seven-days-changed-us" className="absolute inset-0 z-20 cursor-pointer" aria-label="Read full article" />
                 </div>
               </div>
             </div>
