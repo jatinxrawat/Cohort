@@ -13,6 +13,9 @@
       "launchShowDuration": 0,
       "launchAutoHide": true,
       "backgroundColor": "#08080c"
+    },
+    "CapacitorUpdater": {
+      "autoUpdate": "off"
     }
   }
 }

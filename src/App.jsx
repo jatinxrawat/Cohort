@@ -39,6 +39,7 @@ const NotFound = lazy(() => import('@/pages/NotFound'));
 import { SplashScreen as CapacitorSplashScreen } from '@capacitor/splash-screen';
 import { SplashScreen } from '@/components/SplashScreen';
 import { Capacitor } from '@capacitor/core';
+import { CapacitorUpdater } from '@capgo/capacitor-updater';
 
 // Track page views on route change using Google Analytics (GA4)
 function AnalyticsTracker() {
@@ -56,6 +57,67 @@ function AnalyticsTracker() {
   return null;
 }
 
+// Check for Cohort updates via self-hosted manifest.json
+async function checkForCohortUpdate() {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    const res = await fetch('https://cohortnow.online/ota/manifest.json?t=' + Date.now(), {
+      cache: 'no-store'
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch manifest: ${res.status} ${res.statusText}`);
+    }
+    const manifest = await res.json();
+    if (
+      !manifest ||
+      typeof manifest.version !== 'string' ||
+      typeof manifest.url !== 'string' ||
+      typeof manifest.checksum !== 'string'
+    ) {
+      throw new Error('Invalid manifest structure');
+    }
+
+    const currentInfo = await CapacitorUpdater.current();
+    const currentVersion = (currentInfo?.bundle?.version && currentInfo?.bundle?.version !== '')
+      ? currentInfo.bundle.version
+      : currentInfo?.native;
+
+    // Helper function for semantic-version comparison
+    const isNewerVersion = (currentVer, manifestVer) => {
+      if (!currentVer || currentVer === '') return true;
+      if (!manifestVer) return false;
+      const currentParts = currentVer.split('.').map(Number);
+      const manifestParts = manifestVer.split('.').map(Number);
+      const maxLength = Math.max(currentParts.length, manifestParts.length);
+      for (let i = 0; i < maxLength; i++) {
+        const currentPart = currentParts[i] || 0;
+        const manifestPart = manifestParts[i] || 0;
+        if (manifestPart > currentPart) return true;
+        if (currentPart > manifestPart) return false;
+      }
+      return false;
+    };
+
+    if (isNewerVersion(currentVersion, manifest.version)) {
+      console.log(`[Cohort OTA] New update available: ${manifest.version}. Downloading...`);
+      const bundle = await CapacitorUpdater.download({
+        url: manifest.url,
+        version: manifest.version,
+        checksum: manifest.checksum
+      });
+
+      console.log(`[Cohort OTA] Activating new update bundle ${bundle.id}...`);
+      await CapacitorUpdater.set({
+        id: bundle.id
+      });
+    } else {
+      console.log(`[Cohort OTA] App is up to date. Current version: ${currentVersion || 'builtin'}`);
+    }
+  } catch (error) {
+    console.warn('[Cohort OTA]', error);
+  }
+}
+
 function App() {
   const isNative = Capacitor.isNativePlatform();
   const [showSplash, setShowSplash] = useState(isNative);
@@ -65,6 +127,14 @@ function App() {
     CapacitorSplashScreen.hide().catch(err => {
       console.warn('Native splash hide failed:', err);
     });
+
+    if (isNative) {
+      CapacitorUpdater.notifyAppReady().catch(err => {
+        console.warn('Capacitor Updater app ready notification failed:', err);
+      });
+
+      checkForCohortUpdate();
+    }
 
     if (isNative) {
       // Request push notification permissions on first launch
@@ -175,7 +245,7 @@ function App() {
                   <Route path="/events" element={<Navigate to="/home" replace />} />
                   <Route path="/notes" element={<Navigate to="/home" replace />} />
                   <Route path="/clubs" element={<Navigate to="/home" replace />} />
-                  
+
                   <Route
                     path="/marketplace"
                     element={

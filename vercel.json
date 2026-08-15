@@ -1,4 +1,19 @@
 {
+  "headers": [
+    {
+      "source": "/ota/manifest.json",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     { "source": "/post/:postId", "destination": "/api/post?postId=:postId" },
     { "source": "/(.*)", "destination": "/index.html" }
