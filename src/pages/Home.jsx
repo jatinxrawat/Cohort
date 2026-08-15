@@ -14,6 +14,7 @@ import SEO from '@/components/SEO';
 import HomeRightPanel from '@/components/HomeRightPanel';
 import { MentionTextArea } from '@/components/MentionTextArea';
 import FeedToggle from '@/components/FeedToggle';
+import { formatShortCollegeName } from '@/utils/helpers';
 
 const FAKE_NAMES = [
   'priya sharma',
@@ -219,9 +220,13 @@ export default function Home() {
       const validPollOptions = pollOptions.filter(o => o.trim() !== '');
       const hasValidPoll = pollQuestion.trim() !== '' && validPollOptions.length >= 2;
 
+      const autoAudience = (feedType === 'college' || feedType === 'my_college') ? 'college_only' : 'public';
+
       const postData = {
         authorUid: user?.uid || null,
         college: user?.college || 'KIET',
+        audience: autoAudience,
+        visibility: autoAudience,
         author: {
           uid: user?.uid || null,
           username: user?.username || null,
@@ -371,12 +376,20 @@ export default function Home() {
 
   const userCollege = user?.college || 'KIET';
   const displayedPosts = posts.filter(post => {
-    if (feedType === 'public') return true;
     const postCollege = post.college || post.author?.college || post.author?.role;
-    if (!postCollege) return true;
-    const cleanPost = String(postCollege).toLowerCase().trim();
+    const cleanPost = postCollege ? String(postCollege).toLowerCase().trim() : '';
     const cleanUser = String(userCollege).toLowerCase().trim();
-    return cleanPost.includes(cleanUser) || cleanUser.includes(cleanPost);
+    const isSameCollege = cleanPost && (cleanPost.includes(cleanUser) || cleanUser.includes(cleanPost));
+    const isMyPost = (post.authorUid || post.author?.uid) === user?.uid;
+
+    const isCollegeOnlyPost = post.audience === 'college_only' || post.visibility === 'college_only';
+    if (isCollegeOnlyPost && !isSameCollege && !isMyPost) {
+      return false;
+    }
+
+    if (feedType === 'public') return true;
+    if (!postCollege) return true;
+    return isSameCollege || isMyPost;
   });
 
   return (
@@ -527,6 +540,28 @@ export default function Home() {
 
             <div className="flex items-center justify-between pt-3 mt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex-wrap gap-2">
               <div className="flex items-center gap-1.5 flex-wrap">
+                {/* Minimal Icon Feed Audience Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setFeedType(feedType === 'college' || feedType === 'my_college' ? 'public' : 'college')}
+                  className={`p-2 rounded-full border transition-all cursor-pointer flex items-center justify-center shadow-xs hover:scale-105 active:scale-95 ${
+                    feedType === 'college' || feedType === 'my_college'
+                      ? 'bg-purple-500/10 text-purple-500 border-purple-500/30 hover:bg-purple-500/20'
+                      : 'bg-sky-500/10 text-sky-500 border-sky-500/30 hover:bg-sky-500/20'
+                  }`}
+                  title={
+                    feedType === 'college' || feedType === 'my_college'
+                      ? `Posting to ${userCollege} Only (Click to switch to Public Feed)`
+                      : 'Posting to Public Feed (Click to switch to My College)'
+                  }
+                >
+                  {feedType === 'college' || feedType === 'my_college' ? (
+                    <GraduationCap className="w-4 h-4 text-purple-500" />
+                  ) : (
+                    <Globe className="w-4 h-4 text-sky-500" />
+                  )}
+                </button>
+
                 {/* 1. Gallery Photo Input */}
                 <input
                   type="file"
@@ -562,28 +597,6 @@ export default function Home() {
                 >
                   <BarChart2 className="w-3.5 h-3.5" />
                   <span>Poll</span>
-                </button>
-
-                {/* 4. Document/File Attachment */}
-                <input
-                  type="file"
-                  ref={documentInputRef}
-                  onChange={handleDocumentChange}
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.zip"
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => documentInputRef.current?.click()}
-                  className={`px-3 py-1.5 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-1.5 text-xs font-semibold ${
-                    documentFile
-                      ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
-                      : 'bg-neutral-100 dark:bg-neutral-800/80 text-neutral-600 dark:text-neutral-300 hover:bg-amber-500/10 hover:text-amber-500 dark:hover:text-amber-400 border border-transparent'
-                  }`}
-                  title="Attach File / Document"
-                >
-                  <Paperclip className="w-3.5 h-3.5" />
-                  <span>File</span>
                 </button>
               </div>
 

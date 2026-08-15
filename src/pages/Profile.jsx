@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { Mail, MapPin, Calendar, Award, Edit, MessageSquare, Share2, Heart, UserPlus, UserCheck, MessageCircleCode, AtSign, AlertCircle, User, GraduationCap, Gift, X, Search, Users, Edit2, Trash2, Repeat, EyeOff, Flame, Tag, ShoppingBag, ArrowRight, Image as ImageIcon, Loader2, Send, Rss, ShieldCheck, Check, Camera } from 'lucide-react';
+import { Mail, MapPin, Calendar, Award, Edit, MessageSquare, Share2, Heart, UserPlus, UserCheck, MessageCircleCode, AtSign, AlertCircle, User, GraduationCap, Globe, Gift, X, Search, Users, Edit2, Trash2, Repeat, EyeOff, Flame, Tag, ShoppingBag, ArrowRight, Image as ImageIcon, Loader2, Send, Rss, ShieldCheck, Check, Camera } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
@@ -1397,6 +1397,17 @@ export default function Profile() {
                     <div className="space-y-lg divide-y divide-neutral-100 dark:divide-neutral-800">
                       {userOriginalPosts.map((post) => (
                         <div key={post.id} className="pt-lg first:pt-0 group">
+                          <div className="flex items-center gap-xs flex-wrap mb-xs">
+                            {post.audience === 'college_only' || post.visibility === 'college_only' ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 text-[10px] font-bold" title={post.college || 'Campus Only'}>
+                                <GraduationCap className="w-3 h-3 text-purple-500" /> My College
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[10px] font-bold">
+                                <Globe className="w-3 h-3 text-sky-500" /> Public
+                              </span>
+                            )}
+                          </div>
                           <div className="flex items-start justify-between gap-md mb-md">
                             <div className="flex-1 min-w-0">
                               <ExpandableCaption
