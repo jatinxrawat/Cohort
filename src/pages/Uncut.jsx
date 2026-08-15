@@ -25,7 +25,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import BorderGlow from '@/components/BorderGlow';
 import SEO from '@/components/SEO';
 import { db } from '@/utils/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, onSnapshot, setDoc, getDoc, increment } from 'firebase/firestore';
 
 const MOCK_ARTICLES = [
   {
@@ -113,14 +113,27 @@ export default function Uncut() {
   const { isDark } = useTheme();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [articles, setArticles] = useState(() => {
-    return MOCK_ARTICLES.map(art => {
-      const saved = localStorage.getItem(`claps_${art.id}`);
-      return saved ? { ...art, claps: parseInt(saved, 10) } : art;
-    });
-  });
+  const [articles, setArticles] = useState(MOCK_ARTICLES);
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [clappedArticles, setClappedArticles] = useState({});
+
+  // Subscribe to real-time claps counts for all articles
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'uncutClaps'), (snapshot) => {
+      const counts = {};
+      snapshot.forEach(docSnap => {
+        counts[docSnap.id] = docSnap.data().count;
+      });
+
+      setArticles(prev => prev.map(art => {
+        if (typeof counts[art.id] === 'number') {
+          return { ...art, claps: counts[art.id] };
+        }
+        return art;
+      }));
+    });
+    return () => unsub();
+  }, []);
   
   // Community draft state
   const [draftTitle, setDraftTitle] = useState('');
@@ -153,7 +166,7 @@ export default function Uncut() {
   }, []);
 
   // Handle claps
-  const handleClap = (id, e) => {
+  const handleClap = async (id, e) => {
     e.stopPropagation();
     
     // Prevent excessive clapping or track locally
@@ -165,22 +178,12 @@ export default function Uncut() {
       [id]: currentClaps + 1
     }));
 
-    setArticles(prev => prev.map(art => {
-      if (art.id === id) {
-        const newClaps = art.claps + 1;
-        localStorage.setItem(`claps_${id}`, String(newClaps));
-        return { ...art, claps: newClaps };
-      }
-      return art;
-    }));
-
-    // Local user stories clap support
-    setUserStories(prev => prev.map(art => {
-      if (art.id === id) {
-        return { ...art, claps: art.claps + 1 };
-      }
-      return art;
-    }));
+    try {
+      const docRef = doc(db, 'uncutClaps', id);
+      await setDoc(docRef, { count: increment(1) }, { merge: true });
+    } catch (err) {
+      console.error("Failed to update clap in Firestore:", err);
+    }
   };
 
   // Submit anonymous story

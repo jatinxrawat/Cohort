@@ -5,17 +5,29 @@ import { ArrowLeft, Heart, Clock, Calendar, Share2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Logo } from '@/components/Logo';
+import { db } from '@/utils/firebase';
+import { doc, onSnapshot, setDoc, getDoc, increment } from 'firebase/firestore';
 
 export default function CoffeeClub() {
   const { isDark } = useTheme();
-  const [claps, setClaps] = useState(() => {
-    const saved = localStorage.getItem('claps_3am-coffee-club');
-    return saved ? parseInt(saved, 10) : 142;
-  });
+  const [claps, setClaps] = useState(142);
   const [hasClapped, setHasClapped] = useState(() => {
     return localStorage.getItem('has_clapped_3am-coffee-club') === 'true';
   });
   const [showShareTooltip, setShowShareTooltip] = useState(false);
+
+  // Subscribe to real-time claps from Firestore
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'uncutClaps', '3am-coffee-club'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (typeof data.count === 'number') {
+          setClaps(data.count);
+        }
+      }
+    });
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     const schema = {
@@ -35,13 +47,17 @@ export default function CoffeeClub() {
     return () => document.head.removeChild(script);
   }, []);
 
-  const handleClap = () => {
+  const handleClap = async () => {
     if (hasClapped) return;
-    const newClaps = claps + 1;
-    setClaps(newClaps);
     setHasClapped(true);
-    localStorage.setItem('claps_3am-coffee-club', String(newClaps));
     localStorage.setItem('has_clapped_3am-coffee-club', 'true');
+
+    try {
+      const docRef = doc(db, 'uncutClaps', '3am-coffee-club');
+      await setDoc(docRef, { count: increment(1) }, { merge: true });
+    } catch (err) {
+      console.error("Failed to update clap in Firestore:", err);
+    }
   };
 
   const handleShare = () => {

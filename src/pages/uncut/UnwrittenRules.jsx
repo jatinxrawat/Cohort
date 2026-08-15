@@ -5,17 +5,29 @@ import { ArrowLeft, Heart, Clock, Calendar, Share2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Logo } from '@/components/Logo';
+import { db } from '@/utils/firebase';
+import { doc, onSnapshot, setDoc, getDoc, increment } from 'firebase/firestore';
 
 export default function UnwrittenRules() {
   const { isDark } = useTheme();
-  const [claps, setClaps] = useState(() => {
-    const saved = localStorage.getItem('claps_unwritten-rules');
-    return saved ? parseInt(saved, 10) : 215;
-  });
+  const [claps, setClaps] = useState(215);
   const [hasClapped, setHasClapped] = useState(() => {
     return localStorage.getItem('has_clapped_unwritten-rules') === 'true';
   });
   const [showShareTooltip, setShowShareTooltip] = useState(false);
+
+  // Subscribe to real-time claps from Firestore
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'uncutClaps', 'unwritten-rules'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (typeof data.count === 'number') {
+          setClaps(data.count);
+        }
+      }
+    });
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     const schema = {
@@ -35,13 +47,17 @@ export default function UnwrittenRules() {
     return () => document.head.removeChild(script);
   }, []);
 
-  const handleClap = () => {
+  const handleClap = async () => {
     if (hasClapped) return;
-    const newClaps = claps + 1;
-    setClaps(newClaps);
     setHasClapped(true);
-    localStorage.setItem('claps_unwritten-rules', String(newClaps));
     localStorage.setItem('has_clapped_unwritten-rules', 'true');
+
+    try {
+      const docRef = doc(db, 'uncutClaps', 'unwritten-rules');
+      await setDoc(docRef, { count: increment(1) }, { merge: true });
+    } catch (err) {
+      console.error("Failed to update clap in Firestore:", err);
+    }
   };
 
   const handleShare = () => {
