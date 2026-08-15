@@ -2151,10 +2151,6 @@ export default function Messages() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (showEmojiPickerPop) {
-                            setShowEmojiPickerPop(false);
-                            return;
-                          }
                           if (showAttachMenuPop) {
                             setShowAttachMenuPop(false);
                             return;
@@ -2406,7 +2402,7 @@ export default function Messages() {
 
                     return (
                       <div
-                        key={idx}
+                        key={msg.id || msgKey || idx}
                         id={`msg-${msgKey}`}
                         className={`group flex items-center gap-md max-w-[85%] relative transition-all duration-300 ${
                           isMe ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'
