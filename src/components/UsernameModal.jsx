@@ -8,6 +8,7 @@ import { uploadImageToCloudinary } from '@/utils/cloudinary';
 import { Camera, AtSign, Sparkles, Building2, User, GraduationCap, Calendar, Eye, EyeOff } from 'lucide-react';
 import { ImageCropper } from '@/components/ImageCropper';
 import CollegeSelector from '@/components/CollegeSelector';
+import { isCollegeEmail, verifyEmailMatchesCollege, predictGenderFromName } from '@/utils/helpers';
 
 export const UsernameModal = () => {
   const { user, updateUser, isAuthenticated, setPasswordForUser } = useAuth();
@@ -113,6 +114,9 @@ export const UsernameModal = () => {
 
       // 3. Update Firestore user document
       const userRef = doc(db, 'users', user.uid);
+      const isCollege = isCollegeEmail(user.email);
+      const isMatching = isCollege && verifyEmailMatchesCollege(user.email, collegeInput);
+
       const onboardingData = {
         name: cleanName,
         username: cleanUsername,
@@ -121,7 +125,10 @@ export const UsernameModal = () => {
         gender: gender,
         year: year,
         dob: dob,
-        onboarded: true
+        onboarded: true,
+        kycVerified: isMatching,
+        kycEmail: isMatching ? user.email : null,
+        kycGender: isMatching ? predictGenderFromName(user.email) : null
       };
 
       await updateDoc(userRef, onboardingData);

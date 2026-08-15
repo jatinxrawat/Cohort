@@ -62,7 +62,7 @@ export default function Profile() {
   const targetUid = searchParams.get('uid');
   const targetName = searchParams.get('name');
 
-  const { user: currentUser, updateUser } = useAuth();
+  const { user: currentUser, updateUser, openKycModal } = useAuth();
   const { showSuccess } = useNotification();
 
   const [profileUser, setProfileUser] = useState(null);
@@ -1124,9 +1124,32 @@ export default function Profile() {
                     <AtSign className="w-4 h-4 inline" />{profileUser.username}
                   </p>
                 )}
-                <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 mt-xs">
-                  {profileUser?.college || 'KIET'}
-                </p>
+                <div className="flex items-center gap-2 mt-xs flex-wrap">
+                  <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400">
+                    {profileUser?.college || 'KIET'}
+                  </p>
+                  {profileUser?.kycVerified ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shadow-xs">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Verified Campus</span>
+                    </span>
+                  ) : isOwnProfile ? (
+                    <button
+                      type="button"
+                      onClick={openKycModal}
+                      className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-xs cursor-pointer transition-all active:scale-95"
+                      title="Click to verify your student email"
+                    >
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      <span>Verify Campus ID</span>
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-zinc-800 text-neutral-500 dark:text-zinc-400 border border-neutral-200 dark:border-zinc-700/60 shadow-xs">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      <span>Unverified</span>
+                    </span>
+                  )}
+                </div>
                 {(profileUser?.bio || isOwnProfile) && (
                   profileUser?.bio ? (
                     renderFormattedBio(profileUser.bio)
@@ -1216,7 +1239,18 @@ export default function Profile() {
             <div className="space-y-md text-neutral-600 dark:text-neutral-400 mb-lg text-sm">
               <div className="flex items-center gap-md">
                 <MapPin className="w-4 h-4 text-primary-500" />
-                <span>{profileUser?.college || 'KIET'}</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span>{profileUser?.college || 'KIET'}</span>
+                  {profileUser?.kycVerified ? (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
+                      <Check className="w-2.5 h-2.5" /> Verified
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-zinc-800 text-neutral-400 dark:text-zinc-500 border border-neutral-200 dark:border-zinc-700/60">
+                      Unverified
+                    </span>
+                  )}
+                </div>
               </div>
               {profileUser?.gender && (
                 <div className="flex items-center gap-md">
