@@ -26,7 +26,8 @@ import {
   Check,
   Download,
   Smartphone,
-  Bell
+  Bell,
+  Apple
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogoIcon, LogoText } from '@/components/Logo';
@@ -82,6 +83,12 @@ const VIBE_TAGS = [
   { label: 'CAREER', icon: Briefcase, iconColor: 'text-cyan-400', iconBg: 'bg-cyan-500/20' },
   { label: 'MARKETPLACE', icon: ShoppingBag, iconColor: 'text-teal-400', iconBg: 'bg-teal-500/20' },
 ];
+
+const AndroidIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M17.6 9.48l1.65-2.86c.12-.2.05-.46-.15-.57-.2-.12-.46-.05-.57.15l-1.68 2.9C15.22 8.43 13.67 8 12 8s-3.22.43-4.85 1.1l-1.68-2.9c-.11-.2-.37-.27-.57-.15-.2.11-.27.37-.15.57L6.4 9.48C3.9 10.96 2.18 13.49 2 16.5h20c-.18-3.01-1.9-5.54-4.4-7.02zM8 13.5c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm8 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" />
+  </svg>
+);
 
 export default function Landing() {
   const { isAuthenticated } = useAuth();
@@ -755,7 +762,7 @@ export default function Landing() {
           </div>
         )}
 
-        {/* Download App Launching Soon Modal Popup */}
+        {/* Download App Modal Popup */}
         <AnimatePresence>
           {showDownloadModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -773,7 +780,7 @@ export default function Landing() {
                 <div className="flex items-center justify-between">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-[10px] font-bold text-purple-300 uppercase tracking-wider">
                     <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping" />
-                    <span>Cohort Team Hard At Work</span>
+                    <span>App Download Live</span>
                   </div>
 
                   <button
@@ -793,11 +800,38 @@ export default function Landing() {
                 {/* Main Title & Description (No Emojis) */}
                 <div className="space-y-2">
                   <h3 className="text-xl font-heading font-extrabold text-white tracking-tight">
-                    Native Mobile App Launching Soon
+                    Get Cohort on Mobile
                   </h3>
                   <p className="text-xs text-neutral-300 leading-relaxed max-w-xs mx-auto font-medium">
-                    The Cohort engineering team is actively building ultra-fast native iOS and Android apps. Experience instant campus notifications, zero-latency chats, and exclusive mobile vibes.
+                    Experience instant campus notifications, zero-latency chats, and exclusive mobile features directly from your phone.
                   </p>
+                </div>
+
+                {/* Download Options */}
+                <div className="space-y-3 pt-2">
+                  {/* Android Download Option */}
+                  <div className="space-y-1">
+                    <a
+                      href="/cohort.apk"
+                      download="cohort.apk"
+                      onClick={() => setShowDownloadModal(false)}
+                      className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-500 hover:opacity-95 text-white font-extrabold text-sm shadow-lg shadow-purple-500/25 transition-all active:scale-[0.98] cursor-pointer"
+                    >
+                      <AndroidIcon className="w-5 h-5 flex-shrink-0" />
+                      <span>Download Android APK</span>
+                    </a>
+                    <p className="text-[10px] text-neutral-500 font-medium">
+                      Latest Build · APK format (direct install)
+                    </p>
+                  </div>
+
+                  {/* iOS Option (Coming Soon) */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-2xl bg-neutral-800/80 border border-neutral-800 text-neutral-500 font-extrabold text-sm select-none">
+                      <Apple className="w-5 h-5 flex-shrink-0" />
+                      <span>iOS App (TestFlight Soon)</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Cool Interactive Notification Switch Toggle */}
@@ -808,9 +842,9 @@ export default function Landing() {
                       <Bell className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <h5 className="font-bold text-xs text-white truncate">Early Access Alert</h5>
+                      <h5 className="font-bold text-xs text-white truncate">App Update Alerts</h5>
                       <p className="text-[10px] text-neutral-400 truncate">
-                        {notifyLaunch ? "You'll be notified first on release" : "Alerts disabled"}
+                        {notifyLaunch ? "You'll be notified of new releases" : "Alerts disabled"}
                       </p>
                     </div>
                   </div>
@@ -828,13 +862,13 @@ export default function Landing() {
                   </button>
                 </div>
 
-                {/* Action Button */}
+                {/* Dismiss Button */}
                 <button
                   type="button"
                   onClick={() => setShowDownloadModal(false)}
-                  className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-500 hover:opacity-95 text-white font-bold text-sm shadow-lg shadow-purple-500/20 transition-all active:scale-95 cursor-pointer"
+                  className="w-full py-2.5 px-4 rounded-2xl border border-neutral-800 hover:bg-neutral-800 text-neutral-400 hover:text-white font-bold text-xs transition-colors cursor-pointer"
                 >
-                  Got It, Thanks
+                  Close
                 </button>
               </motion.div>
             </div>
