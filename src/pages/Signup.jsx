@@ -54,10 +54,7 @@ export default function Signup() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  // Google Password Modal States
-  const [isCreatePasswordOpen, setIsCreatePasswordOpen] = useState(false);
-  const [newGooglePassword, setNewGooglePassword] = useState('');
-  const [isSavingPass, setIsSavingPass] = useState(false);
+
 
   const [formData, setFormData] = useState({
     email: '',
@@ -70,32 +67,11 @@ export default function Signup() {
     try {
       await loginWithGoogle();
       showSuccess('Signed in with Google successfully!');
-      setIsCreatePasswordOpen(true);
+      navigate('/home');
     } catch (error) {
       console.error(error);
       showError(error.message || 'Google sign in failed. Please try again.');
-      setIsGoogleLoading(false);
-    }
-  };
-
-  const handleSaveGooglePassword = async () => {
-    if (!newGooglePassword || newGooglePassword.length < 6) {
-      showError('Password must be at least 6 characters long.');
-      return;
-    }
-    setIsSavingPass(true);
-    try {
-      await setPasswordForUser(newGooglePassword);
-      showSuccess('Password created successfully!');
-      setIsCreatePasswordOpen(false);
-      navigate('/home');
-    } catch (err) {
-      console.error(err);
-      showError(err.message || 'Failed to set password.');
-      setIsCreatePasswordOpen(false);
-      navigate('/home');
     } finally {
-      setIsSavingPass(false);
       setIsGoogleLoading(false);
     }
   };
@@ -619,56 +595,7 @@ export default function Signup() {
 
       </main>
 
-      {/* Google Sign In Password Creation Modal */}
-      {isCreatePasswordOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-purple-500/15 text-purple-400 flex items-center justify-center mx-auto border border-purple-500/30 shadow-md">
-              <Lock className="w-7 h-7 stroke-[2.5]" />
-            </div>
-            <h3 className="text-xl font-heading font-extrabold text-white">Create Account Password</h3>
-            <p className="text-xs text-neutral-400 leading-relaxed">
-              Create a password so you can also log in using your username or email anytime in the future!
-            </p>
 
-            <div className="text-left space-y-3 pt-2">
-              <div>
-                <label className="block text-[11px] font-bold text-neutral-400 mb-1 uppercase tracking-wider">
-                  NEW PASSWORD
-                </label>
-                <input
-                  type="password"
-                  placeholder="At least 6 characters"
-                  value={newGooglePassword}
-                  onChange={(e) => setNewGooglePassword(e.target.value)}
-                  className="w-full bg-black border border-neutral-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsCreatePasswordOpen(false);
-                  navigate('/home');
-                }}
-                className="flex-1 py-2.5 rounded-xl border border-neutral-800 text-xs font-bold text-neutral-400 hover:bg-neutral-800 transition-colors cursor-pointer"
-              >
-                Skip for now
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveGooglePassword}
-                disabled={isSavingPass}
-                className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 active:scale-95 text-xs font-extrabold text-white shadow-lg shadow-purple-900/30 transition-all cursor-pointer"
-              >
-                {isSavingPass ? 'Saving...' : 'Save Password'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
