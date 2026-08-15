@@ -9,24 +9,28 @@ export const createNotification = async ({
   senderUid,
   senderName,
   senderAvatar,
-  type, // 'follow' | 'reply' | 'like' | 'reshare' | 'system'
+  type, // 'follow' | 'reply' | 'like' | 'reshare' | 'system' | 'community_invite'
   text,
-  postId = null
+  postId = null,
+  communityId = null,
+  communityName = null
 }) => {
-  // Don't send notification to yourself or if no recipient
   if (!recipientUid || recipientUid === senderUid) return;
 
   try {
     await addDoc(collection(db, 'notifications'), {
       recipientUid,
-      senderUid,
+      senderUid: senderUid || null,
       senderName: senderName || 'A Student',
-      senderAvatar: senderAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(senderUid)}`,
-      type,
-      text,
-      postId,
+      senderAvatar: senderAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(senderUid || 'user')}`,
+      type: type || 'system',
+      text: text || '',
+      postId: postId || null,
+      communityId: communityId || null,
+      communityName: communityName || null,
       read: false,
-      time: new Date()
+      time: new Date(),
+      createdAt: new Date().toISOString()
     });
   } catch (err) {
     console.error('Failed to create notification in Firestore:', err);
