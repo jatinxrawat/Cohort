@@ -371,7 +371,8 @@ export default function Signup() {
           
           <div>
             <h1 className="font-unbounded font-black text-3xl sm:text-4xl lg:text-5xl tracking-tight text-white leading-[1.05] mb-2">
-              Join Cohort 🚀
+              Join the <br />
+              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-300 bg-clip-text text-transparent">hub.</span>
             </h1>
             <p className="font-jakarta text-sm sm:text-base text-neutral-300 font-bold tracking-tight">
               {isSignup ? 'Join your campus community today.' : 'Sign in to access your campus world.'}
