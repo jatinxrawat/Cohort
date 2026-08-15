@@ -29,6 +29,19 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const MOCK_ARTICLES = [
   {
+    id: 'seven-days-changed-us',
+    title: 'Seven Days that Changed us',
+    excerpt: 'Some things teach you more about yourself than anything else ever could. For us, building Cohort has been one of those things.',
+    category: 'Failures & Sacrifices',
+    readTime: '4 min read',
+    date: 'August 16, 2026',
+    author: 'Team Cohort',
+    claps: 412,
+    gradient: 'from-pink-500 via-purple-500 to-cyan-400',
+    tags: ['SevenDays', 'StartupLife', 'Builders', 'TeamCohort'],
+    content: `Some things teach you more about yourself than anything else ever could. They teach you about your capabilities. Your limits. Your resilience. Your power. For us, building Cohort has been one of those things.`
+  },
+  {
     id: 'college-love',
     title: 'College, Love Stories and the Dilemma',
     excerpt: 'Why falling in love in college feels like choosing between who you are, who you want to become, and who you want beside you.',
@@ -100,7 +113,12 @@ export default function Uncut() {
   const { isDark } = useTheme();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [articles, setArticles] = useState(MOCK_ARTICLES);
+  const [articles, setArticles] = useState(() => {
+    return MOCK_ARTICLES.map(art => {
+      const saved = localStorage.getItem(`claps_${art.id}`);
+      return saved ? { ...art, claps: parseInt(saved, 10) } : art;
+    });
+  });
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [clappedArticles, setClappedArticles] = useState({});
   
@@ -149,7 +167,9 @@ export default function Uncut() {
 
     setArticles(prev => prev.map(art => {
       if (art.id === id) {
-        return { ...art, claps: art.claps + 1 };
+        const newClaps = art.claps + 1;
+        localStorage.setItem(`claps_${id}`, String(newClaps));
+        return { ...art, claps: newClaps };
       }
       return art;
     }));
@@ -324,6 +344,8 @@ export default function Uncut() {
               onClick={() => {
                 if (article.id === 'college-love') {
                   navigate('/uncut/college-love');
+                } else if (article.id === 'seven-days-changed-us') {
+                  navigate('/uncut/seven-days-changed-us');
                 } else {
                   setSelectedArticle(article);
                 }

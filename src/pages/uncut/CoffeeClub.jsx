@@ -8,8 +8,13 @@ import { Logo } from '@/components/Logo';
 
 export default function CoffeeClub() {
   const { isDark } = useTheme();
-  const [claps, setClaps] = useState(142);
-  const [hasClapped, setHasClapped] = useState(false);
+  const [claps, setClaps] = useState(() => {
+    const saved = localStorage.getItem('claps_3am-coffee-club');
+    return saved ? parseInt(saved, 10) : 142;
+  });
+  const [hasClapped, setHasClapped] = useState(() => {
+    return localStorage.getItem('has_clapped_3am-coffee-club') === 'true';
+  });
   const [showShareTooltip, setShowShareTooltip] = useState(false);
 
   useEffect(() => {
@@ -32,8 +37,11 @@ export default function CoffeeClub() {
 
   const handleClap = () => {
     if (hasClapped) return;
-    setClaps(prev => prev + 1);
+    const newClaps = claps + 1;
+    setClaps(newClaps);
     setHasClapped(true);
+    localStorage.setItem('claps_3am-coffee-club', String(newClaps));
+    localStorage.setItem('has_clapped_3am-coffee-club', 'true');
   };
 
   const handleShare = () => {
