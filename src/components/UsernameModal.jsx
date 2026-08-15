@@ -7,6 +7,7 @@ import { Button } from '@/components/Button';
 import { uploadImageToCloudinary } from '@/utils/cloudinary';
 import { Camera, AtSign, Sparkles, Building2, User, GraduationCap, Calendar, Eye, EyeOff } from 'lucide-react';
 import { ImageCropper } from '@/components/ImageCropper';
+import CollegeSelector from '@/components/CollegeSelector';
 
 export const UsernameModal = () => {
   const { user, updateUser, isAuthenticated, setPasswordForUser } = useAuth();
@@ -25,10 +26,6 @@ export const UsernameModal = () => {
   const [cropperSrc, setCropperSrc] = useState(null);
 
   const [collegeInput, setCollegeInput] = useState(user?.college || '');
-  const [showCollegeDropdown, setShowCollegeDropdown] = useState(false);
-  const [collegeSearch, setCollegeSearch] = useState('');
-  const [collegesList, setCollegesList] = useState([]);
-  const [isLoadingColleges, setIsLoadingColleges] = useState(false);
 
   const [gender, setGender] = useState('Prefer not to say');
   const [year, setYear] = useState('1st Year');
@@ -43,34 +40,6 @@ export const UsernameModal = () => {
       setCollegeInput(user.college || '');
     }
   }, [user]);
-
-  // Fetch colleges dynamically with debounce
-  useEffect(() => {
-    const fetchColleges = async () => {
-      setIsLoadingColleges(true);
-      try {
-        const origin = window.location.origin;
-        const isMobileApp = origin.startsWith('capacitor://') || (origin.startsWith('http://localhost') && !window.location.port) || origin.startsWith('file://');
-        const apiUrl = isMobileApp ? `https://cohortnow.online/api/search-colleges?q=${encodeURIComponent(collegeSearch)}` : `/api/search-colleges?q=${encodeURIComponent(collegeSearch)}`;
-        
-        const res = await fetch(apiUrl);
-        if (res.ok) {
-          const data = await res.json();
-          setCollegesList(data);
-        }
-      } catch (err) {
-        console.error('Failed to search colleges:', err);
-      } finally {
-        setIsLoadingColleges(false);
-      }
-    };
-
-    const delayDebounce = setTimeout(() => {
-      fetchColleges();
-    }, 300);
-
-    return () => clearTimeout(delayDebounce);
-  }, [collegeSearch]);
 
   // Keep modal open if authenticated and either username or onboarding incomplete
   if (!isAuthenticated || !user || (user.username && user.onboarded)) {
@@ -306,70 +275,10 @@ export const UsernameModal = () => {
           )}
 
           {/* University/College */}
-          <div className="relative">
-            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-xs">
-              College / University
-            </label>
-            <button
-              type="button"
-              onClick={() => setShowCollegeDropdown(!showCollegeDropdown)}
-              className="input-base text-left flex items-center justify-between text-sm h-10"
-            >
-              <span className={collegeInput ? 'text-neutral-900 dark:text-white' : 'text-neutral-400'}>
-                {collegeInput || 'Select your college'}
-              </span>
-              <Building2 className="w-4 h-4 text-neutral-400" />
-            </button>
-
-            {showCollegeDropdown && (
-              <div className="absolute bottom-full left-0 right-0 z-10 mb-xs bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-2xl max-h-56 flex flex-col">
-                <div className="p-sm border-b border-neutral-100 dark:border-neutral-800">
-                  <input
-                    type="text"
-                    placeholder="Search colleges..."
-                    value={collegeSearch}
-                    onChange={(e) => setCollegeSearch(e.target.value)}
-                    className="input-base text-xs h-8"
-                    autoFocus
-                  />
-                </div>
-                <div className="overflow-y-auto flex-1 scrollbar-thin">
-                  {isLoadingColleges ? (
-                    <div className="p-md text-center text-xs text-neutral-400">
-                      Searching colleges database...
-                    </div>
-                  ) : collegesList.length > 0 ? (
-                    collegesList.map((college, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => {
-                          setCollegeInput(college.name);
-                          setShowCollegeDropdown(false);
-                          setCollegeSearch('');
-                        }}
-                        className="w-full text-left px-md py-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 border-b border-neutral-100 dark:border-neutral-800 last:border-b-0"
-                      >
-                        <p className="font-bold text-xs text-neutral-900 dark:text-white">{college.name}</p>
-                        <p className="text-[10px] text-neutral-500">{college.location || college.university}</p>
-                      </button>
-                    ))
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCollegeInput(collegeSearch);
-                        setShowCollegeDropdown(false);
-                      }}
-                      className="w-full text-left px-md py-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 text-xs text-primary-500 font-semibold"
-                    >
-                      Use custom college: "{collegeSearch}"
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+          <CollegeSelector
+            value={collegeInput}
+            onChange={(newCollege) => setCollegeInput(newCollege)}
+          />
 
           {/* Gender and Year */}
           <div className="grid grid-cols-2 gap-md">
