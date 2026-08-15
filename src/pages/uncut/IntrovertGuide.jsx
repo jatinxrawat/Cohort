@@ -5,12 +5,13 @@ import { ArrowLeft, Heart, Clock, Calendar, Share2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Logo } from '@/components/Logo';
+import ShareModal from '@/components/ShareModal';
 
 export default function IntrovertGuide() {
   const { isDark } = useTheme();
   const [claps, setClaps] = useState(98);
   const [hasClapped, setHasClapped] = useState(false);
-  const [showShareTooltip, setShowShareTooltip] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   useEffect(() => {
     const schema = {
@@ -37,9 +38,7 @@ export default function IntrovertGuide() {
   };
 
   const handleShare = () => {
-    navigator.clipboard?.writeText(window.location.href);
-    setShowShareTooltip(true);
-    setTimeout(() => setShowShareTooltip(false), 2000);
+    setIsShareModalOpen(true);
   };
 
   return (
@@ -71,8 +70,10 @@ export default function IntrovertGuide() {
       </header>
 
       <SEO
-        title="The Reluctant Introvert's Guide to Campus Life | Cohort Uncut"
-        description="College is loud. Here is an honest perspective on finding peace, recharge spots, and meaningful connections in a world that never stops talking."
+        title="Why We Seek the Quiet | Cohort Uncut"
+        description="From orientation week icebreakers to crowded hostel mess halls, college is an extrovert's playground. But for the 40% of us who recharge in silence, it can feel like a marathon with no finish line..."
+        image="https://cohortnow.online/og-image.png"
+        type="article"
       />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
@@ -176,6 +177,22 @@ export default function IntrovertGuide() {
           </Link>
         </div>
       </main>
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        post={{
+          id: 'introvert-guide',
+          title: 'Why We Seek the Quiet: The Reluctant Introvert’s Guide to Campus Life',
+          content: 'College is loud. Here is an honest perspective on finding peace, recharge spots, and meaningful connections in a world that never stops talking.',
+          text: 'College is loud. Here is an honest perspective on finding peace, recharge spots, and meaningful connections in a world that never stops talking.',
+          author: { name: 'Neha Deshmukh' },
+          authorName: 'Neha Deshmukh',
+          image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=800&auto=format&fit=crop'
+        }}
+        shareUrl="https://cohortnow.online/uncut/introvert-guide"
+        title="Why We Seek the Quiet | Cohort Uncut"
+      />
     </div>
   );
 }

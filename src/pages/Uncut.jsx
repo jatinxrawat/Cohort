@@ -17,8 +17,10 @@ import {
   Calendar,
   CheckCircle,
   MessageCircle,
-  Bookmark
+  Bookmark,
+  Share2
 } from 'lucide-react';
+import ShareModal from '@/components/ShareModal';
 import { Logo } from '@/components/Logo';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,6 +41,7 @@ const MOCK_ARTICLES = [
     claps: 320,
     gradient: 'from-pink-500 via-purple-500 to-cyan-400',
     tags: ['CollegeLove', 'Heartbreak', 'CampusLife', 'CareerDilemma'],
+    image: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=800&auto=format&fit=crop',
     content: `Why falling in love in college feels like choosing between who you are, who you want to become, and who you want beside you.`
   },
   {
@@ -52,6 +55,7 @@ const MOCK_ARTICLES = [
     claps: 142,
     gradient: 'from-pink-500 via-purple-600 to-indigo-600',
     tags: ['LateNightVibes', 'Relatable', 'Productivity'],
+    image: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=800&auto=format&fit=crop',
     content: `You know the feeling. It's 2:47 AM, the campus is dead silent, but Room 402 in the library is humming with life. A soft buzz of laptops, the rhythmic clicking of keyboards, and the quiet hiss of the coffee machine. Nobody is talking, yet everyone is speaking the same silent language: "We have an exam in eight hours, and we are in this together."
 
 Why is it that we find solace in the shared misery of all-nighters? Psychologists call it 'social facilitation'—the tendency to perform better when others are around. But on campus, it's something more human. It's the silent support of a stranger typing their history paper next to your coding assignment. It's the shared nod when the coffee pot runs empty. 
@@ -69,6 +73,7 @@ Here's to the late-night warriors, the lukewarm coffee, and the quiet spaces whe
     claps: 98,
     gradient: 'from-purple-500 via-indigo-500 to-cyan-500',
     tags: ['SelfCare', 'MentalHealth', 'IntrovertLife'],
+    image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=800&auto=format&fit=crop',
     content: `From orientation week icebreakers to crowded hostel mess halls, college is an extrovert's playground. But for the 40% of us who recharge in silence, it can feel like a marathon with no finish line. The pressure to always be "out there" making friends is exhausting. 
 
 But here's the secret: some of the most profound campus connections happen in the quiet. It's the two-person tea stall conversations behind the engineering block, the late-night walks on the running track, or simply reading books side-by-side. 
@@ -86,6 +91,7 @@ Finding your 'quiet hubs'—whether it's the botanical garden bench or the top f
     claps: 215,
     gradient: 'from-cyan-500 via-teal-500 to-yellow-500',
     tags: ['Comedy', 'CampusCulture', 'SocialHabits'],
+    image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=800&auto=format&fit=crop',
     content: `Every university has a student handbook, but the real rules are never written down. They are the unspoken social contracts we learn by trial and error. 
 
 Rule #1: The Library Chair Claim. If you leave your laptop charger and a notebook on a desk, you have officially claimed that desk for up to 45 minutes of absence. Any longer, and your belongings are fair game to be moved neatly to the side by a desk-hunter.
@@ -103,6 +109,8 @@ export default function Uncut() {
   const [articles, setArticles] = useState(MOCK_ARTICLES);
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [clappedArticles, setClappedArticles] = useState({});
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [selectedShareStory, setSelectedShareStory] = useState(null);
   
   // Community draft state
   const [draftTitle, setDraftTitle] = useState('');
@@ -120,6 +128,21 @@ export default function Uncut() {
   // Newsletter state
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+
+  const handleShareStory = (article, e) => {
+    if (e) e.stopPropagation();
+    setSelectedShareStory({
+      id: article.id,
+      title: article.title,
+      content: article.excerpt || article.content,
+      text: article.excerpt || article.content,
+      caption: article.title,
+      author: { name: article.author },
+      authorName: article.author,
+      image: article.image || 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=800&auto=format&fit=crop'
+    });
+    setIsShareModalOpen(true);
+  };
 
   // Auto scroll to form if link contains #submit-story-form or ?submit=true
   useEffect(() => {
@@ -363,15 +386,27 @@ export default function Uncut() {
                   <span>{article.author}</span>
                 </div>
 
-                <button
-                  onClick={(e) => handleClap(article.id, e)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-900/5 dark:bg-white/5 hover:bg-pink-500/10 hover:text-pink-500 dark:hover:text-pink-400 rounded-full transition-all border border-transparent hover:border-pink-500/20 active:scale-90"
-                  aria-label="Clap for this story"
-                  title="Clap for this story"
-                >
-                  <Heart className={`w-3.5 h-3.5 ${clappedArticles[article.id] ? 'fill-pink-500 text-pink-500 animate-bounce' : ''}`} />
-                  <span>{article.claps}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => handleShareStory(article, e)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-900/5 dark:bg-white/5 hover:bg-purple-500/10 hover:text-purple-500 dark:hover:text-purple-400 rounded-full transition-all border border-transparent hover:border-purple-500/20 active:scale-90"
+                    aria-label="Share story"
+                    title="Share story with Cohort friends or WhatsApp"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>Share</span>
+                  </button>
+
+                  <button
+                    onClick={(e) => handleClap(article.id, e)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-900/5 dark:bg-white/5 hover:bg-pink-500/10 hover:text-pink-500 dark:hover:text-pink-400 rounded-full transition-all border border-transparent hover:border-pink-500/20 active:scale-90"
+                    aria-label="Clap for this story"
+                    title="Clap for this story"
+                  >
+                    <Heart className={`w-3.5 h-3.5 ${clappedArticles[article.id] ? 'fill-pink-500 text-pink-500 animate-bounce' : ''}`} />
+                    <span>{article.claps}</span>
+                  </button>
+                </div>
               </div>
             </motion.div>
           ))}
@@ -721,6 +756,15 @@ export default function Uncut() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        post={selectedShareStory}
+        shareUrl={selectedShareStory?.id ? `https://cohortnow.online/uncut/${selectedShareStory.id}` : 'https://cohortnow.online/uncut'}
+        title={selectedShareStory ? `Uncut Story: ${selectedShareStory.title}` : 'Cohort Uncut Story'}
+      />
 
       {/* --- HEARTFELT FOOTER --- */}
       <footer className="max-w-4xl mx-auto px-4 mt-20 pt-8 border-t border-amber-900/10 dark:border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-neutral-500">

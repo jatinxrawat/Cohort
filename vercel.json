@@ -16,6 +16,7 @@
   ],
   "rewrites": [
     { "source": "/post/:postId", "destination": "/api/post?postId=:postId" },
+    { "source": "/uncut/:storyId", "destination": "/api/uncut?storyId=:storyId" },
     { "source": "/((?!api|ota|assets|.*\\.).*)", "destination": "/index.html" }
   ]
 }

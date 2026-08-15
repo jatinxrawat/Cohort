@@ -8,7 +8,7 @@ import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { Input } from '@/components/Input';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, CheckCheck, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Eye, Paperclip, Image, Video, Download, Maximize2, Share2, ExternalLink, ArrowRight, Smile, BarChart2, FileText, CheckCircle2, Keyboard } from 'lucide-react';
+import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, CheckCheck, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Eye, Paperclip, Image, Video, Download, Maximize2, Share2, ExternalLink, ArrowRight, Smile, BarChart2, FileText, CheckCircle2, Keyboard, BookOpen } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { formatRelativeTime } from '@/utils/helpers';
@@ -2522,44 +2522,55 @@ export default function Messages() {
                                 )}
 
                                 <div className="relative inline-block max-w-full">
-                                   {/* Instagram-Style Sleek Compact Shared Post Card */}
-                                   {(msg.isSharedPost || msg.sharedPostData || (msg.text && msg.text.startsWith('Shared post by'))) && (
+                                   {/* Instagram-Style Sleek Compact Shared Post or Uncut Story Card */}
+                                   {(msg.isSharedPost || msg.isUncutStory || msg.sharedPostData || (msg.text && (msg.text.startsWith('Shared post by') || msg.text.includes('Uncut Story')))) && (
                                      <div
                                        onClick={(e) => {
                                          e.stopPropagation();
                                          const sharedId = msg.sharedPostData?.id;
-                                         if (sharedId) {
-                                           window.location.href = `/post/${sharedId}`;
-                                         } else {
-                                           const targetUrl = msg.sharedPostData?.url || (msg.text?.match(/https?:\/\/[^\s]+/)?.[0]);
-                                           if (targetUrl) {
-                                             window.location.href = targetUrl;
+                                         const targetUrl = msg.sharedPostData?.url || (msg.text?.match(/https?:\/\/[^\s]+/)?.[0]);
+                                         if (targetUrl) {
+                                           window.location.href = targetUrl;
+                                         } else if (sharedId) {
+                                           if (sharedId.includes('-') || sharedId.includes('/')) {
+                                             window.location.href = `/uncut/${sharedId}`;
                                            } else {
-                                             window.location.href = '/home';
+                                             window.location.href = `/post/${sharedId}`;
                                            }
+                                         } else {
+                                           window.location.href = '/home';
                                          }
                                        }}
-                                       className="w-[230px] sm:w-[260px] p-2.5 rounded-2xl bg-black/25 dark:bg-white/10 border border-white/15 backdrop-blur-md text-left space-y-1.5 shadow-md group cursor-pointer hover:border-purple-400/60 hover:bg-black/35 dark:hover:bg-white/15 transition-all my-1"
+                                       className="w-[230px] sm:w-[260px] p-2.5 rounded-2xl bg-black/25 dark:bg-white/10 border border-white/15 backdrop-blur-md text-left space-y-1.5 shadow-md group cursor-pointer hover:border-pink-400/60 hover:bg-black/35 dark:hover:bg-white/15 transition-all my-1"
                                      >
+                                       {/* Badge header */}
                                        <div className="flex items-center justify-between">
-                                         <div className="flex items-center gap-1 text-[9px] font-black text-purple-400 dark:text-purple-300 uppercase tracking-widest">
-                                           <Share2 className="w-3 h-3" />
-                                           <span>Shared Post</span>
-                                         </div>
+                                         {msg.isUncutStory || msg.sharedPostData?.url?.includes('/uncut') || msg.text?.includes('Uncut Story') ? (
+                                           <div className="flex items-center gap-1 text-[9px] font-black text-pink-400 dark:text-pink-300 uppercase tracking-widest">
+                                             <BookOpen className="w-3 h-3 text-pink-400" />
+                                             <span>UNCUT STORY</span>
+                                           </div>
+                                         ) : (
+                                           <div className="flex items-center gap-1 text-[9px] font-black text-purple-400 dark:text-purple-300 uppercase tracking-widest">
+                                             <Share2 className="w-3 h-3" />
+                                             <span>Shared Post</span>
+                                           </div>
+                                         )}
                                          <ExternalLink className="w-3 h-3 text-white/40 group-hover:text-white transition-colors" />
                                        </div>
 
+                                       {/* Story / Post Thumbnail Preview */}
                                        {(msg.sharedPostData?.mediaUrl || (msg.mediaUrl && !msg.isDeletedForEveryone)) && (
                                          <img
                                            src={msg.sharedPostData?.mediaUrl || msg.mediaUrl}
-                                           alt="Shared post thumbnail"
+                                           alt="Shared story preview"
                                            className="w-full h-32 sm:h-36 object-cover rounded-xl border border-white/15 shadow-xs my-0.5"
                                          />
                                        )}
 
                                        <div>
                                          <p className="text-[11.5px] font-bold text-white line-clamp-1 leading-tight">
-                                           {msg.sharedPostData?.title || (msg.text?.split('\n')[0]?.replace(/^Shared post by\s*/i, '') || 'Campus Post')}
+                                           {msg.sharedPostData?.title || (msg.text?.split('\n')[0]?.replace(/^(📖\s*Shared Uncut Story:?|Shared post by)\s*/i, '') || 'Campus Story')}
                                          </p>
                                          <p className="text-[10px] text-white/80 dark:text-neutral-200 line-clamp-2 leading-tight mt-0.5 font-normal">
                                            {msg.sharedPostData?.content || (msg.text?.split('\n')[1]?.replace(/^"|"$/g, '') || '')}
@@ -2568,9 +2579,13 @@ export default function Messages() {
 
                                        <button
                                          type="button"
-                                         className="w-full mt-1 py-1.5 px-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-[10.5px] shadow-xs transition-all flex items-center justify-center gap-1 cursor-pointer active:scale-95"
+                                         className={`w-full mt-1 py-1.5 px-2 rounded-xl text-white font-extrabold text-[10.5px] shadow-xs transition-all flex items-center justify-center gap-1 cursor-pointer active:scale-95 ${
+                                           msg.isUncutStory || msg.sharedPostData?.url?.includes('/uncut') || msg.text?.includes('Uncut Story')
+                                             ? 'bg-gradient-to-r from-pink-500 to-purple-600 hover:opacity-90'
+                                             : 'bg-purple-600 hover:bg-purple-500'
+                                         }`}
                                        >
-                                         <span>View Post</span>
+                                         <span>{msg.isUncutStory || msg.sharedPostData?.url?.includes('/uncut') || msg.text?.includes('Uncut Story') ? 'Read Full Story' : 'View Post'}</span>
                                          <ArrowRight className="w-3 h-3 stroke-[2.5]" />
                                        </button>
                                      </div>

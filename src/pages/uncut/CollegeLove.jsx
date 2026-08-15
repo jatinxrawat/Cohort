@@ -7,6 +7,7 @@ import BorderGlow from '@/components/BorderGlow';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
+import ShareModal from '@/components/ShareModal';
 
 export default function CollegeLove() {
   const { isDark } = useTheme();
@@ -14,6 +15,7 @@ export default function CollegeLove() {
   const [claps, setClaps] = useState(320);
   const [hasClapped, setHasClapped] = useState(false);
   const [showShareTooltip, setShowShareTooltip] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Inject Google Article Schema JSON-LD for search engines
   useEffect(() => {
@@ -60,10 +62,7 @@ export default function CollegeLove() {
   };
 
   const handleShare = () => {
-    const shareUrl = "https://cohortnow.online" + window.location.pathname + window.location.search;
-    navigator.clipboard.writeText(shareUrl);
-    setShowShareTooltip(true);
-    setTimeout(() => setShowShareTooltip(false), 2000);
+    setIsShareModalOpen(true);
   };
 
   return (
@@ -72,6 +71,7 @@ export default function CollegeLove() {
         title="College, Love Stories and the Dilemma | Cohort Uncut"
         description="Why falling in love in college feels like choosing between who you are, who you want to become, and who you want beside you. Written by Sanya Sahani."
         image="https://cohortnow.online/og-image.png"
+        type="article"
       />
 
       {/* Atmospheric Background Blurs (Hidden on Mobile) */}
@@ -346,6 +346,22 @@ export default function CollegeLove() {
           <a href="mailto:cohortnow.online@gmail.com" className="hover:underline">Write for Us</a>
         </div>
       </footer>
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        post={{
+          id: 'college-love',
+          title: 'College, Love Stories and the Dilemma',
+          content: 'Why falling in love in college feels like choosing between who you are, who you want to become, and who you want beside you. Written by Sanya Sahani.',
+          text: 'Why falling in love in college feels like choosing between who you are, who you want to become, and who you want beside you. Written by Sanya Sahani.',
+          author: { name: 'Sanya Sahani' },
+          authorName: 'Sanya Sahani',
+          image: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=800&auto=format&fit=crop'
+        }}
+        shareUrl="https://cohortnow.online/uncut/college-love"
+        title="College, Love Stories and the Dilemma | Cohort Uncut"
+      />
     </div>
   );
 }

@@ -9,8 +9,8 @@ export default async function handler(req, res) {
       if (match) targetPostId = match[1];
     }
 
-    let postTitle = title ? decodeURIComponent(title) : 'Campus Post';
-    let postContent = desc ? decodeURIComponent(desc) : 'Check out this post on Cohort - Your Campus Social Media!';
+    let postTitle = title ? decodeURIComponent(title) : 'Cohort Uncut - Campus Story';
+    let postContent = desc ? decodeURIComponent(desc) : 'Read unfiltered real campus stories written by peers on Cohort Uncut.';
     let postImage = img ? decodeURIComponent(img) : 'https://cohortnow.online/og-image.png';
 
     // Fetch fresh post metadata from Firestore REST API if targetPostId exists

@@ -5,12 +5,13 @@ import { ArrowLeft, Heart, Clock, Calendar, Share2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Logo } from '@/components/Logo';
+import ShareModal from '@/components/ShareModal';
 
 export default function CoffeeClub() {
   const { isDark } = useTheme();
   const [claps, setClaps] = useState(142);
   const [hasClapped, setHasClapped] = useState(false);
-  const [showShareTooltip, setShowShareTooltip] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   useEffect(() => {
     const schema = {
@@ -37,9 +38,7 @@ export default function CoffeeClub() {
   };
 
   const handleShare = () => {
-    navigator.clipboard?.writeText(window.location.href);
-    setShowShareTooltip(true);
-    setTimeout(() => setShowShareTooltip(false), 2000);
+    setIsShareModalOpen(true);
   };
 
   return (
@@ -73,7 +72,9 @@ export default function CoffeeClub() {
 
       <SEO
         title="The 3 AM Coffee Club | Cohort Uncut"
-        description="Why do we study better under the hum of fluorescent lights, drinking lukewarm brew, surrounded by strangers sharing the exact same existential dread?"
+        description="You know the feeling. It's 2:47 AM, the campus is dead silent, but Room 402 in the library is humming with life. A soft buzz of laptops, the rhythmic clicking of keyboards, and the quiet hiss of the coffee machine..."
+        image="https://cohortnow.online/og-image.png"
+        type="article"
       />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
@@ -185,6 +186,22 @@ export default function CoffeeClub() {
           </Link>
         </div>
       </main>
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        post={{
+          id: '3am-coffee-club',
+          title: 'The 3 AM Coffee Club: A Love Letter to Late-Night Study Rooms',
+          content: 'Why do we study better under the hum of fluorescent lights, drinking lukewarm brew, surrounded by strangers sharing the exact same existential dread?',
+          text: 'Why do we study better under the hum of fluorescent lights, drinking lukewarm brew, surrounded by strangers sharing the exact same existential dread?',
+          author: { name: 'Aaditya Sharma' },
+          authorName: 'Aaditya Sharma',
+          image: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=800&auto=format&fit=crop'
+        }}
+        shareUrl="https://cohortnow.online/uncut/3am-coffee-club"
+        title="The 3 AM Coffee Club | Cohort Uncut"
+      />
     </div>
   );
 }

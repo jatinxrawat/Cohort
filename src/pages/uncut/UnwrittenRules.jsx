@@ -5,12 +5,13 @@ import { ArrowLeft, Heart, Clock, Calendar, Share2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Logo } from '@/components/Logo';
+import ShareModal from '@/components/ShareModal';
 
 export default function UnwrittenRules() {
   const { isDark } = useTheme();
   const [claps, setClaps] = useState(215);
   const [hasClapped, setHasClapped] = useState(false);
-  const [showShareTooltip, setShowShareTooltip] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   useEffect(() => {
     const schema = {
@@ -37,9 +38,7 @@ export default function UnwrittenRules() {
   };
 
   const handleShare = () => {
-    navigator.clipboard?.writeText(window.location.href);
-    setShowShareTooltip(true);
-    setTimeout(() => setShowShareTooltip(false), 2000);
+    setIsShareModalOpen(true);
   };
 
   return (
@@ -71,8 +70,10 @@ export default function UnwrittenRules() {
       </header>
 
       <SEO
-        title="The Unwritten Hallway Rules We All Silently Agree To | Cohort Uncut"
-        description="From the library seat reservation etiquette to the polite nod of hallway avoidance — analyzing the funny social contracts of college life."
+        title="The Unwritten Hallway Rules | Cohort Uncut"
+        description="Every university has a student handbook, but the real rules are never written down. They are the unspoken social contracts we learn by trial and error..."
+        image="https://cohortnow.online/og-image.png"
+        type="article"
       />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
@@ -176,6 +177,22 @@ export default function UnwrittenRules() {
           </Link>
         </div>
       </main>
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        post={{
+          id: 'unwritten-rules',
+          title: 'The Unwritten Hallway Rules We All Silently Agree To',
+          content: 'From the library seat reservation etiquette to the polite nod of hallway avoidance — analyzing the funny social contracts of college life.',
+          text: 'From the library seat reservation etiquette to the polite nod of hallway avoidance — analyzing the funny social contracts of college life.',
+          author: { name: 'Kabir Mehta' },
+          authorName: 'Kabir Mehta',
+          image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=800&auto=format&fit=crop'
+        }}
+        shareUrl="https://cohortnow.online/uncut/unwritten-rules"
+        title="The Unwritten Hallway Rules | Cohort Uncut"
+      />
     </div>
   );
 }

@@ -41,7 +41,15 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
     customTitle ||
     (rawAuthorName ? (rawAuthorName.toLowerCase().startsWith('post by') ? rawAuthorName : `Post by ${rawAuthorName}`) : 'Campus Post');
 
-  const shareText = post?.content || post?.text || post?.caption || 'Check out this post on Cohort!';
+  const isUncut = Boolean(customShareUrl?.includes('/uncut')) || Boolean(post?.id?.includes('-')) || Boolean(post?.category);
+  const shareText =
+    post?.content ||
+    post?.excerpt ||
+    post?.text ||
+    post?.caption ||
+    (isUncut
+      ? 'Read unfiltered real campus stories written by peers on Cohort Uncut.'
+      : 'Explore student conversations, gossip, confessions and stories on Cohort.');
 
   const postMediaUrl =
     post?.image ||
@@ -50,14 +58,11 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
     post?.photo ||
     post?.media ||
     post?.coverImage ||
-    post?.author?.avatar ||
-    'https://cohortnow.online/og-image.png';
+    post?.storyImage ||
+    (post?.author?.avatar && !post?.author?.avatar.includes('dicebear') ? post.author.avatar : 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=800&auto=format&fit=crop');
 
-  const shareUrl =
-    customShareUrl ||
-    (post?.id
-      ? `${window.location.origin}/post/${post.id}?img=${encodeURIComponent(postMediaUrl)}&title=${encodeURIComponent(shareTitle)}&desc=${encodeURIComponent(shareText.slice(0, 160))}`
-      : window.location.href);
+  const rawShareUrl = customShareUrl || (post?.id ? `${window.location.origin}/post/${post.id}` : window.location.href);
+  const shareUrl = rawShareUrl.includes('?') ? rawShareUrl : `${rawShareUrl}?v=1`;
 
   // Fetch recent chat members and campus users when modal opens
   useEffect(() => {
@@ -152,7 +157,7 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
       const safeText = cleanStr(shareText, 'Check out this post on Cohort!');
       const safeUrl = cleanStr(shareUrl, window.location.href);
       const safeMediaUrl = cleanStr(
-        post?.image || post?.imageUrl || post?.mediaUrl || post?.photo || post?.media || post?.coverImage || post?.author?.avatar,
+        post?.image || post?.imageUrl || post?.mediaUrl || post?.photo || post?.media || post?.coverImage || postMediaUrl,
         ''
       );
       const lastMsgSummary = `Shared a post: ${safeText.slice(0, 35)}${safeText.length > 35 ? '...' : ''}`;
@@ -188,17 +193,21 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
           `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(targetUid)}`
         );
 
+        const isUncut = safeUrl.includes('/uncut') || post?.id?.includes('-') || post?.category;
         const messageObj = {
           id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           sender: myUid,
           senderUid: myUid,
           senderName: myName,
           senderAvatar: myAvatar,
-          text: `Shared post by ${safeTitle}:\n"${safeText.slice(0, 120)}${safeText.length > 120 ? '...' : ''}"\n${safeUrl}`,
+          text: isUncut 
+            ? `📖 Shared Uncut Story: ${safeTitle}\n"${safeText.slice(0, 120)}${safeText.length > 120 ? '...' : ''}"\n${safeUrl}`
+            : `Shared post by ${safeTitle}:\n"${safeText.slice(0, 120)}${safeText.length > 120 ? '...' : ''}"\n${safeUrl}`,
           time: nowIso,
           createdAt: nowIso,
           deletedFor: [],
           isSharedPost: true,
+          isUncutStory: isUncut,
           sharedPostData: {
             id: cleanStr(post?.id, ''),
             title: safeTitle,
@@ -293,15 +302,28 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // External Social Sharing Handlers
   const handleSocialShare = async (platform) => {
-    const postMediaUrl = post?.image || post?.imageUrl || post?.mediaUrl || post?.photo || post?.media || post?.coverImage;
+    const isUncutStory = shareUrl.includes('/uncut') || Boolean(post?.category) || Boolean(post?.id?.includes('-')) || shareTitle.toLowerCase().includes('uncut');
     const encodedUrl = encodeURIComponent(shareUrl);
-    const cleanShareUrlMsg = encodeURIComponent(shareUrl);
 
     switch (platform) {
       case 'whatsapp': {
-        window.open(`https://api.whatsapp.com/send?text=${cleanShareUrlMsg}`, '_blank');
+        let waText = '';
+        if (isUncutStory) {
+          const storyTitle = post?.title || shareTitle.replace(/^(Uncut Story:?|College, Love Stories and the Dilemma \| Cohort Uncut)\s*/i, '');
+          const authorName = post?.authorName || post?.author?.name || 'Cohort Uncut';
+          const initialLines = (post?.content || post?.excerpt || post?.text || shareText || '').slice(0, 160);
+
+          waText = `📖 *COHORT UNCUT* | *Story*\n\n` +
+                   `*"${storyTitle}"*\n` +
+                   `✍️ *By ${authorName}*\n\n` +
+                   `"${initialLines}${initialLines.length >= 160 ? '...' : ''}"\n\n` +
+                   `👉 *Read full story on Cohort:*\n${shareUrl}`;
+        } else {
+          waText = `✨ *Check this out on Cohort:*\n"${shareText.slice(0, 120)}"\n\n${shareUrl}`;
+        }
+
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(waText)}`, '_blank');
         break;
       }
       case 'instagram':
