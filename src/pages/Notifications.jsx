@@ -46,6 +46,19 @@ export default function Notifications() {
       return;
     }
 
+    const parseNotifTime = (data) => {
+      if (data.time?.toDate) return data.time.toDate();
+      if (data.time) {
+        const d = new Date(data.time);
+        if (!isNaN(d.getTime())) return d;
+      }
+      if (data.createdAt) {
+        const d = new Date(data.createdAt);
+        if (!isNaN(d.getTime())) return d;
+      }
+      return new Date();
+    };
+
     setLoading(true);
     const unsub = onSnapshot(collection(db, 'notifications'), (snapshot) => {
       const loaded = [];
@@ -53,15 +66,16 @@ export default function Notifications() {
 
       snapshot.forEach(d => {
         const data = d.data();
-        // Show notifications for current user (or general notifications)
-        if (!data.recipientUid || data.recipientUid === user.uid) {
+        const isForMe = !data.recipientUid || data.recipientUid === user.uid || data.recipientUid === 'all';
+        if (isForMe) {
+          const notifTime = parseNotifTime(data);
           loaded.push({
             id: d.id,
             docId: d.id,
             ...data,
-            time: data.time?.toDate ? data.time.toDate() : new Date(data.time || Date.now())
+            time: notifTime
           });
-          if (!data.read && data.recipientUid === user.uid) {
+          if (!data.read) {
             unreadDocsToMark.push(d.id);
           }
         }

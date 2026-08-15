@@ -212,10 +212,11 @@ export const AuthProvider = ({ children }) => {
         const msgs = t.messages || [];
         const unreadMsgsInThread = msgs.filter(m => {
           if (!m) return false;
-          const senderId = m.senderUid || m.sender?.uid || m.uid || m.authorUid;
-          const isFromOther = senderId
-            ? senderId !== user.uid
-            : (m.senderName && m.senderName !== user?.name);
+          const senderId = m.senderUid || (typeof m.sender === 'object' ? m.sender?.uid : m.sender) || m.uid || m.authorUid;
+          const isFromMe = (senderId && senderId === user.uid) ||
+                           (typeof m.sender === 'string' && (m.sender === user.uid || m.sender === 'me')) ||
+                           (m.senderName && m.senderName === user.name);
+          const isFromOther = !isFromMe;
           const isRead = Array.isArray(m.readBy) && m.readBy.includes(user.uid);
           const isDeleted = Array.isArray(m.deletedFor) && m.deletedFor.includes(user.uid);
           return isFromOther && !isRead && !isDeleted;

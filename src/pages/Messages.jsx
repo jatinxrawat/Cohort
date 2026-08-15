@@ -8,54 +8,12 @@ import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { Input } from '@/components/Input';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, CheckCheck, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Eye, Paperclip, Image, Video, Download, Maximize2, Share2, ExternalLink, ArrowRight, Smile, BarChart2, FileText, CheckCircle2 } from 'lucide-react';
+import { Send, ChevronLeft, ChevronRight, Search, Plus, MessageSquare, Trash2, MoreVertical, Eraser, User, Users, Sparkles, X, Pin, PinOff, Bell, BellOff, Ban, ShieldCheck, Star, CheckSquare, Square, Check, CheckCheck, Flame, Clock, Infinity as InfinityIcon, Lock, Shield, CornerUpLeft, EyeOff, Eye, Paperclip, Image, Video, Download, Maximize2, Share2, ExternalLink, ArrowRight, Smile, BarChart2, FileText, CheckCircle2, Keyboard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { formatRelativeTime } from '@/utils/helpers';
 import { UserAvatar } from '@/components/UserAvatar';
 
-const CRAZY_EMOJI_PACKS = [
-  {
-    id: 'vibe',
-    name: '🔥 Vibe',
-    emojis: [
-      '🔥', '✨', '💯', '⚡', '💀', '🗿', '🎯', '🚀', '👑', '💥', '🥳', '🎉', '💅', '🧠', '🤯',
-      '🌟', '💫', '💎', '🏆', '🌶️', '🌊', '🦄', '🔮', '🕶️', '🦾', '🧿', '💸', '📈', '🚩', '🧿'
-    ]
-  },
-  {
-    id: 'memes',
-    name: '😂 Memes',
-    emojis: [
-      '😂', '🤣', '💀', '🤡', '👁️👄👁️', '🙃', '🫠', '🫡', '😭', '🌚', '🌝', '🤓', '🤪', '😜',
-      '😈', '👹', '💩', '👻', '🙈', '🤏', '🤫', '🤥', '🤢', '🤧', '🥸', '👺', '☠️', '🪦', '🤖', '🫥'
-    ]
-  },
-  {
-    id: 'campus',
-    name: '😎 Campus',
-    emojis: [
-      '🎒', '📚', '💻', '☕', '🍕', '🎓', '📝', '🎧', '🛌', '⏰', '😴', '🍔', '🥤', '🍻', '🎸',
-      '⚽', '🏀', '🎮', '🕹️', '📱', '💡', '📌', '🧪', '🧃', '🍿', '🍩', '🍟', '🍜', '🍱', '🎬'
-    ]
-  },
-  {
-    id: 'love',
-    name: '❤️ Love',
-    emojis: [
-      '❤️', '💖', '🥺', '🥰', '😍', '🫶', '💔', '🖤', '💜', '💋', '🫂', '💌', '🌹', '💐', '⭐',
-      '👍', '🙌', '👏', '🤝', '✌️', '🌸', '🧸', '💘', '💝', '💗', '💓', '💞', '💕', '❣️', '🤍'
-    ]
-  },
-  {
-    id: 'food',
-    name: '🍕 Food',
-    emojis: [
-      '🍕', '🍔', '🍟', '🌭', '🍿', '🥓', '🍳', '🧇', '🥞', '🧋', '🧃', '🍺', '🍻', '🥂', '🍾',
-      '🍹', '🍩', '🍦', '🍧', '🎂', '🧁', '🍫', '🍬', '🍭', '🍒', '🥑', '🌶️', '🍉', '🍇', '🍓'
-    ]
-  }
-];
 
 
 const FAKE_CHAT_NAMES = [
@@ -148,17 +106,14 @@ export default function Messages() {
     };
   }, [mobileView]);
 
-  // Attachment & Emoji Popover State
+  // Attachment Popover State
   const [showAttachMenuPop, setShowAttachMenuPop] = useState(false);
-  const [showEmojiPickerPop, setShowEmojiPickerPop] = useState(false);
-  const [activeEmojiPack, setActiveEmojiPack] = useState(0);
 
-  // Intercept back button / history state when emoji tray or attachment popover is open
+  // Intercept back button / history state when attachment popover is open
   useEffect(() => {
-    if (showEmojiPickerPop || showAttachMenuPop) {
+    if (showAttachMenuPop) {
       window.history.pushState({ trayOpen: true }, '');
       const handlePopState = () => {
-        setShowEmojiPickerPop(false);
         setShowAttachMenuPop(false);
       };
       window.addEventListener('popstate', handlePopState);
@@ -166,7 +121,7 @@ export default function Messages() {
         window.removeEventListener('popstate', handlePopState);
       };
     }
-  }, [showEmojiPickerPop, showAttachMenuPop]);
+  }, [showAttachMenuPop]);
 
   const [allStarredCommunityMsgs, setAllStarredCommunityMsgs] = useState([]);
   const [isCommunityStarredModalOpen, setIsCommunityStarredModalOpen] = useState(false);
@@ -176,37 +131,13 @@ export default function Messages() {
   const [revealedDeletedMsgs, setRevealedDeletedMsgs] = useState([]);
   const mediaInputRef = useRef(null);
   const docInputRef = useRef(null);
-
+  const messageInputRef = useRef(null);
 
   // DM Poll Modal State
   const [isCreatePollOpen, setIsCreatePollOpen] = useState(false);
   const [pollQuestion, setPollQuestion] = useState('');
   const [pollOptions, setPollOptions] = useState(['', '']);
   const [pollType, setPollType] = useState('single');
-
-  // Recents Emoji Storage
-  const [recentEmojis, setRecentEmojis] = useState(() => {
-    try {
-      const saved = localStorage.getItem('cohort_recent_emojis');
-      return saved ? JSON.parse(saved) : ['🔥', '😂', '💀', '✨', '❤️', '💯', '🗿', '🫡', '😭', '🥳', '🚀', '🎒', '😍', '☕'];
-    } catch (e) {
-      return ['🔥', '😂', '💀', '✨', '❤️', '💯', '🗿', '🫡', '😭', '🥳'];
-    }
-  });
-
-  const handleAddRecentEmoji = (emoji) => {
-    setRecentEmojis(prev => {
-      const filtered = prev.filter(e => e !== emoji);
-      const updated = [emoji, ...filtered].slice(0, 25);
-      try { localStorage.setItem('cohort_recent_emojis', JSON.stringify(updated)); } catch (e) {}
-      return updated;
-    });
-  };
-
-  const allPacks = [
-    { id: 'recents', name: '🕒 Recents', emojis: recentEmojis },
-    ...CRAZY_EMOJI_PACKS
-  ];
 
   const handleDocumentSelect = (e) => {
     const file = e.target.files?.[0];
@@ -1227,6 +1158,13 @@ export default function Messages() {
     if (e) e.preventDefault();
     if ((!messageText.trim() && !selectedMedia) || !selectedId) return;
 
+    const textToSend = messageText.trim();
+    setMessageText('');
+    setSelectedMedia(null);
+    setTimeout(() => {
+      messageInputRef.current?.focus();
+    }, 10);
+
     const targetConv = conversations.find(c => c.id === selectedId);
     if (!targetConv) return;
 
@@ -2213,10 +2151,6 @@ export default function Messages() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (showEmojiPickerPop) {
-                            setShowEmojiPickerPop(false);
-                            return;
-                          }
                           if (showAttachMenuPop) {
                             setShowAttachMenuPop(false);
                             return;
@@ -2443,7 +2377,7 @@ export default function Messages() {
               </div>
 
               {/* Chat Messages Log with Immersive Secret Theme in Vanish Mode */}
-              <div className={`flex-1 overflow-y-auto p-md sm:p-lg space-y-md transition-colors duration-500 ${
+              <div className={`flex-1 overflow-y-auto overflow-x-hidden max-w-full min-w-0 p-md sm:p-lg space-y-md transition-colors duration-500 ${
                 activeConversation.isVanishMode
                   ? 'bg-neutral-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-950/20 via-neutral-950 to-black'
                   : 'bg-neutral-50/50 dark:bg-neutral-950/40'
@@ -2468,7 +2402,7 @@ export default function Messages() {
 
                     return (
                       <div
-                        key={idx}
+                        key={msg.id || msgKey || idx}
                         id={`msg-${msgKey}`}
                         className={`group flex items-center gap-md max-w-[85%] relative transition-all duration-300 ${
                           isMe ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'
@@ -3052,86 +2986,23 @@ export default function Messages() {
                   </button>
                 )}
 
-                {/* Input Container with Emoji Picker */}
-                <div className="flex-1 relative flex items-center">
+                {/* Input Container */}
+                <div className="flex-1 flex items-center bg-neutral-100 dark:bg-neutral-800/90 border border-neutral-200 dark:border-neutral-700/80 rounded-full px-4 py-1.5">
                   <input
+                    ref={messageInputRef}
                     type="text"
                     placeholder={`Message ${activeConversation.name}...`}
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(e)}
-                    className="w-full bg-neutral-100 dark:bg-neutral-800/90 border border-neutral-200 dark:border-neutral-700/80 rounded-full pl-4 pr-10 py-2.5 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all"
+                    className="w-full bg-transparent border-0 py-1 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none"
                   />
-
-                  {/* Smile Emoji Button inside Input */}
-                  <button
-                    type="button"
-                    onClick={() => setShowEmojiPickerPop(!showEmojiPickerPop)}
-                    className={`absolute right-3 p-1 transition-colors cursor-pointer ${showEmojiPickerPop ? 'text-purple-500' : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200'}`}
-                    title="Crazy Emoji Packs"
-                  >
-                    <Smile className="w-4.5 h-4.5" />
-                  </button>
-
-                  {/* WhatsApp Style Emoji Picker Drawer / Popover */}
-                  {showEmojiPickerPop && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-xs sm:bg-transparent"
-                        onClick={() => setShowEmojiPickerPop(false)}
-                      />
-
-                      <div className="fixed inset-x-0 bottom-0 z-[100] sm:absolute sm:inset-auto sm:bottom-full sm:right-0 sm:mb-3 w-full sm:w-80 h-72 sm:h-64 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-2xl border-t sm:border border-neutral-200/90 dark:border-neutral-800 rounded-t-3xl sm:rounded-3xl shadow-2xl p-3 text-xs flex flex-col transition-all">
-                        <div className="w-10 h-1 bg-neutral-300 dark:bg-neutral-700 rounded-full mx-auto mb-2 sm:hidden flex-shrink-0" />
-
-                        <div className="flex items-center gap-1 pb-2 border-b border-neutral-100 dark:border-neutral-800 mb-2 overflow-x-auto scrollbar-none flex-shrink-0">
-                          {allPacks.map((pack, pIdx) => (
-                            <button
-                              key={pIdx}
-                              type="button"
-                              onClick={() => setActiveEmojiPack(pIdx)}
-                              className={`px-2.5 py-1 rounded-xl font-bold text-[11px] transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
-                                activeEmojiPack === pIdx
-                                  ? 'bg-purple-500 text-white shadow-xs'
-                                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
-                              }`}
-                            >
-                              <span>{pack.name}</span>
-                              {pack.id === 'recents' && (
-                                <span className="text-[9px] opacity-75 font-mono">({pack.emojis.length})</span>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-
-                        <div className="grid grid-cols-6 sm:grid-cols-5 gap-1.5 overflow-y-auto pr-1 flex-1 scrollbar-thin">
-                          {allPacks[activeEmojiPack]?.emojis.length > 0 ? (
-                            allPacks[activeEmojiPack].emojis.map((emo, eIdx) => (
-                              <button
-                                key={eIdx}
-                                type="button"
-                                onClick={() => {
-                                  setMessageText(prev => prev + emo);
-                                  handleAddRecentEmoji(emo);
-                                }}
-                                className="w-10 h-10 sm:w-9 sm:h-9 flex items-center justify-center text-xl sm:text-lg rounded-xl hover:bg-purple-500/15 active:scale-125 transition-transform cursor-pointer"
-                              >
-                                {emo}
-                              </button>
-                            ))
-                          ) : (
-                            <div className="col-span-full py-8 text-center text-neutral-400 text-xs italic">
-                              No recent emojis used yet. Tap any emoji to save here!
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </>
-                  )}
                 </div>
 
                 <button
                   type="submit"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onTouchStart={(e) => e.preventDefault()}
                   disabled={!messageText.trim() && !selectedMedia}
                   className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 active:scale-95 text-white flex items-center justify-center shadow-md shadow-sky-500/30 disabled:opacity-40 disabled:scale-100 transition-all cursor-pointer flex-shrink-0"
                 >

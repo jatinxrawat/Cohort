@@ -924,6 +924,7 @@ export default function Profile() {
           type: 'follow',
           text: 'started following you.',
           read: false,
+          time: new Date(),
           createdAt: new Date().toISOString()
         })
       );

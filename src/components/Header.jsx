@@ -27,7 +27,8 @@ export const Header = () => {
       let count = 0;
       snapshot.forEach(d => {
         const data = d.data();
-        if ((!data.recipientUid || data.recipientUid === user.uid) && !data.read) {
+        const isForMe = data.recipientUid === user.uid || data.recipientUid === 'all' || !data.recipientUid;
+        if (isForMe && !data.read) {
           count++;
         }
       });
