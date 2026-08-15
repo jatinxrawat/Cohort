@@ -23,17 +23,20 @@ import {
   BarChart2,
   FileText,
   Paperclip,
-  Camera
+  Camera,
+  Globe,
+  GraduationCap,
+  MessageSquare
 } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { UserAvatar } from '@/components/UserAvatar';
-import { formatRelativeTime } from '@/utils/helpers';
+import { formatRelativeTime, formatShortCollegeName } from '@/utils/helpers';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import ShareModal from '@/components/ShareModal';
-import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, increment, arrayUnion, arrayRemove, getDocs, where } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, updateDoc, deleteDoc, increment, arrayUnion, arrayRemove, getDocs, where } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 import { createNotification } from '@/utils/notifications';
 import FormattedText from '@/components/FormattedText';
@@ -78,7 +81,7 @@ export const ExpandableCaption = ({ text, maxLength = 200, className = '' }) => 
   );
 };
 
-export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
+export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted, showAudienceBadge = false }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showSuccess } = useNotification();
@@ -156,6 +159,80 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
   const authorName = isCohortOfficialPost
     ? 'Cohort'
     : ((isActualPostOwner && user?.name) || liveAuthorProfile?.name || post.author?.name || 'Student');
+
+  // Social Proof Context State (Liked / Commented by someone you follow)
+  const [socialContext, setSocialContext] = useState(null);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    const myFollowing = Array.isArray(user?.following) ? user.following : [];
+    if (myFollowing.length === 0) {
+      setSocialContext(null);
+      return;
+    }
+
+    // 1. Check if a followed user commented
+    const followedComment = comments.find(c => {
+      const cUid = c.authorUid || c.uid;
+      const cName = c.author || c.authorName;
+      const cUser = c.authorUsername;
+      return (cUid && cUid !== user.uid && myFollowing.includes(cUid)) ||
+             (cUser && cUser !== user.username && myFollowing.includes(cUser)) ||
+             (cName && myFollowing.includes(cName));
+    });
+
+    if (followedComment) {
+      setSocialContext({
+        type: 'comment',
+        userName: followedComment.author || 'A user you follow',
+        userUid: followedComment.authorUid,
+        text: 'commented on this'
+      });
+      return;
+    }
+
+    // 2. Check if a followed user liked/upvoted
+    const upvoters = Array.isArray(post.upvotedUsers)
+      ? post.upvotedUsers
+      : (Array.isArray(post.likedUsers) ? post.likedUsers : []);
+
+    const followedLikerItem = upvoters.find(item => {
+      const uid = typeof item === 'string' ? item : item?.uid;
+      return uid && uid !== user.uid && myFollowing.includes(uid);
+    });
+
+    if (followedLikerItem) {
+      const likerUid = typeof followedLikerItem === 'string' ? followedLikerItem : followedLikerItem?.uid;
+      getDoc(doc(db, 'users', likerUid)).then(snap => {
+        if (snap.exists()) {
+          const lData = snap.data();
+          setSocialContext({
+            type: 'like',
+            userName: lData.name || lData.username || 'A user you follow',
+            userUid: likerUid,
+            text: 'liked this'
+          });
+        } else {
+          setSocialContext({
+            type: 'like',
+            userName: 'A user you follow',
+            userUid: likerUid,
+            text: 'liked this'
+          });
+        }
+      }).catch(() => {
+        setSocialContext({
+          type: 'like',
+          userName: 'A user you follow',
+          userUid: likerUid,
+          text: 'liked this'
+        });
+      });
+      return;
+    }
+
+    setSocialContext(null);
+  }, [comments, post.upvotedUsers, post.likedUsers, user?.following, user?.uid, user?.username]);
 
   const handleSaveInlineEdit = async () => {
     if (!editPostContent.trim()) return;
@@ -707,6 +784,29 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
           : "border-neutral-100 dark:border-neutral-800 shadow-sm"
       }`}
     >
+      {/* Social Context Banner (Liked / Commented by someone you follow) */}
+      {socialContext && (
+        <div className="flex items-center gap-2 text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-3 pb-2.5 border-b border-neutral-100 dark:border-neutral-800/80">
+          {socialContext.type === 'comment' ? (
+            <MessageSquare className="w-3.5 h-3.5 text-purple-500 fill-purple-500/20" />
+          ) : (
+            <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+          )}
+          <span>
+            <strong
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenAuthorProfile(socialContext.userUid, socialContext.userName);
+              }}
+              className="text-neutral-800 dark:text-neutral-200 font-extrabold hover:underline cursor-pointer"
+            >
+              {socialContext.userName}
+            </strong>{' '}
+            {socialContext.text}
+          </span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-start justify-between mb-lg">
         <div
@@ -725,13 +825,25 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
                 <ShieldCheck className="w-4 h-4 text-purple-400 fill-purple-500/20 inline-block stroke-[2.5]" title="Verified Cohort Official Account" />
               )}
             </h3>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              {isCohortOfficialPost
-                ? 'Cohort Official'
-                : ((post.author?.role && post.author.role !== 'Student' && post.author.role !== 'Delhi University')
-                    ? post.author.role
-                    : (post.author?.college || user?.college || 'KIET'))} • {formatRelativeTime(post.timestamp)}
-            </p>
+            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+              <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                {isCohortOfficialPost
+                  ? 'Cohort Official'
+                  : formatShortCollegeName(post.author?.college || post.author?.role || user?.college || 'KIET')} • {formatRelativeTime(post.timestamp)}
+              </span>
+
+              {showAudienceBadge && (
+                post.audience === 'college_only' || post.visibility === 'college_only' ? (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 text-[10px] font-bold" title={post.college || post.author?.college || 'Campus Only'}>
+                    <GraduationCap className="w-3 h-3 text-purple-500" /> My College
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[10px] font-bold">
+                    <Globe className="w-3 h-3 text-sky-500" /> Public
+                  </span>
+                )
+              )}
+            </div>
           </div>
         </div>
 

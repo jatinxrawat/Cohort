@@ -27,14 +27,16 @@ import {
   CornerDownRight,
   X,
   Image as ImageIcon,
-  Smile
+  Smile,
+  Globe,
+  GraduationCap
 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import ShareModal from '@/components/ShareModal';
-import { formatRelativeTime } from '@/utils/helpers';
+import { formatRelativeTime, formatShortCollegeName } from '@/utils/helpers';
 import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, increment, arrayUnion, arrayRemove, getDocs, where } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 import FeedToggle from '@/components/FeedToggle';
@@ -190,12 +192,17 @@ export default function AnonymousFeed({ defaultTab }) {
     const chosenName = ANONYMOUS_NAMES[randomIndex];
 
     try {
+      const autoAudience = (feedType === 'college' || feedType === 'my_college') ? 'college_only' : 'public';
+
       if (activeTab === 'confessions') {
         const now = new Date();
         const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
         await addDoc(collection(db, 'confessions'), {
           authorUid: user?.uid || 'anonymous_guest',
+          college: user?.college || 'KIET',
+          audience: autoAudience,
+          visibility: autoAudience,
           gender: user?.gender || 'Prefer not to say',
           text: cardInputText.trim(),
           imageUrl: null,
@@ -211,6 +218,8 @@ export default function AnonymousFeed({ defaultTab }) {
         await addDoc(collection(db, 'anonymousPosts'), {
           authorUid: user?.uid || 'anonymous_guest',
           college: user?.college || 'KIET',
+          audience: autoAudience,
+          visibility: autoAudience,
           gender: user?.gender || 'Prefer not to say',
           anonymousName: chosenName,
           text: cardInputText.trim(),
@@ -578,12 +587,17 @@ export default function AnonymousFeed({ defaultTab }) {
     const chosenName = ANONYMOUS_NAMES[randomIndex];
 
     try {
+      const autoAudience = (feedType === 'college' || feedType === 'my_college') ? 'college_only' : 'public';
+
       if (postType === 'confession' || activeTab === 'confessions') {
         const now = new Date();
         const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
         await addDoc(collection(db, 'confessions'), {
           authorUid: user?.uid || 'anonymous_guest',
+          college: user?.college || 'KIET',
+          audience: autoAudience,
+          visibility: autoAudience,
           gender: user?.gender || 'Prefer not to say',
           text: inputText.trim(),
           imageUrl: null,
@@ -599,6 +613,8 @@ export default function AnonymousFeed({ defaultTab }) {
         await addDoc(collection(db, 'anonymousPosts'), {
           authorUid: user?.uid || 'anonymous_guest',
           college: user?.college || 'KIET',
+          audience: autoAudience,
+          visibility: autoAudience,
           gender: user?.gender || 'Prefer not to say',
           anonymousName: chosenName,
           text: inputText.trim(),
@@ -758,14 +774,26 @@ export default function AnonymousFeed({ defaultTab }) {
   };
 
   const userCollege = user?.college || 'KIET';
-  const displayedPosts = posts.filter(post => {
-    if (feedType === 'public') return true;
-    const postCollege = post.college || post.authorCollege || post.author?.college || post.author?.role;
-    if (!postCollege) return true;
-    const cleanPost = String(postCollege).toLowerCase().trim();
+
+  const filterAnonymousItem = (item) => {
+    const postCollege = item.college || item.authorCollege || item.author?.college || item.author?.role;
+    const cleanPost = postCollege ? String(postCollege).toLowerCase().trim() : '';
     const cleanUser = String(userCollege).toLowerCase().trim();
-    return cleanPost.includes(cleanUser) || cleanUser.includes(cleanPost);
-  });
+    const isSameCollege = cleanPost && (cleanPost.includes(cleanUser) || cleanUser.includes(cleanPost));
+    const isMyPost = item.authorUid === user?.uid;
+
+    const isCollegeOnlyPost = item.audience === 'college_only' || item.visibility === 'college_only';
+    if (isCollegeOnlyPost && !isSameCollege && !isMyPost) {
+      return false;
+    }
+
+    if (feedType === 'public') return true;
+    if (!postCollege) return true;
+    return isSameCollege || isMyPost;
+  };
+
+  const displayedPosts = posts.filter(filterAnonymousItem);
+  const displayedConfessions = confessions.filter(filterAnonymousItem);
 
   return (
     <div className="section-container !py-6 !px-4 min-h-screen">
@@ -848,9 +876,31 @@ export default function AnonymousFeed({ defaultTab }) {
           </div>
 
           {/* Divider */}
-          <div className="border-t border-neutral-100 dark:border-zinc-800/80 pt-3 mt-3 flex items-center justify-between">
+          <div className="border-t border-neutral-100 dark:border-zinc-800/80 pt-3 mt-3 flex items-center justify-between flex-wrap gap-2">
             {/* Left Action Tools */}
-            <div className="flex items-center gap-2 relative">
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Minimal Icon Feed Audience Toggle */}
+              <button
+                type="button"
+                onClick={() => setFeedType(feedType === 'college' || feedType === 'my_college' ? 'public' : 'college')}
+                className={`p-2 rounded-full border transition-all cursor-pointer flex items-center justify-center shadow-xs hover:scale-105 active:scale-95 ${
+                  feedType === 'college' || feedType === 'my_college'
+                    ? 'bg-purple-500/10 text-purple-500 border-purple-500/30 hover:bg-purple-500/20'
+                    : 'bg-sky-500/10 text-sky-500 border-sky-500/30 hover:bg-sky-500/20'
+                }`}
+                title={
+                  feedType === 'college' || feedType === 'my_college'
+                    ? `Posting to ${userCollege} Only (Click to switch to Public Feed)`
+                    : 'Posting to Public Feed (Click to switch to My College)'
+                }
+              >
+                {feedType === 'college' || feedType === 'my_college' ? (
+                  <GraduationCap className="w-4 h-4 text-purple-500" />
+                ) : (
+                  <Globe className="w-4 h-4 text-sky-500" />
+                )}
+              </button>
+
               {activeTab !== 'confessions' && (
                 <>
                   <input
@@ -1635,7 +1685,7 @@ export default function AnonymousFeed({ defaultTab }) {
             {/* Photo Attachment inside Modal */}
             {activeTab !== 'confessions' && postType !== 'confession' && (
               <>
-                <div className="flex items-center justify-between pt-xs">
+                <div className="flex items-center gap-md">
                   <input
                     type="file"
                     ref={modalFileInputRef}
