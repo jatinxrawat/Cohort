@@ -1875,7 +1875,7 @@ export default function Messages() {
                       ))}
                     </div>
                   ) : filteredConversations.length > 0 ? (
-                filteredConversations.map(conv => {
+                filteredConversations.map((conv, idx) => {
                   const liveConv = getLiveRecipientProfile(conv);
                   const isSelected = selectedId === conv.id;
                   const isPinned = conv.pinnedFor?.[myUid] === true;
@@ -1893,7 +1893,7 @@ export default function Messages() {
                   }).length;
 
                   return (
-                    <div key={conv.id} className="relative group flex items-center">
+                    <div key={conv.id || `conv-${conv.recipientUid || idx}`} className="relative group flex items-center">
                       <button
                         onClick={() => handleSelectConversation(conv)}
                         className={`w-full p-md rounded-xl text-left flex items-center gap-md transition-colors pr-10 ${
@@ -3809,7 +3809,11 @@ export default function Messages() {
       {/* ── FULL SCREEN IMAGE LIGHTBOX PREVIEW MODAL ── */}
       <AnimatePresence>
         {previewImageModal && (
-          <div
+          <motion.div
+            key="preview-image-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-between p-md sm:p-xl animate-fade-in"
             onClick={() => setPreviewImageModal(null)}
           >
@@ -3878,10 +3882,12 @@ export default function Messages() {
                 Open original file in new tab ↗
               </a>
             </div>
-          </div>
+          </motion.div>
         )}
+      </AnimatePresence>
 
-        {/* ── CREATE CAMPUS POLL MODAL ── */}
+      {/* ── CREATE CAMPUS POLL MODAL ── */}
+      {isCreatePollOpen && (
         <Modal isOpen={isCreatePollOpen} onClose={() => setIsCreatePollOpen(false)} title="Create Campus Poll" size="md">
           <form onSubmit={handleCreatePoll} className="space-y-5 py-1">
             {/* Question Input */}
@@ -3968,7 +3974,7 @@ export default function Messages() {
                     {pollOptions.length > 2 && (
                       <button
                         type="button"
-                onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
+                        onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
                         className="p-2.5 rounded-2xl bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-rose-400 transition-colors cursor-pointer"
                         title="Remove option"
                       >
@@ -3997,8 +4003,10 @@ export default function Messages() {
             </div>
           </form>
         </Modal>
+      )}
 
-        {/* WhatsApp-Style Poll Votes Breakdown Modal */}
+      {/* WhatsApp-Style Poll Votes Breakdown Modal */}
+      {Boolean(viewVotesPoll) && (
         <Modal isOpen={Boolean(viewVotesPoll)} onClose={() => setViewVotesPoll(null)} title="Poll Votes Breakdown" size="md">
           <div className="space-y-4 py-1">
             <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-between">
@@ -4062,7 +4070,7 @@ export default function Messages() {
             </div>
           </div>
         </Modal>
-      </AnimatePresence>
+      )}
     </div>
   );
 }

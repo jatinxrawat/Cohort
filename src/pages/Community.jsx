@@ -2202,7 +2202,7 @@ export default function Community() {
                           const isSeen = Boolean(isMe && ((msg.readBy && msg.readBy.length > 0) || (msg.readByUsers && msg.readByUsers.length > 0) || msg.read === true));
 
                           return (
-                            <div key={msg.id} id={`msg-${msg.id}`} className={`transition-all duration-300 ${highlightedMsgId === msg.id ? 'ring-4 ring-amber-400 rounded-2xl p-1 bg-amber-500/20 shadow-2xl animate-pulse z-20' : ''}`}>
+                            <div key={msg.id || msg.docId || `msg-${idx}`} id={`msg-${msg.id || idx}`} className={`transition-all duration-300 ${highlightedMsgId === msg.id ? 'ring-4 ring-amber-400 rounded-2xl p-1 bg-amber-500/20 shadow-2xl animate-pulse z-20' : ''}`}>
                               <SwipeableMessageRow isMe={isMe} onReply={() => setReplyingTo(msg)}>
                               <div className={`flex gap-md max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : ''} ${isSelected ? 'opacity-80 scale-[0.98]' : ''} min-w-0`}>
                                 {isSelectMode && (
@@ -2878,7 +2878,7 @@ export default function Community() {
                       const isSeen = Boolean(isMe && ((msg.readBy && msg.readBy.length > 0) || (msg.readByUsers && msg.readByUsers.length > 0) || msg.read === true));
 
                       return (
-                        <div key={msg.id} id={`msg-${msg.id}`} className={`transition-all duration-300 ${highlightedMsgId === msg.id ? 'ring-4 ring-amber-400 rounded-2xl p-1 bg-amber-500/20 shadow-2xl animate-pulse z-20' : ''}`}>
+                        <div key={msg.id || msg.docId || `gmsg-${idx}`} id={`msg-${msg.id || idx}`} className={`transition-all duration-300 ${highlightedMsgId === msg.id ? 'ring-4 ring-amber-400 rounded-2xl p-1 bg-amber-500/20 shadow-2xl animate-pulse z-20' : ''}`}>
                           <SwipeableMessageRow isMe={isMe} onReply={() => setCommunityReplyingTo(msg)}>
                             <div className={`flex gap-md max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : ''} ${isSelected ? 'opacity-80 scale-[0.98]' : ''} min-w-0`}>
                               {isSelectMode && (

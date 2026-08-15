@@ -29,7 +29,8 @@ import {
   Image as ImageIcon,
   Smile,
   ShieldAlert,
-  Globe
+  Globe,
+  GraduationCap
 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
@@ -892,27 +893,6 @@ export default function AnonymousFeed({ defaultTab }) {
           <div className="border-t border-neutral-100 dark:border-zinc-800/80 pt-3 mt-3 flex items-center justify-between flex-wrap gap-2">
             {/* Left Action Tools */}
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Minimal Icon Feed Audience Toggle */}
-              <button
-                type="button"
-                onClick={() => setFeedType(feedType === 'college' || feedType === 'my_college' ? 'public' : 'college')}
-                className={`p-2 rounded-full border transition-all cursor-pointer flex items-center justify-center shadow-xs hover:scale-105 active:scale-95 ${
-                  feedType === 'college' || feedType === 'my_college'
-                    ? 'bg-purple-500/10 text-purple-500 border-purple-500/30 hover:bg-purple-500/20'
-                    : 'bg-sky-500/10 text-sky-500 border-sky-500/30 hover:bg-sky-500/20'
-                }`}
-                title={
-                  feedType === 'college' || feedType === 'my_college'
-                    ? `Posting to ${userCollege} Only (Click to switch to Public Feed)`
-                    : 'Posting to Public Feed (Click to switch to My College)'
-                }
-              >
-                {feedType === 'college' || feedType === 'my_college' ? (
-                  <GraduationCap className="w-4 h-4 text-purple-500" />
-                ) : (
-                  <Globe className="w-4 h-4 text-sky-500" />
-                )}
-              </button>
 
               {activeTab !== 'confessions' && (
                 <>
