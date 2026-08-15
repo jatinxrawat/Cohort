@@ -59,7 +59,7 @@ export default function ShareModal({ isOpen, onClose, post, shareUrl: customShar
     post?.media ||
     post?.coverImage ||
     post?.storyImage ||
-    (post?.author?.avatar && !post?.author?.avatar.includes('dicebear') ? post.author.avatar : 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=800&auto=format&fit=crop');
+    '';
 
   const rawShareUrl = customShareUrl || (post?.id ? `${window.location.origin}/post/${post.id}` : window.location.href);
   const shareUrl = rawShareUrl.includes('?') ? rawShareUrl : `${rawShareUrl}?v=1`;

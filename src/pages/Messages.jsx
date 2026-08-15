@@ -2559,8 +2559,10 @@ export default function Messages() {
                                          <ExternalLink className="w-3 h-3 text-white/40 group-hover:text-white transition-colors" />
                                        </div>
 
-                                       {/* Story / Post Thumbnail Preview */}
-                                       {(msg.sharedPostData?.mediaUrl || (msg.mediaUrl && !msg.isDeletedForEveryone)) && (
+                                       {/* Story / Post Thumbnail Preview (Only if valid image exists) */}
+                                       {Boolean(msg.sharedPostData?.mediaUrl || (msg.mediaUrl && !msg.isDeletedForEveryone)) &&
+                                        !msg.sharedPostData?.mediaUrl?.includes('photo-1516589178581-6cd7833ae3b2') &&
+                                        !msg.mediaUrl?.includes('photo-1516589178581-6cd7833ae3b2') && (
                                          <img
                                            src={msg.sharedPostData?.mediaUrl || msg.mediaUrl}
                                            alt="Shared story preview"
