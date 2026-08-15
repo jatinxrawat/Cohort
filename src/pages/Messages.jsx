@@ -222,12 +222,15 @@ export default function Messages() {
   };
 
   const handleCreatePoll = async (e) => {
-    e.preventDefault();
-    if (!pollQuestion.trim()) return;
+    if (e && e.preventDefault) e.preventDefault();
+    if (!pollQuestion.trim()) {
+      showSuccess('Please enter a poll question.');
+      return;
+    }
     const validOptions = pollOptions.filter(o => o.trim() !== '');
     if (validOptions.length < 2) { showSuccess('At least 2 options required.'); return; }
 
-    const targetConv = conversations.find(c => c.id === selectedId);
+    const targetConv = conversations.find(c => c.id === selectedId || c.docId === selectedId);
     if (!targetConv) return;
 
     const myName = user?.name || user?.email?.split('@')[0] || 'Me';
@@ -235,14 +238,14 @@ export default function Messages() {
       question: pollQuestion.trim(),
       pollType: pollType,
       totalVotes: 0,
-      options: validOptions.map(optText => ({ text: optText.trim(), votes: 0, selected: false }))
+      options: validOptions.map((optText, i) => ({ id: `opt_${i}`, text: optText.trim(), votes: 0, votedUsers: [] }))
     };
 
     const newMsg = {
       sender: user?.uid || 'me',
       senderUid: user?.uid || null,
       senderName: myName,
-      text: `📊 Poll: ${pollQuestion.trim()}`,
+      text: `Poll: ${pollQuestion.trim()}`,
       poll: pollObj,
       type: 'poll',
       time: new Date(),
@@ -255,13 +258,14 @@ export default function Messages() {
     setPollType('single');
 
     const updatedMsgs = [...(targetConv.messages || []), newMsg];
-    setConversations(prev => prev.map(c => c.id === selectedId ? { ...c, messages: updatedMsgs } : c));
+    setConversations(prev => prev.map(c => (c.id === selectedId || c.docId === selectedId) ? { ...c, messages: updatedMsgs } : c));
 
-    if (targetConv.docId) {
+    const targetDocId = targetConv.docId || targetConv.id;
+    if (targetDocId) {
       try {
-        await updateDoc(doc(db, 'direct-messages', targetConv.docId), {
+        await updateDoc(doc(db, 'messages', targetDocId), {
           messages: updatedMsgs,
-          lastMessage: `📊 Poll: ${pollQuestion.trim()}`,
+          lastMessage: `Poll: ${pollQuestion.trim()}`,
           lastTime: new Date()
         });
       } catch (err) {
@@ -271,44 +275,68 @@ export default function Messages() {
     showSuccess('Poll published in chat!');
   };
 
-  const handleMessagePollVote = async (msgIndex, optIndex) => {
-    const targetConv = conversations.find(c => c.id === selectedId);
-    if (!targetConv || !targetConv.messages?.[msgIndex]?.poll) return;
+  const handleMessagePollVote = async (targetMsg, optIndex) => {
+    if (!targetMsg || !targetMsg.poll) return;
 
-    const currentMsg = targetConv.messages[msgIndex];
+    const targetConv = conversations.find(c => c.id === selectedId || c.docId === selectedId);
+    if (!targetConv) return;
+
+    const messages = [...(targetConv.messages || [])];
+    const realMsgIndex = messages.findIndex(m =>
+      m === targetMsg ||
+      (m.poll && targetMsg.poll && m.poll.question === targetMsg.poll.question && (m.time === targetMsg.time || m.text === targetMsg.text))
+    );
+
+    if (realMsgIndex === -1) {
+      console.warn('Could not find target message for poll vote');
+      return;
+    }
+
+    const currentMsg = messages[realMsgIndex];
     const targetPoll = currentMsg.poll;
     const isMultiple = targetPoll.pollType === 'multiple';
+    const myUid = user?.uid || 'guest_user';
+    const myName = user?.name || user?.email?.split('@')[0] || 'Student';
+    const myAvatar = user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || myName)}`;
+    const myUserObj = { uid: myUid, name: myName, avatar: myAvatar };
 
-    let deltaVotes = 0;
-    const updatedOptions = targetPoll.options.map((o, idx) => {
+    const updatedOptions = (targetPoll.options || []).map((o, idx) => {
+      const currentVotedUsers = Array.isArray(o.votedUsers) ? o.votedUsers : [];
+      const currentDetails = Array.isArray(o.votedUserDetails) ? o.votedUserDetails : [];
+      const hasVoted = currentVotedUsers.includes(myUid);
+
       if (idx === optIndex) {
-        if (o.selected) {
-          deltaVotes -= 1;
-          return { ...o, votes: Math.max(0, o.votes - 1), selected: false };
+        if (hasVoted) {
+          const nextVoted = currentVotedUsers.filter(id => id !== myUid);
+          const nextDetails = currentDetails.filter(u => u.uid !== myUid);
+          return { ...o, votedUsers: nextVoted, votedUserDetails: nextDetails, votes: nextVoted.length, selected: false };
         } else {
-          deltaVotes += 1;
-          return { ...o, votes: o.votes + 1, selected: true };
+          const nextVoted = [...currentVotedUsers, myUid];
+          const nextDetails = [...currentDetails.filter(u => u.uid !== myUid), myUserObj];
+          return { ...o, votedUsers: nextVoted, votedUserDetails: nextDetails, votes: nextVoted.length, selected: true };
         }
-      } else if (!isMultiple && o.selected) {
-        deltaVotes -= 1;
-        return { ...o, votes: Math.max(0, o.votes - 1), selected: false };
+      } else if (!isMultiple) {
+        const nextVoted = currentVotedUsers.filter(id => id !== myUid);
+        const nextDetails = currentDetails.filter(u => u.uid !== myUid);
+        return { ...o, votedUsers: nextVoted, votedUserDetails: nextDetails, votes: nextVoted.length, selected: false };
       }
-      return o;
+      return { ...o, votedUsers: currentVotedUsers, votedUserDetails: currentDetails, votes: currentVotedUsers.length, selected: currentVotedUsers.includes(myUid) };
     });
 
-    const newTotalVotes = Math.max(0, (targetPoll.totalVotes || 0) + deltaVotes);
+    const newTotalVotes = updatedOptions.reduce((sum, o) => sum + (o.votedUsers?.length || 0), 0);
     const updatedPoll = { ...targetPoll, options: updatedOptions, totalVotes: newTotalVotes };
     const updatedMsg = { ...currentMsg, poll: updatedPoll };
 
-    const updatedMsgs = targetConv.messages.map((m, i) => i === msgIndex ? updatedMsg : m);
-    setConversations(prev => prev.map(c => c.id === selectedId ? { ...c, messages: updatedMsgs } : c));
+    messages[realMsgIndex] = updatedMsg;
+    setConversations(prev => prev.map(c => (c.id === selectedId || c.docId === selectedId) ? { ...c, messages: messages } : c));
     showSuccess('Vote recorded!');
 
-    if (targetConv.docId) {
+    const targetDocId = targetConv.docId || targetConv.id;
+    if (targetDocId) {
       try {
-        await updateDoc(doc(db, 'direct-messages', targetConv.docId), { messages: updatedMsgs });
+        await updateDoc(doc(db, 'messages', targetDocId), { messages: messages });
       } catch (err) {
-        console.error(err);
+        console.error('Failed to update poll vote in Firestore:', err);
       }
     }
   };
@@ -353,6 +381,9 @@ export default function Messages() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [recipientProfile, setRecipientProfile] = useState(null);
   const [highlightedMsgKey, setHighlightedMsgKey] = useState(null);
+
+  // WhatsApp-style Poll Votes Breakdown Modal state
+  const [viewVotesPoll, setViewVotesPoll] = useState(null);
 
   // Real-time Users Map for live avatar & profile sync across chats & modals
   const [usersMap, setUsersMap] = useState({});
@@ -2612,45 +2643,119 @@ export default function Messages() {
 
                                    {/* Poll Card Rendering inside DM Chat */}
                                    {msg.poll && (
-                                     <div className="my-2 p-3 rounded-2xl bg-neutral-900/90 border border-neutral-800 text-neutral-100 text-xs space-y-2 max-w-sm">
-                                       <div className="flex items-center justify-between font-bold text-neutral-200">
-                                         <span>{msg.poll.question}</span>
-                                         <span className="text-[10px] text-neutral-400 px-2 py-0.5 rounded-full bg-neutral-800 border border-neutral-700">
-                                           {msg.poll.pollType === 'multiple' ? 'Multiple Choice' : 'Single Choice'}
+                                     <div className="my-2 p-3.5 rounded-2xl bg-neutral-900/95 border border-neutral-800 text-neutral-100 text-xs space-y-3 max-w-sm shadow-xl backdrop-blur-md">
+                                       {/* Poll Header */}
+                                       <div className="flex items-center justify-between gap-2 font-bold text-neutral-100">
+                                         <div className="flex items-center gap-2 min-w-0">
+                                           <div className="w-7 h-7 rounded-full bg-violet-500/15 text-violet-400 border border-violet-500/30 flex items-center justify-center flex-shrink-0">
+                                             <BarChart2 className="w-4 h-4" />
+                                           </div>
+                                           <span className="text-sm font-extrabold text-white truncate">{msg.poll.question}</span>
+                                         </div>
+                                         <span className="text-[10px] font-bold text-violet-300 px-2 py-0.5 rounded-full bg-violet-500/15 border border-violet-500/25 flex-shrink-0">
+                                           {msg.poll.pollType === 'multiple' ? 'Multiple' : 'Single'}
                                          </span>
                                        </div>
-                                       <div className="space-y-1.5">
+
+                                       {/* Options List */}
+                                       <div className="space-y-2">
                                          {msg.poll.options?.map((opt, oIdx) => {
-                                           const percent = msg.poll.totalVotes > 0 ? Math.round((opt.votes / msg.poll.totalVotes) * 100) : 0;
+                                           const votedUsers = Array.isArray(opt.votedUsers)
+                                             ? opt.votedUsers
+                                             : (opt.selected ? [user?.uid || 'guest'] : []);
+                                           const votesCount = votedUsers.length || opt.votes || 0;
+                                           const totalVotes = (msg.poll.options || []).reduce((sum, o) => {
+                                             const vList = Array.isArray(o.votedUsers) ? o.votedUsers : (o.selected ? [user?.uid || 'guest'] : []);
+                                             return sum + (vList.length || o.votes || 0);
+                                           }, 0);
+
+                                           const isVotedByMe = user?.uid && votedUsers.includes(user.uid);
+                                           const percent = totalVotes > 0 ? Math.round((votesCount / totalVotes) * 100) : 0;
+                                           const voterDetails = opt.votedUserDetails || votedUsers.map(uid => ({
+                                             uid,
+                                             name: usersMap[uid]?.name || (uid === user?.uid ? user?.name : 'Student'),
+                                             avatar: usersMap[uid]?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${uid}`
+                                           }));
+
                                            return (
                                              <button
                                                key={oIdx}
                                                type="button"
-                                               onClick={() => handleMessagePollVote(msgIndex, oIdx)}
-                                               className={`w-full text-left p-2 rounded-xl border transition-all cursor-pointer relative overflow-hidden flex items-center justify-between text-xs ${
-                                                 opt.selected
-                                                   ? 'border-purple-500 bg-purple-500/10 font-bold'
+                                               onClick={() => handleMessagePollVote(msg, oIdx)}
+                                               className={`w-full text-left p-2.5 rounded-xl border transition-all cursor-pointer relative overflow-hidden flex items-center justify-between text-xs group ${
+                                                 isVotedByMe
+                                                   ? 'border-violet-500/60 bg-violet-500/15 font-bold shadow-xs'
                                                    : 'border-neutral-800 bg-neutral-850 hover:bg-neutral-800'
                                                }`}
                                              >
+                                               {/* Progress fill overlay */}
                                                <div
-                                                 className="absolute left-0 top-0 bottom-0 bg-purple-500/20 transition-all"
+                                                 className={`absolute left-0 top-0 bottom-0 transition-all duration-500 ease-out ${
+                                                   isVotedByMe ? 'bg-violet-500/25' : 'bg-neutral-700/30'
+                                                 }`}
                                                  style={{ width: `${percent}%` }}
                                                />
-                                               <span className="relative z-10 font-medium">{opt.text}</span>
-                                               <span className="relative z-10 font-mono text-[10px] text-neutral-400">{percent}% ({opt.votes})</span>
+
+                                               {/* Left: Check Icon + Text */}
+                                               <div className="relative z-10 flex items-center gap-2 min-w-0 pr-2">
+                                                 {isVotedByMe ? (
+                                                   <CheckCircle2 className="w-4 h-4 text-violet-400 fill-violet-400/20 flex-shrink-0" />
+                                                 ) : (
+                                                   <div className="w-4 h-4 rounded-full border border-neutral-600 flex-shrink-0 group-hover:border-neutral-400" />
+                                                 )}
+                                                 <span className={`truncate text-xs ${isVotedByMe ? 'text-white font-bold' : 'text-neutral-200 font-medium'}`}>
+                                                   {opt.text}
+                                                 </span>
+                                               </div>
+
+                                               {/* Right: Micro Voter Avatars + Percent */}
+                                               <div className="relative z-10 flex items-center gap-2 flex-shrink-0 font-mono text-[11px]">
+                                                 {voterDetails.length > 0 && (
+                                                   <div className="flex items-center -space-x-1.5 overflow-hidden">
+                                                     {voterDetails.slice(0, 3).map((voter, vIdx) => (
+                                                       <img
+                                                         key={vIdx}
+                                                         src={voter.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${voter.name}`}
+                                                         alt={voter.name}
+                                                         title={voter.name}
+                                                         className="w-4 h-4 rounded-full ring-1 ring-neutral-900 object-cover"
+                                                       />
+                                                     ))}
+                                                   </div>
+                                                 )}
+                                                 <span className={`font-bold ${isVotedByMe ? 'text-violet-300' : 'text-neutral-400'}`}>
+                                                   {percent}%
+                                                 </span>
+                                                 <span className="text-[10px] text-neutral-500 font-medium">({votesCount})</span>
+                                               </div>
                                              </button>
                                            );
                                          })}
                                        </div>
-                                       <div className="text-[10px] text-neutral-500 text-right font-medium">
-                                         Total votes: {msg.poll.totalVotes || 0}
+
+                                       {/* Footer with WhatsApp Style View Votes Button */}
+                                       <div className="flex items-center justify-between text-[11px] text-neutral-400 font-semibold pt-1 border-t border-neutral-800/60">
+                                         <span>
+                                           {(msg.poll.options || []).reduce((sum, o) => {
+                                             const vList = Array.isArray(o.votedUsers) ? o.votedUsers : (o.selected ? [user?.uid || 'guest'] : []);
+                                             return sum + (vList.length || o.votes || 0);
+                                           }, 0)} Total Votes
+                                         </span>
+
+                                         <button
+                                           type="button"
+                                           onClick={(e) => { e.stopPropagation(); setViewVotesPoll(msg.poll); }}
+                                           className="flex items-center gap-1 text-[11px] font-bold text-violet-400 hover:text-violet-300 transition-colors cursor-pointer"
+                                         >
+                                           <Users className="w-3.5 h-3.5" />
+                                           <span>View Votes</span>
+                                         </button>
                                        </div>
                                      </div>
                                    )}
 
-                                   {/* Message Text (Hidden if it's a shared post to prevent duplicate raw text & URLs) */}
-                                   {msg.text && !msg.isSharedPost && !msg.sharedPostData && !msg.text.startsWith('Shared post by') && (
+                                   {/* Message Text (Hidden if it's a shared post or poll to prevent duplicate text) */}
+                                   {msg.text && !msg.isSharedPost && !msg.sharedPostData && !msg.text.startsWith('Shared post by') && !msg.poll && msg.type !== 'poll' && (
                                      <span className="text-[13.5px] leading-snug break-words font-normal">
                                        {msg.text}
                                      </span>
@@ -3992,7 +4097,7 @@ export default function Messages() {
                     {pollOptions.length > 2 && (
                       <button
                         type="button"
-                        onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
+                onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
                         className="p-2.5 rounded-2xl bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-rose-400 transition-colors cursor-pointer"
                         title="Remove option"
                       >
@@ -4020,6 +4125,71 @@ export default function Messages() {
               <button type="submit" disabled={!pollQuestion.trim() || pollOptions.filter(o => o.trim()).length < 2} className="flex-1 rounded-2xl py-3 text-xs font-bold bg-white text-neutral-900 hover:bg-neutral-200 transition-all cursor-pointer shadow-md disabled:opacity-50">Publish Poll</button>
             </div>
           </form>
+        </Modal>
+
+        {/* WhatsApp-Style Poll Votes Breakdown Modal */}
+        <Modal isOpen={Boolean(viewVotesPoll)} onClose={() => setViewVotesPoll(null)} title="Poll Votes Breakdown" size="md">
+          <div className="space-y-4 py-1">
+            <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-between">
+              <div className="min-w-0 pr-2">
+                <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider block">Question</span>
+                <h4 className="text-sm font-extrabold text-white mt-0.5 truncate">{viewVotesPoll?.question}</h4>
+              </div>
+              <span className="text-[10px] font-bold text-violet-300 px-2.5 py-1 rounded-full bg-violet-500/15 border border-violet-500/25 flex-shrink-0">
+                {(viewVotesPoll?.options || []).reduce((sum, o) => {
+                  const vList = Array.isArray(o.votedUserDetails) ? o.votedUserDetails : (Array.isArray(o.votedUsers) ? o.votedUsers : []);
+                  return sum + (vList.length || o.votes || 0);
+                }, 0)} Total Votes
+              </span>
+            </div>
+
+            <div className="space-y-3 max-h-96 overflow-y-auto pr-1 scrollbar-thin">
+              {viewVotesPoll?.options?.map((opt, idx) => {
+                const voters = (Array.isArray(opt.votedUserDetails) && opt.votedUserDetails.length > 0)
+                  ? opt.votedUserDetails
+                  : (Array.isArray(opt.votedUsers) && opt.votedUsers.length > 0
+                      ? opt.votedUsers.map(u => ({ uid: u, name: usersMap[u]?.name || (u === user?.uid ? user?.name : 'Student'), avatar: usersMap[u]?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u}` }))
+                      : (opt.votes > 0
+                          ? Array.from({ length: opt.votes }).map((_, i) => ({ uid: `v_${i}`, name: i === 0 && user?.name ? user.name : `Student ${i + 1}`, avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${(user?.email || 's') + i}` }))
+                          : []));
+
+                return (
+                  <div key={idx} className="p-3 rounded-2xl bg-neutral-900/90 border border-neutral-800 space-y-2">
+                    <div className="flex items-center justify-between font-bold text-xs">
+                      <span className="text-white font-extrabold">{opt.text}</span>
+                      <span className="text-neutral-400 font-mono text-[11px]">{voters.length} {voters.length === 1 ? 'vote' : 'votes'}</span>
+                    </div>
+
+                    {voters.length > 0 ? (
+                      <div className="space-y-1.5 pt-1">
+                        {voters.map((voter, vIdx) => (
+                          <div key={vIdx} className="flex items-center justify-between p-2 rounded-xl bg-neutral-950/70 border border-neutral-800/60 text-xs">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <img
+                                src={voter.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(voter.name || 'Student')}`}
+                                alt={voter.name}
+                                className="w-7 h-7 rounded-full object-cover border border-neutral-700 flex-shrink-0"
+                              />
+                              <span className="font-bold text-neutral-200 truncate">{voter.name || 'Student'}</span>
+                            </div>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400 fill-emerald-400/20 flex-shrink-0" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-neutral-500 italic px-1">No votes for this option yet.</p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-2 border-t border-neutral-800 flex justify-end">
+              <Button variant="secondary" onClick={() => setViewVotesPoll(null)} className="rounded-2xl px-5 text-xs font-semibold">
+                Close
+              </Button>
+            </div>
+          </div>
         </Modal>
       </AnimatePresence>
     </div>

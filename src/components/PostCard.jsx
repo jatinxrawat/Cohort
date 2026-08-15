@@ -26,7 +26,9 @@ import {
   Camera,
   Globe,
   GraduationCap,
-  MessageSquare
+  MessageSquare,
+  Users,
+  CheckCircle2
 } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
@@ -133,6 +135,9 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted, showAu
     (post.author?.username || '').toLowerCase() === 'cohort' ||
     post.authorUid === 'cohort_official' ||
     post.author?.uid === 'cohort_official';
+
+  // WhatsApp-style Poll Votes Breakdown Modal state
+  const [viewVotesPoll, setViewVotesPoll] = useState(null);
 
   // Real-time resolution of post author profile from Firestore
   const [liveAuthorProfile, setLiveAuthorProfile] = useState(null);
@@ -1004,6 +1009,11 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted, showAu
               const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
               const hasVoted = post.poll.votedUsers?.includes(user?.uid);
               const isMyChoice = post.poll.userChoices?.[user?.uid] === idx;
+              const voterDetails = opt.votedUserDetails || (post.poll.votedUsers || []).map(uid => ({
+                uid,
+                name: (uid === user?.uid ? user?.name : 'Student'),
+                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${uid}`
+              }));
 
               return (
                 <button
@@ -1014,9 +1024,24 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted, showAu
                     const votedUsers = post.poll.votedUsers || [];
                     if (votedUsers.includes(user.uid)) return;
 
-                    const updatedOptions = post.poll.options.map((o, i) =>
-                      i === idx ? { ...o, votes: (o.votes || 0) + 1 } : o
-                    );
+                    const myUserObj = {
+                      uid: user.uid,
+                      name: user.name || user.email?.split('@')[0] || 'Student',
+                      avatar: user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.email || 'user')}`
+                    };
+
+                    const updatedOptions = post.poll.options.map((o, i) => {
+                      if (i === idx) {
+                        const currentDetails = Array.isArray(o.votedUserDetails) ? o.votedUserDetails : [];
+                        return {
+                          ...o,
+                          votes: (o.votes || 0) + 1,
+                          votedUserDetails: [...currentDetails, myUserObj]
+                        };
+                      }
+                      return o;
+                    });
+
                     const updatedPoll = {
                       ...post.poll,
                       totalVotes: (post.poll.totalVotes || 0) + 1,
@@ -1024,6 +1049,7 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted, showAu
                       votedUsers: [...votedUsers, user.uid],
                       userChoices: { ...(post.poll.userChoices || {}), [user.uid]: idx }
                     };
+
                     try {
                       await updateDoc(doc(db, 'posts', post.docId), { poll: updatedPoll });
                       showSuccess('Vote recorded!');
@@ -1045,21 +1071,46 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted, showAu
                   )}
                   <div className="relative z-10 flex items-center justify-between text-xs sm:text-sm">
                     <span className="truncate pr-2">{opt.text}</span>
-                    {hasVoted && (
-                      <span className="font-mono font-bold flex-shrink-0 text-xs">
-                        {pct}% ({votes})
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {voterDetails.length > 0 && (
+                        <div className="flex items-center -space-x-1.5 overflow-hidden">
+                          {voterDetails.slice(0, 3).map((voter, vIdx) => (
+                            <img
+                              key={vIdx}
+                              src={voter.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${voter.name}`}
+                              alt={voter.name}
+                              title={voter.name}
+                              className="w-4 h-4 rounded-full ring-1 ring-neutral-800 object-cover"
+                            />
+                          ))}
+                        </div>
+                      )}
+                      {hasVoted && (
+                        <span className="font-mono font-bold text-xs">
+                          {pct}% ({votes})
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </button>
               );
             })}
           </div>
-          <div className="text-[11px] font-medium text-neutral-400 dark:text-neutral-500 flex items-center justify-between">
+          <div className="text-[11px] font-medium text-neutral-400 dark:text-neutral-500 flex items-center justify-between pt-1 border-t border-neutral-100 dark:border-neutral-800/80">
             <span>{post.poll.totalVotes || 0} votes</span>
-            {post.poll.votedUsers?.includes(user?.uid) && (
-              <span className="text-purple-500 dark:text-purple-400 font-semibold">✓ Voted</span>
-            )}
+            <div className="flex items-center gap-3">
+              {post.poll.votedUsers?.includes(user?.uid) && (
+                <span className="text-purple-500 dark:text-purple-400 font-semibold">✓ Voted</span>
+              )}
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setViewVotesPoll(post.poll); }}
+                className="flex items-center gap-1 text-sky-400 font-bold hover:underline cursor-pointer"
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>View Votes</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1665,6 +1716,68 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted, showAu
         shareUrl={`https://cohortnow.online/post/${post.id}`}
         title={`Post by ${post.author?.name || 'Cohort Student'}`}
       />
+
+      {/* WhatsApp-Style Poll Votes Breakdown Modal */}
+      <Modal isOpen={Boolean(viewVotesPoll)} onClose={() => setViewVotesPoll(null)} title="Poll Votes Breakdown" size="md">
+        <div className="space-y-4 py-1">
+          <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-between">
+            <div className="min-w-0 pr-2">
+              <span className="text-[10px] font-bold text-sky-400 uppercase tracking-wider block">Question</span>
+              <h4 className="text-sm font-extrabold text-white mt-0.5 truncate">{viewVotesPoll?.question}</h4>
+            </div>
+            <span className="text-[10px] font-bold text-sky-300 px-2.5 py-1 rounded-full bg-sky-500/15 border border-sky-500/25 flex-shrink-0">
+              {viewVotesPoll?.totalVotes || 0} Total Votes
+            </span>
+          </div>
+
+          <div className="space-y-3 max-h-96 overflow-y-auto pr-1 scrollbar-thin">
+            {viewVotesPoll?.options?.map((opt, idx) => {
+              const voters = (Array.isArray(opt.votedUserDetails) && opt.votedUserDetails.length > 0)
+                ? opt.votedUserDetails
+                : ((viewVotesPoll.votedUsers || []).filter(uid => viewVotesPoll.userChoices?.[uid] === idx).length > 0
+                    ? (viewVotesPoll.votedUsers || []).filter(uid => viewVotesPoll.userChoices?.[uid] === idx).map(uid => ({ uid, name: uid === user?.uid ? (user?.name || 'Student') : 'Student', avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${uid}` }))
+                    : (opt.votes > 0
+                        ? Array.from({ length: opt.votes }).map((_, i) => ({ uid: `v_${i}`, name: i === 0 && user?.name ? user.name : `Student ${i + 1}`, avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${(user?.email || 's') + i}` }))
+                        : []));
+
+              return (
+                <div key={idx} className="p-3 rounded-2xl bg-neutral-900/90 border border-neutral-800 space-y-2">
+                  <div className="flex items-center justify-between font-bold text-xs">
+                    <span className="text-white font-extrabold">{opt.text}</span>
+                    <span className="text-neutral-400 font-mono text-[11px]">{voters.length} {voters.length === 1 ? 'vote' : 'votes'}</span>
+                  </div>
+
+                  {voters.length > 0 ? (
+                    <div className="space-y-1.5 pt-1">
+                      {voters.map((voter, vIdx) => (
+                        <div key={vIdx} className="flex items-center justify-between p-2 rounded-xl bg-neutral-950/70 border border-neutral-800/60 text-xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <img
+                              src={voter.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(voter.name || 'Student')}`}
+                              alt={voter.name}
+                              className="w-7 h-7 rounded-full object-cover border border-neutral-700 flex-shrink-0"
+                            />
+                            <span className="font-bold text-neutral-200 truncate">{voter.name || 'Student'}</span>
+                          </div>
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400 fill-emerald-400/20 flex-shrink-0" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-neutral-500 italic px-1">No votes for this option yet.</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="pt-2 border-t border-neutral-800 flex justify-end">
+            <Button variant="secondary" onClick={() => setViewVotesPoll(null)} className="rounded-2xl px-5 text-xs font-semibold">
+              Close
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </Card>
   );
 };

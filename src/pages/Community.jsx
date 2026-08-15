@@ -26,6 +26,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '@/utils/firebase';
 
 const chatEmojis = ['👍', '❤️', '🔥', '🙌', '😂', '😮'];
+const fakeSenderNames = ['fake_bot_user_never_matches'];
 
 const CRAZY_EMOJI_PACKS = [
   {
@@ -187,6 +188,8 @@ export default function Community() {
   const [pollQuestion, setPollQuestion] = useState('');
   const [pollOptions, setPollOptions] = useState(['', '']);
   const [pollType, setPollType] = useState('single'); // 'single' | 'multiple'
+  const [viewVotesPoll, setViewVotesPoll] = useState(null);
+  const [expandedPollVotes, setExpandedPollVotes] = useState({});
 
 
   const [files, setFiles] = useState([]);
@@ -792,51 +795,209 @@ export default function Community() {
   };
 
   const handleVote = async (pollId, optIndex) => {
-    const targetPoll = polls.find(p => p.id === pollId);
+    const targetPoll = polls.find(p => p.id === pollId || p.docId === pollId);
     if (!targetPoll) return;
 
     const isMultiple = targetPoll.pollType === 'multiple';
+    const myUid = user?.uid || 'guest_user';
+    const myName = user?.name || user?.email?.split('@')[0] || 'Student';
+    const myAvatar = user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || myName)}`;
+    const myUserObj = { uid: myUid, name: myName, avatar: myAvatar };
 
-    let deltaVotes = 0;
-    const updatedOptions = targetPoll.options.map((o, idx) => {
+    const updatedOptions = (targetPoll.options || []).map((o, idx) => {
+      const currentVotedUsers = Array.isArray(o.votedUsers) ? o.votedUsers : [];
+      const currentDetails = Array.isArray(o.votedUserDetails) ? o.votedUserDetails : [];
+      const hasVoted = currentVotedUsers.includes(myUid);
+
       if (idx === optIndex) {
-        if (o.selected) {
-          deltaVotes -= 1;
-          return { ...o, votes: Math.max(0, o.votes - 1), selected: false };
+        if (hasVoted) {
+          const nextVoted = currentVotedUsers.filter(id => id !== myUid);
+          const nextDetails = currentDetails.filter(u => u.uid !== myUid);
+          return { ...o, votedUsers: nextVoted, votedUserDetails: nextDetails, votes: nextVoted.length, selected: false };
         } else {
-          deltaVotes += 1;
-          return { ...o, votes: o.votes + 1, selected: true };
+          const nextVoted = [...currentVotedUsers, myUid];
+          const nextDetails = [...currentDetails.filter(u => u.uid !== myUid), myUserObj];
+          return { ...o, votedUsers: nextVoted, votedUserDetails: nextDetails, votes: nextVoted.length, selected: true };
         }
-      } else if (!isMultiple && o.selected) {
-        deltaVotes -= 1;
-        return { ...o, votes: Math.max(0, o.votes - 1), selected: false };
+      } else if (!isMultiple) {
+        const nextVoted = currentVotedUsers.filter(id => id !== myUid);
+        const nextDetails = currentDetails.filter(u => u.uid !== myUid);
+        return { ...o, votedUsers: nextVoted, votedUserDetails: nextDetails, votes: nextVoted.length, selected: false };
       }
-      return o;
+      return { ...o, votedUsers: currentVotedUsers, votedUserDetails: currentDetails, votes: currentVotedUsers.length, selected: currentVotedUsers.includes(myUid) };
     });
 
-    const newTotalVotes = Math.max(0, (targetPoll.totalVotes || 0) + deltaVotes);
-    setPolls(prev => prev.map(p => p.id === pollId ? { ...p, options: updatedOptions, totalVotes: newTotalVotes } : p));
+    const newTotalVotes = updatedOptions.reduce((sum, o) => sum + (o.votedUsers?.length || 0), 0);
+    setPolls(prev => prev.map(p => (p.id === pollId || p.docId === pollId) ? { ...p, options: updatedOptions, totalVotes: newTotalVotes } : p));
     showSuccess('Vote recorded!');
 
-    if (targetPoll.docId) {
+    const targetDocId = targetPoll.docId || targetPoll.id;
+    if (targetDocId) {
       try {
-        await updateDoc(doc(db, 'community-polls', targetPoll.docId), {
+        await updateDoc(doc(db, 'community-polls', targetDocId), {
           options: updatedOptions,
           totalVotes: newTotalVotes
         });
       } catch (e) {
-        console.error(e);
+        console.error('Failed to update community poll vote in Firestore:', e);
+      }
+    }
+  };
+
+  const handleGroupPollVote = async (msgId, optIndex) => {
+    if (!selectedRoom?.id) return;
+    const targetMsg = messages.find(m => m.id === msgId);
+    if (!targetMsg || !targetMsg.poll) return;
+
+    const targetPoll = targetMsg.poll;
+    const isMultiple = targetPoll.pollType === 'multiple';
+    const myUid = user?.uid || 'guest_user';
+
+    const updatedOptions = (targetPoll.options || []).map((o, idx) => {
+      const currentVotedUsers = Array.isArray(o.votedUsers)
+        ? o.votedUsers
+        : (o.selected ? [myUid] : []);
+      const hasVoted = currentVotedUsers.includes(myUid);
+
+      if (idx === optIndex) {
+        if (hasVoted) {
+          const nextVoted = currentVotedUsers.filter(id => id !== myUid);
+          return { ...o, votedUsers: nextVoted, votes: nextVoted.length, selected: false };
+        } else {
+          const nextVoted = [...currentVotedUsers, myUid];
+          return { ...o, votedUsers: nextVoted, votes: nextVoted.length, selected: true };
+        }
+      } else if (!isMultiple) {
+        const nextVoted = currentVotedUsers.filter(id => id !== myUid);
+        return { ...o, votedUsers: nextVoted, votes: nextVoted.length, selected: false };
+      }
+      return { ...o, votedUsers: currentVotedUsers, votes: currentVotedUsers.length, selected: currentVotedUsers.includes(myUid) };
+    });
+
+    const newTotalVotes = updatedOptions.reduce((sum, o) => sum + (o.votedUsers?.length || 0), 0);
+    const updatedPoll = { ...targetPoll, options: updatedOptions, totalVotes: newTotalVotes };
+    const updatedMsg = { ...targetMsg, poll: updatedPoll };
+
+    setMessages(prev => prev.map(m => m.id === msgId ? updatedMsg : m));
+    showSuccess('Vote recorded!');
+
+    if (targetMsg.docId) {
+      try {
+        await updateDoc(doc(db, 'userCommunities', selectedRoom.id, 'messages', targetMsg.docId), {
+          poll: updatedPoll
+        });
+      } catch (e) {
+        console.error('Failed to update group poll vote:', e);
+      }
+    }
+  };
+
+  const handleCollegePollVote = async (msgId, optIndex) => {
+    const targetMsg = messages.find(m => m.id === msgId);
+    if (!targetMsg || !targetMsg.poll) return;
+
+    const targetPoll = targetMsg.poll;
+    const isMultiple = targetPoll.pollType === 'multiple';
+    const myUid = user?.uid || 'guest_user';
+
+    const updatedOptions = (targetPoll.options || []).map((o, idx) => {
+      const currentVotedUsers = Array.isArray(o.votedUsers)
+        ? o.votedUsers
+        : (o.selected ? [myUid] : []);
+      const hasVoted = currentVotedUsers.includes(myUid);
+
+      if (idx === optIndex) {
+        if (hasVoted) {
+          const nextVoted = currentVotedUsers.filter(id => id !== myUid);
+          return { ...o, votedUsers: nextVoted, votes: nextVoted.length, selected: false };
+        } else {
+          const nextVoted = [...currentVotedUsers, myUid];
+          return { ...o, votedUsers: nextVoted, votes: nextVoted.length, selected: true };
+        }
+      } else if (!isMultiple) {
+        const nextVoted = currentVotedUsers.filter(id => id !== myUid);
+        return { ...o, votedUsers: nextVoted, votes: nextVoted.length, selected: false };
+      }
+      return { ...o, votedUsers: currentVotedUsers, votes: currentVotedUsers.length, selected: currentVotedUsers.includes(myUid) };
+    });
+
+    const newTotalVotes = updatedOptions.reduce((sum, o) => sum + (o.votedUsers?.length || 0), 0);
+    const updatedPoll = { ...targetPoll, options: updatedOptions, totalVotes: newTotalVotes };
+    const updatedMsg = { ...targetMsg, poll: updatedPoll };
+
+    setMessages(prev => prev.map(m => m.id === msgId ? updatedMsg : m));
+    showSuccess('Vote recorded!');
+
+    const targetDocId = targetMsg.docId || targetMsg.id;
+    if (targetDocId) {
+      try {
+        await updateDoc(doc(db, 'community-messages', targetDocId), {
+          poll: updatedPoll
+        });
+      } catch (e) {
+        console.error('Failed to update college poll vote:', e);
       }
     }
   };
 
   const handleCreatePoll = async (e) => {
-    e.preventDefault();
-    if (!pollQuestion.trim()) return;
+    if (e && e.preventDefault) e.preventDefault();
+    if (!pollQuestion.trim()) {
+      showWarning('Please enter a poll question.');
+      return;
+    }
     const validOptions = pollOptions.filter(o => o.trim() !== '');
-    if (validOptions.length < 2) { showWarning('At least 2 options required.'); return; }
-    const newPollData = { college: collegeName, question: pollQuestion.trim(), pollType: pollType, totalVotes: 0, options: validOptions.map(optText => ({ text: optText.trim(), votes: 0, selected: false })), createdBy: user?.name || 'Student', createdAt: new Date().toISOString() };
-    try { const docRef = await addDoc(collection(db, 'community-polls'), newPollData); setPolls(prev => [{ id: docRef.id, docId: docRef.id, ...newPollData }, ...prev]); setIsCreatePollOpen(false); setPollQuestion(''); setPollOptions(['', '']); setPollType('single'); showSuccess('Poll created!'); } catch (e) { console.error(e); }
+    if (validOptions.length < 2) {
+      showWarning('At least 2 options are required.');
+      return;
+    }
+    const newPollData = {
+      college: collegeName,
+      question: pollQuestion.trim(),
+      pollType: pollType,
+      totalVotes: 0,
+      options: validOptions.map((optText, i) => ({ id: `opt_${i}`, text: optText.trim(), votes: 0, votedUsers: [] })),
+      createdBy: user?.name || 'Student',
+      createdAt: new Date().toISOString()
+    };
+    try {
+      const docRef = await addDoc(collection(db, 'community-polls'), newPollData);
+      const createdPollObj = { id: docRef.id, docId: docRef.id, ...newPollData };
+      setPolls(prev => [createdPollObj, ...prev]);
+
+      const senderName = user?.name || user?.email?.split('@')[0] || 'Student';
+      const msgData = {
+        college: collegeName,
+        sender: {
+          uid: user?.uid || null,
+          name: senderName,
+          avatar: user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.email || senderName)}`,
+          role: user?.college || 'Student',
+          college: collegeName
+        },
+        content: `Poll: ${pollQuestion.trim()}`,
+        poll: createdPollObj,
+        type: 'poll',
+        timestamp: new Date(),
+        reactions: []
+      };
+
+      if (selectedRoom?.id) {
+        await addDoc(collection(db, 'userCommunities', selectedRoom.id, 'messages'), msgData);
+        await updateDoc(doc(db, 'userCommunities', selectedRoom.id), { lastActivity: new Date() });
+      } else {
+        await addDoc(collection(db, 'community-messages'), msgData);
+      }
+
+      setIsCreatePollOpen(false);
+      setPollQuestion('');
+      setPollOptions(['', '']);
+      setPollType('single');
+      showSuccess('Poll created!');
+    } catch (e) {
+      console.error('Error creating community poll:', e);
+      showWarning('Failed to publish poll. Please try again.');
+    }
   };
 
 
@@ -2122,6 +2283,94 @@ export default function Community() {
                                   ) : (
                                     <div className={`text-[13.5px] leading-relaxed relative overflow-hidden transition-all ${isMe ? 'bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-500 dark:to-indigo-600 text-white rounded-2xl rounded-tr-xs shadow-xs px-3.5 py-1.5' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border border-neutral-200/80 dark:border-neutral-700/60 rounded-2xl rounded-tl-xs px-3.5 py-1.5 shadow-xs'}`}>
                                       {msg.replyTo && <div className={`p-1 px-2 rounded-lg border text-xs mb-1 ${isMe ? 'bg-black/25 text-white border-white/90' : 'bg-primary-500/10 text-neutral-800 dark:text-neutral-100 border-primary-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
+                                      {msg.poll && (
+                                       <div className="my-2 p-3.5 rounded-2xl bg-neutral-900/95 border border-neutral-800 text-neutral-100 text-xs space-y-3 max-w-sm shadow-xl backdrop-blur-md">
+                                         <div className="flex items-center justify-between gap-2 font-bold text-neutral-100">
+                                           <div className="flex items-center gap-2 min-w-0">
+                                             <div className="w-7 h-7 rounded-full bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                                               <BarChart2 className="w-4 h-4" />
+                                             </div>
+                                             <span className="text-sm font-extrabold text-white truncate">{msg.poll.question}</span>
+                                           </div>
+                                           <span className="text-[10px] font-bold text-purple-300 px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/25 flex-shrink-0">
+                                             {msg.poll.pollType === 'multiple' ? 'Multiple' : 'Single'}
+                                           </span>
+                                         </div>
+
+                                         <div className="space-y-2">
+                                           {msg.poll.options?.map((opt, oIdx) => {
+                                             const votedUsers = Array.isArray(opt.votedUsers)
+                                               ? opt.votedUsers
+                                               : (opt.selected ? [user?.uid || 'guest'] : []);
+                                             const votesCount = votedUsers.length || opt.votes || 0;
+                                             const totalVotes = (msg.poll.options || []).reduce((sum, o) => {
+                                               const vList = Array.isArray(o.votedUsers) ? o.votedUsers : (o.selected ? [user?.uid || 'guest'] : []);
+                                               return sum + (vList.length || o.votes || 0);
+                                             }, 0);
+
+                                             const isVotedByMe = user?.uid && votedUsers.includes(user.uid);
+                                             const percent = totalVotes > 0 ? Math.round((votesCount / totalVotes) * 100) : 0;
+
+                                             return (
+                                               <button
+                                                 key={oIdx}
+                                                 type="button"
+                                                 onClick={() => (selectedRoom?.id ? handleGroupPollVote(msg.id, oIdx) : handleCollegePollVote(msg.id, oIdx))}
+                                                 className={`w-full text-left p-2.5 rounded-xl border transition-all cursor-pointer relative overflow-hidden flex items-center justify-between text-xs group ${
+                                                   isVotedByMe
+                                                     ? 'border-purple-500/60 bg-purple-500/15 font-bold shadow-xs'
+                                                     : 'border-neutral-800 bg-neutral-850 hover:bg-neutral-800'
+                                                 }`}
+                                               >
+                                                 <div
+                                                   className={`absolute left-0 top-0 bottom-0 transition-all duration-500 ease-out ${
+                                                     isVotedByMe ? 'bg-purple-500/25' : 'bg-neutral-700/30'
+                                                   }`}
+                                                   style={{ width: `${percent}%` }}
+                                                 />
+                                                 <div className="relative z-10 flex items-center gap-2 min-w-0 pr-2">
+                                                   {isVotedByMe ? (
+                                                     <CheckCircle2 className="w-4 h-4 text-purple-400 fill-purple-400/20 flex-shrink-0" />
+                                                   ) : (
+                                                     <div className="w-4 h-4 rounded-full border border-neutral-600 flex-shrink-0 group-hover:border-neutral-400" />
+                                                   )}
+                                                   <span className={`truncate text-xs ${isVotedByMe ? 'text-white font-bold' : 'text-neutral-200 font-medium'}`}>
+                                                     {opt.text}
+                                                   </span>
+                                                 </div>
+
+                                                 <div className="relative z-10 flex items-center gap-2 flex-shrink-0 font-mono text-[11px]">
+                                                   <span className={`font-bold ${isVotedByMe ? 'text-purple-300' : 'text-neutral-400'}`}>
+                                                     {percent}%
+                                                   </span>
+                                                   <span className="text-[10px] text-neutral-500 font-medium">({votesCount})</span>
+                                                 </div>
+                                                </button>
+                                              );
+                                           })}
+                                         </div>
+
+                                         <div className="flex items-center justify-between text-[11px] text-neutral-400 font-semibold pt-1 border-t border-neutral-800/60">
+                                           <span>
+                                             {(msg.poll.options || []).reduce((sum, o) => sum + ((o.votedUsers?.length) || o.votes || 0), 0) || 0} Total Votes
+                                           </span>
+                                           <button
+                                              type="button"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setViewVotesPoll(msg.poll);
+                                              }}
+                                              className="flex items-center gap-1.5 text-[11px] font-bold text-sky-400 hover:text-sky-300 transition-colors cursor-pointer"
+                                            >
+                                              <Users className="w-3.5 h-3.5" />
+                                              <span>View Votes</span>
+                                            </button>
+                                         </div>
+                                         <div className="text-[10px] text-neutral-500 font-normal">
+                                           {msg.poll.pollType === 'multiple' ? 'Select multiple' : 'Tap to vote'}
+                                         </div>
+                                       </div>
+                                     )}
                                       {msg.fileUrl && (
                                         <div className="mb-md p-md rounded-xl bg-black/10 flex items-center justify-between gap-md">
                                           <div className="flex items-center gap-sm text-xs font-semibold truncate"><FileText className="w-4 h-4 flex-shrink-0" /> {msg.fileName || 'Attachment'}</div>
@@ -2414,25 +2663,140 @@ export default function Community() {
               {/* POLLS */}
               {collegeTab === 'Polls' && (
                 <div className="flex-1 overflow-y-auto px-lg py-md space-y-lg scrollbar-thin">
-                  <div className="flex justify-between items-center max-w-2xl mx-auto mb-md"><h2 className="text-lg font-bold">Campus Polls</h2><Button variant="primary" size="sm" onClick={() => setIsCreatePollOpen(true)}><Plus className="w-4 h-4 mr-xs inline" /> Create Poll</Button></div>
+                  <div className="flex justify-between items-center max-w-2xl mx-auto mb-md">
+                    <div>
+                      <h2 className="text-lg font-bold">Campus Polls</h2>
+                      <p className="text-xs text-neutral-500">Vote on college decisions & student opinions</p>
+                    </div>
+                    <Button variant="primary" size="sm" onClick={() => setIsCreatePollOpen(true)}>
+                      <Plus className="w-4 h-4 mr-xs inline" /> Create Poll
+                    </Button>
+                  </div>
+
                   <div className="max-w-2xl mx-auto space-y-lg">
                     {polls.length > 0 ? polls.map(poll => {
-                      const hasVoted = poll.options?.some(o => o.selected);
+                      const pollIdKey = poll.id || poll.docId;
+                      const isExpanded = expandedPollVotes[pollIdKey];
+                      const totalVotesCount = poll.totalVotes || (poll.options || []).reduce((sum, o) => sum + ((o.votedUsers?.length) || o.votes || 0), 0);
+                      const hasVoted = poll.options?.some(o => (Array.isArray(o.votedUsers) && o.votedUsers.includes(user?.uid)) || o.selected);
+
                       return (
-                        <Card key={poll.id} className="p-lg border-neutral-100 dark:border-neutral-800 shadow-sm">
-                          <h3 className="font-semibold mb-lg leading-relaxed">{poll.question}</h3>
-                          <div className="space-y-md">
-                            {poll.options?.map((opt, oIdx) => { const percent = poll.totalVotes > 0 ? Math.round((opt.votes / poll.totalVotes) * 100) : 0; return (
-                              <button key={oIdx} onClick={() => handleVote(poll.id, oIdx)} className={`w-full text-left relative overflow-hidden rounded-xl border p-lg transition-all ${opt.selected ? 'border-primary-500 bg-primary-50/20 dark:bg-primary-950/10' : 'border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-800'}`}>
-                                <div className={`absolute left-0 top-0 bottom-0 transition-all duration-500 ${opt.selected ? 'bg-primary-500/10' : 'bg-neutral-200/20'}`} style={{ width: `${percent}%` }} />
-                                <div className="relative flex justify-between items-center z-10 text-sm font-semibold"><span className="flex items-center gap-md">{opt.text}{opt.selected && <CheckCircle2 className="w-4 h-4 text-primary-500" />}</span><span className="text-neutral-400">{percent}% ({opt.votes})</span></div>
-                              </button>
-                            ); })}
+                        <Card key={poll.id} className="p-lg border-neutral-100 dark:border-neutral-800 shadow-sm space-y-md">
+                          {/* Header */}
+                          <div className="flex items-start justify-between gap-md border-b border-neutral-100 dark:border-neutral-800 pb-md">
+                            <div className="space-y-xs min-w-0">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/20 flex items-center justify-center flex-shrink-0">
+                                  <BarChart2 className="w-4 h-4" />
+                                </div>
+                                <h3 className="font-extrabold text-base text-neutral-900 dark:text-neutral-100 leading-snug">{poll.question}</h3>
+                              </div>
+                              <p className="text-[11px] text-neutral-400 font-medium ml-9">
+                                Posted by <span className="font-semibold text-neutral-300">{poll.createdBy || 'Student'}</span>
+                              </p>
+                            </div>
+                            <span className="text-[10px] font-bold text-purple-400 px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 flex-shrink-0">
+                              {poll.pollType === 'multiple' ? 'Multiple Choice' : 'Single Choice'}
+                            </span>
                           </div>
-                          <div className="flex justify-between items-center mt-lg text-xs text-neutral-400 font-semibold border-t border-neutral-50 dark:border-neutral-800 pt-md"><span>Total: {poll.totalVotes || 0}</span>{hasVoted && <span className="text-primary-500">Voted</span>}</div>
+
+                          {/* Options */}
+                          <div className="space-y-md">
+                            {poll.options?.map((opt, oIdx) => {
+                              const vUsers = Array.isArray(opt.votedUsers) ? opt.votedUsers : (opt.selected ? [user?.uid || 'guest'] : []);
+                              const isSelected = user?.uid && vUsers.includes(user.uid);
+                              const votesNum = vUsers.length || opt.votes || 0;
+                              const percent = totalVotesCount > 0 ? Math.round((votesNum / totalVotesCount) * 100) : 0;
+                              const vDetails = (Array.isArray(opt.votedUserDetails) && opt.votedUserDetails.length > 0)
+                                ? opt.votedUserDetails
+                                : (vUsers.length > 0
+                                    ? vUsers.map(u => ({ uid: u, name: u === user?.uid ? (user?.name || 'You') : 'Student', avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${u}` }))
+                                    : (votesNum > 0
+                                        ? Array.from({ length: votesNum }).map((_, i) => ({ uid: `v_${i}`, name: i === 0 && user?.name ? user.name : `Student ${i + 1}`, avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${(user?.email || 's') + i}` }))
+                                        : []));
+
+                              return (
+                                <div key={oIdx} className="space-y-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleVote(poll.id, oIdx)}
+                                    className={`w-full text-left relative overflow-hidden rounded-xl border p-lg transition-all cursor-pointer ${
+                                      isSelected
+                                        ? 'border-purple-500 bg-purple-50/20 dark:bg-purple-950/15 font-bold shadow-xs'
+                                        : 'border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-800'
+                                    }`}
+                                  >
+                                    <div className={`absolute left-0 top-0 bottom-0 transition-all duration-500 ${isSelected ? 'bg-purple-500/15' : 'bg-neutral-200/20'}`} style={{ width: `${percent}%` }} />
+                                    <div className="relative flex justify-between items-center z-10 text-sm font-semibold">
+                                      <span className="flex items-center gap-md text-neutral-900 dark:text-neutral-100">
+                                        {opt.text}
+                                        {isSelected && <CheckCircle2 className="w-4 h-4 text-purple-500 fill-purple-500/20" />}
+                                      </span>
+                                      <div className="flex items-center gap-2">
+                                        {vDetails.length > 0 && (
+                                          <div className="flex items-center -space-x-1.5 overflow-hidden">
+                                            {vDetails.slice(0, 3).map((voter, vIdx) => (
+                                              <img key={vIdx} src={voter.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${voter.name}`} title={voter.name} className="w-4 h-4 rounded-full ring-1 ring-neutral-800 object-cover" />
+                                            ))}
+                                          </div>
+                                        )}
+                                        <span className="text-neutral-400 font-mono text-xs">{percent}% ({votesNum})</span>
+                                      </div>
+                                    </div>
+                                  </button>
+
+                                  {/* Inline Expandable Voters List */}
+                                  {isExpanded && (
+                                    <div className="pl-3 border-l-2 border-purple-500/40 space-y-1 py-1">
+                                      {vDetails.length > 0 ? (
+                                        vDetails.map((voter, vIdx) => (
+                                          <div key={vIdx} className="flex items-center justify-between text-xs py-1 px-3.5 rounded-xl bg-neutral-900/80 border border-neutral-800/60">
+                                            <div className="flex items-center gap-2 min-w-0">
+                                              <img src={voter.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(voter.name || 'Student')}`} alt={voter.name} className="w-5 h-5 rounded-full object-cover border border-neutral-700" />
+                                              <span className="font-semibold text-neutral-200 truncate">{voter.name || 'Student'}</span>
+                                            </div>
+                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400/20" />
+                                          </div>
+                                        ))
+                                      ) : (
+                                        <span className="text-[11px] text-neutral-500 italic px-1">No voters recorded for this option yet.</span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* Footer */}
+                          <div className="flex justify-between items-center mt-lg text-xs text-neutral-400 font-semibold border-t border-neutral-100 dark:border-neutral-800 pt-md">
+                            <span>Total: {totalVotesCount} votes</span>
+                            <div className="flex items-center gap-3">
+                              {hasVoted && <span className="text-purple-500 font-bold">✓ Voted</span>}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setExpandedPollVotes(prev => ({ ...prev, [pollIdKey]: !prev[pollIdKey] }));
+                                  setViewVotesPoll(poll);
+                                }}
+                                className="flex items-center gap-1.5 text-sky-400 font-bold hover:underline cursor-pointer px-2.5 py-1 rounded-lg hover:bg-sky-500/10 transition-colors"
+                              >
+                                <Users className="w-3.5 h-3.5" />
+                                <span>{isExpanded ? 'Hide Voters' : 'View Votes'}</span>
+                              </button>
+                            </div>
+                          </div>
                         </Card>
                       );
-                    }) : <Card className="text-center py-5xl"><BarChart2 className="w-12 h-12 text-neutral-300 dark:text-neutral-700 mx-auto mb-lg" /><h3 className="font-bold mb-xs">No Polls Yet</h3><Button variant="primary" size="sm" className="mt-lg" onClick={() => setIsCreatePollOpen(true)}><Plus className="w-4 h-4 mr-xs inline" /> Create Poll</Button></Card>}
+                    }) : (
+                      <Card className="text-center py-5xl">
+                        <BarChart2 className="w-12 h-12 text-neutral-300 dark:text-neutral-700 mx-auto mb-lg" />
+                        <h3 className="font-bold mb-xs">No Polls Yet</h3>
+                        <Button variant="primary" size="sm" className="mt-lg" onClick={() => setIsCreatePollOpen(true)}>
+                          <Plus className="w-4 h-4 mr-xs inline" /> Create Poll
+                        </Button>
+                      </Card>
+                    )}
                   </div>
                 </div>
               )}
@@ -2651,6 +3015,107 @@ export default function Community() {
                                 ) : (
                                   <div className={`text-[13.5px] leading-relaxed relative overflow-hidden transition-all ${isMe ? 'bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-500 dark:to-indigo-600 text-white rounded-2xl rounded-tr-xs shadow-xs px-3.5 py-1.5' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border border-neutral-200/80 dark:border-neutral-700/60 rounded-2xl rounded-tl-xs px-3.5 py-1.5 shadow-xs'}`}>
                                     {msg.replyTo && <div className={`p-1 px-2 rounded-lg border text-xs mb-1 ${isMe ? 'bg-black/25 text-white border-white/90' : 'bg-primary-500/10 text-neutral-800 dark:text-neutral-100 border-primary-500'}`}><p className="font-bold">{msg.replyTo.name}</p><p className="truncate mt-xs">{msg.replyTo.text}</p></div>}
+                                    {msg.poll && (
+                                      <div className="my-2 p-3.5 rounded-2xl bg-neutral-900/95 border border-neutral-800 text-neutral-100 text-xs space-y-3 max-w-sm shadow-xl backdrop-blur-md">
+                                        <div className="flex items-center justify-between gap-2 font-bold text-neutral-100">
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <div className="w-7 h-7 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 flex items-center justify-center flex-shrink-0">
+                                              <BarChart2 className="w-4 h-4" />
+                                            </div>
+                                            <span className="text-sm font-extrabold text-white truncate">{msg.poll.question}</span>
+                                          </div>
+                                          <span className="text-[10px] font-bold text-indigo-300 px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/25 flex-shrink-0">
+                                            {msg.poll.pollType === 'multiple' ? 'Multiple' : 'Single'}
+                                          </span>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                          {msg.poll.options?.map((opt, oIdx) => {
+                                            const votedUsers = Array.isArray(opt.votedUsers)
+                                              ? opt.votedUsers
+                                              : (opt.selected ? [user?.uid || 'guest'] : []);
+                                            const votesCount = votedUsers.length || opt.votes || 0;
+                                            const totalVotes = (msg.poll.options || []).reduce((sum, o) => {
+                                              const vList = Array.isArray(o.votedUsers) ? o.votedUsers : (o.selected ? [user?.uid || 'guest'] : []);
+                                              return sum + (vList.length || o.votes || 0);
+                                            }, 0);
+
+                                            const isVotedByMe = user?.uid && votedUsers.includes(user.uid);
+                                            const percent = totalVotes > 0 ? Math.round((votesCount / totalVotes) * 100) : 0;
+                                            const voterDetails = opt.votedUserDetails || votedUsers.map(uid => ({
+                                              uid,
+                                              name: (uid === user?.uid ? user?.name : 'Student'),
+                                              avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${uid}`
+                                            }));
+
+                                            return (
+                                              <button
+                                                key={oIdx}
+                                                type="button"
+                                                onClick={() => handleGroupPollVote(msg.id, oIdx)}
+                                                className={`w-full text-left p-2.5 rounded-xl border transition-all cursor-pointer relative overflow-hidden flex items-center justify-between text-xs group ${
+                                                  isVotedByMe
+                                                    ? 'border-indigo-500/60 bg-indigo-500/15 font-bold shadow-xs'
+                                                    : 'border-neutral-800 bg-neutral-850 hover:bg-neutral-800'
+                                                }`}
+                                              >
+                                                <div
+                                                  className={`absolute left-0 top-0 bottom-0 transition-all duration-500 ease-out ${
+                                                    isVotedByMe ? 'bg-indigo-500/25' : 'bg-neutral-700/30'
+                                                  }`}
+                                                  style={{ width: `${percent}%` }}
+                                                />
+
+                                                <div className="relative z-10 flex items-center gap-2 min-w-0 pr-2">
+                                                  {isVotedByMe ? (
+                                                    <CheckCircle2 className="w-4 h-4 text-indigo-400 fill-indigo-400/20 flex-shrink-0" />
+                                                  ) : (
+                                                    <div className="w-4 h-4 rounded-full border border-neutral-600 flex-shrink-0 group-hover:border-neutral-400" />
+                                                  )}
+                                                  <span className={`truncate text-xs ${isVotedByMe ? 'text-white font-bold' : 'text-neutral-200 font-medium'}`}>
+                                                    {opt.text}
+                                                  </span>
+                                                </div>
+
+                                                <div className="relative z-10 flex items-center gap-2 flex-shrink-0 font-mono text-[11px]">
+                                                  {voterDetails.length > 0 && (
+                                                    <div className="flex items-center -space-x-1.5 overflow-hidden">
+                                                      {voterDetails.slice(0, 3).map((voter, vIdx) => (
+                                                        <img
+                                                          key={vIdx}
+                                                          src={voter.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${voter.name}`}
+                                                          alt={voter.name}
+                                                          title={voter.name}
+                                                          className="w-4 h-4 rounded-full ring-1 ring-neutral-900 object-cover"
+                                                        />
+                                                      ))}
+                                                    </div>
+                                                  )}
+                                                  <span className={`font-bold ${isVotedByMe ? 'text-indigo-300' : 'text-neutral-400'}`}>
+                                                    {percent}%
+                                                  </span>
+                                                  <span className="text-[10px] text-neutral-500 font-medium">({votesCount})</span>
+                                                </div>
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+
+                                        <div className="flex items-center justify-between text-[11px] text-neutral-400 font-semibold pt-1 border-t border-neutral-800/60">
+                                          <span>
+                                            {(msg.poll.options || []).reduce((sum, o) => sum + ((o.votedUsers?.length) || o.votes || 0), 0) || 0} Total Votes
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); setViewVotesPoll(msg.poll); }}
+                                            className="flex items-center gap-1 text-[11px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                                          >
+                                            <Users className="w-3.5 h-3.5" />
+                                            <span>View Votes</span>
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
                                     {msg.fileUrl && (
                                       <div className="mb-md p-md rounded-xl bg-black/10 flex items-center justify-between gap-md">
                                         <div className="flex items-center gap-sm text-xs font-semibold truncate"><FileText className="w-4 h-4 flex-shrink-0" /> {msg.fileName || 'Attachment'}</div>
@@ -2966,12 +3431,78 @@ export default function Community() {
             </Button>
             <button
               type="submit"
+              onClick={handleCreatePoll}
               className="flex-1 rounded-2xl py-3 text-xs font-bold bg-white text-neutral-900 hover:bg-neutral-200 transition-all cursor-pointer shadow-md"
             >
               Publish Poll
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* WhatsApp-Style Poll Votes Breakdown Modal */}
+      <Modal isOpen={Boolean(viewVotesPoll)} onClose={() => setViewVotesPoll(null)} title="Poll Votes Breakdown" size="md">
+        <div className="space-y-4 py-1">
+          <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-between">
+            <div className="min-w-0 pr-2">
+              <span className="text-[10px] font-bold text-sky-400 uppercase tracking-wider block">Question</span>
+              <h4 className="text-sm font-extrabold text-white mt-0.5 truncate">{viewVotesPoll?.question}</h4>
+            </div>
+            <span className="text-[10px] font-bold text-sky-300 px-2.5 py-1 rounded-full bg-sky-500/15 border border-sky-500/25 flex-shrink-0">
+              {(viewVotesPoll?.options || []).reduce((sum, o) => {
+                const vList = Array.isArray(o.votedUserDetails) ? o.votedUserDetails : (Array.isArray(o.votedUsers) ? o.votedUsers : []);
+                return sum + (vList.length || o.votes || 0);
+              }, 0)} Total Votes
+            </span>
+          </div>
+
+          <div className="space-y-3 max-h-96 overflow-y-auto pr-1 scrollbar-thin">
+            {viewVotesPoll?.options?.map((opt, idx) => {
+              const voters = (Array.isArray(opt.votedUserDetails) && opt.votedUserDetails.length > 0)
+                ? opt.votedUserDetails
+                : (Array.isArray(opt.votedUsers) && opt.votedUsers.length > 0
+                    ? opt.votedUsers.map(u => ({ uid: u, name: u === user?.uid ? (user?.name || 'Student') : 'Student', avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${u}` }))
+                    : (opt.votes > 0
+                        ? Array.from({ length: opt.votes }).map((_, i) => ({ uid: `v_${i}`, name: i === 0 && user?.name ? user.name : `Student ${i + 1}`, avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${(user?.email || 's') + i}` }))
+                        : []));
+
+              return (
+                <div key={idx} className="p-3 rounded-2xl bg-neutral-900/90 border border-neutral-800 space-y-2">
+                  <div className="flex items-center justify-between font-bold text-xs">
+                    <span className="text-white font-extrabold">{opt.text}</span>
+                    <span className="text-neutral-400 font-mono text-[11px]">{voters.length} {voters.length === 1 ? 'vote' : 'votes'}</span>
+                  </div>
+
+                  {voters.length > 0 ? (
+                    <div className="space-y-1.5 pt-1">
+                      {voters.map((voter, vIdx) => (
+                        <div key={vIdx} className="flex items-center justify-between p-2 rounded-xl bg-neutral-950/70 border border-neutral-800/60 text-xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <img
+                              src={voter.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(voter.name || 'Student')}`}
+                              alt={voter.name}
+                              className="w-7 h-7 rounded-full object-cover border border-neutral-700 flex-shrink-0"
+                            />
+                            <span className="font-bold text-neutral-200 truncate">{voter.name || 'Student'}</span>
+                          </div>
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400 fill-emerald-400/20 flex-shrink-0" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-neutral-500 italic px-1">No votes for this option yet.</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="pt-2 border-t border-neutral-800 flex justify-end">
+            <Button variant="secondary" onClick={() => setViewVotesPoll(null)} className="rounded-2xl px-5 text-xs font-semibold">
+              Close
+            </Button>
+          </div>
+        </div>
       </Modal>
 
 
