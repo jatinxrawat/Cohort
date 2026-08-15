@@ -13,6 +13,19 @@ export default function CoffeeClub() {
   const [hasClapped, setHasClapped] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
+  // Subscribe to real-time claps from Firestore
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'uncutClaps', '3am-coffee-club'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (typeof data.count === 'number') {
+          setClaps(data.count);
+        }
+      }
+    });
+    return () => unsub();
+  }, []);
+
   useEffect(() => {
     const schema = {
       "@context": "https://schema.org",
@@ -31,10 +44,17 @@ export default function CoffeeClub() {
     return () => document.head.removeChild(script);
   }, []);
 
-  const handleClap = () => {
+  const handleClap = async () => {
     if (hasClapped) return;
-    setClaps(prev => prev + 1);
     setHasClapped(true);
+    localStorage.setItem('has_clapped_3am-coffee-club', 'true');
+
+    try {
+      const docRef = doc(db, 'uncutClaps', '3am-coffee-club');
+      await setDoc(docRef, { count: increment(1) }, { merge: true });
+    } catch (err) {
+      console.error("Failed to update clap in Firestore:", err);
+    }
   };
 
   const handleShare = () => {

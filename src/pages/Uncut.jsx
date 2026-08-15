@@ -27,9 +27,22 @@ import { useAuth } from '@/contexts/AuthContext';
 import BorderGlow from '@/components/BorderGlow';
 import SEO from '@/components/SEO';
 import { db } from '@/utils/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, onSnapshot, setDoc, getDoc, increment } from 'firebase/firestore';
 
 const MOCK_ARTICLES = [
+  {
+    id: 'seven-days-changed-us',
+    title: 'Seven Days that Changed us',
+    excerpt: 'Some things teach you more about yourself than anything else ever could. For us, building Cohort has been one of those things.',
+    category: 'Failures & Sacrifices',
+    readTime: '4 min read',
+    date: 'August 16, 2026',
+    author: 'Team Cohort',
+    claps: 412,
+    gradient: 'from-pink-500 via-purple-500 to-cyan-400',
+    tags: ['SevenDays', 'StartupLife', 'Builders', 'TeamCohort'],
+    content: `Some things teach you more about yourself than anything else ever could. They teach you about your capabilities. Your limits. Your resilience. Your power. For us, building Cohort has been one of those things.`
+  },
   {
     id: 'college-love',
     title: 'College, Love Stories and the Dilemma',
@@ -158,7 +171,7 @@ export default function Uncut() {
   }, []);
 
   // Handle claps
-  const handleClap = (id, e) => {
+  const handleClap = async (id, e) => {
     e.stopPropagation();
     
     // Prevent excessive clapping or track locally
@@ -170,20 +183,12 @@ export default function Uncut() {
       [id]: currentClaps + 1
     }));
 
-    setArticles(prev => prev.map(art => {
-      if (art.id === id) {
-        return { ...art, claps: art.claps + 1 };
-      }
-      return art;
-    }));
-
-    // Local user stories clap support
-    setUserStories(prev => prev.map(art => {
-      if (art.id === id) {
-        return { ...art, claps: art.claps + 1 };
-      }
-      return art;
-    }));
+    try {
+      const docRef = doc(db, 'uncutClaps', id);
+      await setDoc(docRef, { count: increment(1) }, { merge: true });
+    } catch (err) {
+      console.error("Failed to update clap in Firestore:", err);
+    }
   };
 
   // Submit anonymous story
@@ -347,6 +352,8 @@ export default function Uncut() {
               onClick={() => {
                 if (article.id === 'college-love') {
                   navigate('/uncut/college-love');
+                } else if (article.id === 'seven-days-changed-us') {
+                  navigate('/uncut/seven-days-changed-us');
                 } else {
                   setSelectedArticle(article);
                 }

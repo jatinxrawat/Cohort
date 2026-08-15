@@ -4,6 +4,15 @@ import { BookOpen, ArrowRight, PenTool, Clock, Sparkles, X, ChevronLeft, PanelRi
 
 const FEATURED_ARTICLES = [
   {
+    id: 'seven-days-changed-us',
+    title: 'Seven Days that Changed us',
+    excerpt: 'Some things teach you more about yourself than anything else ever could. For us, building Cohort has been one of those things.',
+    author: 'Team Cohort',
+    readTime: '4 min',
+    gradient: 'from-pink-500 via-purple-500 to-cyan-400',
+    category: 'Failures & Sacrifices',
+  },
+  {
     id: 'college-love',
     title: 'College, Love Stories and the Dilemma',
     excerpt: 'Why falling in love in college feels like choosing between who you are and who you want to become.',

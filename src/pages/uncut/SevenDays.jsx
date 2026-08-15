@@ -1,27 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Heart, Clock, Calendar, User, UserPlus, Sparkles, BookOpen, Coffee, Share2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Heart, Clock, Calendar, Users, UserPlus, Sparkles, Share2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import BorderGlow from '@/components/BorderGlow';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
-import ShareModal from '@/components/ShareModal';
+import { db } from '@/utils/firebase';
+import { doc, onSnapshot, setDoc, getDoc, increment } from 'firebase/firestore';
 
-export default function CollegeLove() {
+export default function SevenDays() {
   const { isDark } = useTheme();
   const { isAuthenticated } = useAuth();
-  const [claps, setClaps] = useState(320);
+  const [claps, setClaps] = useState(412);
   const [hasClapped, setHasClapped] = useState(() => {
-    return localStorage.getItem('has_clapped_college-love') === 'true';
+    return localStorage.getItem('has_clapped_seven-days-changed-us') === 'true';
   });
   const [showShareTooltip, setShowShareTooltip] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Subscribe to real-time claps from Firestore
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'uncutClaps', 'college-love'), (docSnap) => {
+    const unsub = onSnapshot(doc(db, 'uncutClaps', 'seven-days-changed-us'), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         if (typeof data.count === 'number') {
@@ -37,12 +37,12 @@ export default function CollegeLove() {
     const schema = {
       "@context": "https://schema.org",
       "@type": "Article",
-      "headline": "College, Love Stories and the Dilemma",
-      "description": "Why falling in love in college feels like choosing between who you are, who you want to become, and who you want beside you.",
+      "headline": "Seven Days that Changed us",
+      "description": "Some things teach you more about yourself than anything else ever could. For us, building Cohort has been one of those things.",
       "author": {
-        "@type": "Person",
-        "name": "Sanya Sahani",
-        "jobTitle": "Writer, Cohort"
+        "@type": "Organization",
+        "name": "Team Cohort",
+        "url": "https://cohortnow.online"
       },
       "publisher": {
         "@type": "Organization",
@@ -53,10 +53,10 @@ export default function CollegeLove() {
           "url": "https://cohortnow.online/og-image.png"
         }
       },
-      "datePublished": "2026-08-11",
+      "datePublished": "2026-08-16",
       "mainEntityOfPage": {
         "@type": "WebPage",
-        "@id": "https://cohortnow.online/uncut/college-love"
+        "@id": "https://cohortnow.online/uncut/seven-days-changed-us"
       }
     };
 
@@ -73,10 +73,10 @@ export default function CollegeLove() {
   const handleClap = async () => {
     if (hasClapped) return;
     setHasClapped(true);
-    localStorage.setItem('has_clapped_college-love', 'true');
+    localStorage.setItem('has_clapped_seven-days-changed-us', 'true');
 
     try {
-      const docRef = doc(db, 'uncutClaps', 'college-love');
+      const docRef = doc(db, 'uncutClaps', 'seven-days-changed-us');
       await setDoc(docRef, { count: increment(1) }, { merge: true });
     } catch (err) {
       console.error("Failed to update clap in Firestore:", err);
@@ -84,16 +84,18 @@ export default function CollegeLove() {
   };
 
   const handleShare = () => {
-    setIsShareModalOpen(true);
+    const shareUrl = "https://cohortnow.online" + window.location.pathname + window.location.search;
+    navigator.clipboard.writeText(shareUrl);
+    setShowShareTooltip(true);
+    setTimeout(() => setShowShareTooltip(false), 2000);
   };
 
   return (
     <div className="min-h-screen relative bg-[#faf7f2] dark:bg-[#08080C] text-neutral-900 dark:text-neutral-100 transition-colors duration-300 font-sans pb-24 overflow-x-hidden selection:bg-pink-500/20 selection:text-pink-600 dark:selection:text-pink-300">
       <SEO 
-        title="College, Love Stories and the Dilemma | Cohort Uncut"
-        description="Why falling in love in college feels like choosing between who you are, who you want to become, and who you want beside you. Written by Sanya Sahani."
+        title="Seven Days that Changed us | Cohort Uncut"
+        description="Some things teach you more about yourself than anything else ever could. For us, building Cohort has been one of those things. Written by Team Cohort."
         image="https://cohortnow.online/og-image.png"
-        type="article"
       />
 
       {/* Atmospheric Background Blurs (Hidden on Mobile) */}
@@ -150,33 +152,33 @@ export default function CollegeLove() {
         <div className="space-y-4 text-center sm:text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-[10px] font-black tracking-widest uppercase text-pink-600 dark:text-pink-400">
             <Sparkles className="w-3.5 h-3.5 text-pink-500" />
-            <span>Love & Heartbreak</span>
+            <span>Failures & Sacrifices</span>
           </div>
 
           <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.1] text-neutral-950 dark:text-white">
-            College, Love Stories <br />
-            and the <span className="bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 bg-clip-text text-transparent">Dilemma</span>
+            Seven Days <br />
+            that <span className="bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 bg-clip-text text-transparent">Changed</span> us
           </h1>
 
           <p className="text-lg sm:text-xl font-medium text-neutral-600 dark:text-neutral-300 leading-relaxed font-sans max-w-2xl border-l-4 border-pink-500 pl-4 py-1 italic">
-            Why falling in love in college feels like choosing between who you are, who you want to become, and who you want beside you.
+            Some things teach you more about yourself than anything else ever could. For us, building Cohort has been one of those things.
           </p>
 
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-4 text-xs font-semibold text-neutral-450 dark:text-neutral-500 border-t border-amber-900/5 dark:border-white/5">
             <div className="flex items-center gap-1.5 text-neutral-700 dark:text-neutral-300">
-              <User className="w-4 h-4 text-pink-500" />
-              <span>Sanya Sahani</span>
-              <span className="text-[10px] text-neutral-400 dark:text-neutral-600 bg-neutral-100 dark:bg-neutral-900 px-2 py-0.5 rounded-md">Writer, Cohort</span>
+              <Users className="w-4 h-4 text-pink-500" />
+              <span>Team Cohort</span>
+              <span className="text-[10px] text-neutral-400 dark:text-neutral-600 bg-neutral-100 dark:bg-neutral-900 px-2 py-0.5 rounded-md">Creators, Cohort</span>
             </div>
             <span className="hidden sm:inline text-neutral-300 dark:text-neutral-800">|</span>
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              <span>August 11, 2026</span>
+              <span>August 16, 2026</span>
             </div>
             <span className="hidden sm:inline text-neutral-300 dark:text-neutral-800">|</span>
             <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
-              <span>6 min read</span>
+              <span>4 min read</span>
             </div>
           </div>
         </div>
@@ -185,91 +187,48 @@ export default function CollegeLove() {
         <div className="max-w-none text-base sm:text-lg leading-relaxed text-neutral-800 dark:text-neutral-200 font-serif space-y-6 pt-6 select-text border-b border-amber-900/5 dark:border-white/5 pb-12">
           
           <p className="first-letter:text-5xl first-letter:font-black first-letter:text-pink-500 first-letter:mr-3 first-letter:float-left">
-            It starts simply enough. Orientation week. You are standing in a crowded seminar hall, clutching a campus map you are too proud to look at, surrounded by sensory overload and the dizzying scent of fresh independence. Everyone is a stranger, and every glance holds the promise of a beginning. And then, you see them.
+            Some things teach you more about yourself than anything else ever could. They teach you about your capabilities. Your limits. Your resilience. Your power. For us, building Cohort has been one of those things. We aren't a team of 10 or 20 developers, with one person handling the frontend, another handling the backend, someone else managing databases, another running marketing, and another managing everything else. We're four people. And only two of us are developers. That's it.
           </p>
 
           <p>
-            The orientation crush is a unique, fleeting phenomenon. It is built on pure potential, unburdened by the weight of coursework or hostel schedules. Often, it remains just that—a glance exchanged in the canteen, a silent agreement to sit nearby in introductory lectures, which slowly fades into a polite hallway nod by mid-semester. But sometimes, it doesn’t fade. Sometimes, the noise of campus life quietens down, and you find yourself in the middle of the first college love story.
-          </p>
-
-          <h3 className="font-display font-extrabold text-xl sm:text-2xl text-neutral-950 dark:text-white mt-10 mb-4 leading-tight font-sans">
-            The Modern Purgatory of the Situationship
-          </h3>
-
-          <p>
-            But we don't call it love right away. That would be too heavy. Instead, college has popularized a comfortable, torturous middle ground: the situationship. It has all the components of a relationship—the shared late-night messages, the canteen lunch dates, the mutual jealousy—but none of the emotional security.
+            So yes, we might fail. Maybe Cohort will never become what we imagine it could be. Maybe one day it will simply be remembered as another social platform that tried and didn't make it. Maybe people will call us outdated builders because while everyone was talking about AI, we chose to build something that, at its core, was simply about people and their college lives. We don't know what the future holds.
           </p>
 
           <p>
-            We tell ourselves it is practical. "We are busy. Placements are coming up. I need to focus on my CGPA." We treat our emotions like a project we can shelf when exams approach. But situationships are rarely practical. They are a constant negotiation of boundaries, a game of chicken where the first person to catch feelings loses. We choose the vagueness because the alternative—admitting that we want someone beside us—means admitting we are vulnerable to them.
+            But there is one thing we know with absolute certainty: we know how hard we worked. And if someday a big tech company, an investor, or someone far more experienced than us looks at Cohort and says, "You guys are rookies. You know nothing about building products. You don't know what real hard work looks like." Maybe we'll still be rookies. Maybe we still have a thousand things to learn.
           </p>
 
           <blockquote className="my-8 pl-6 border-l-4 border-purple-500 italic text-neutral-600 dark:text-neutral-300 font-sans text-base sm:text-lg max-w-2xl bg-purple-500/5 py-4 pr-4 rounded-r-xl">
-            "We are all quietly terrified that wanting someone to stay will get in the way of where we need to go."
+            "If you think we know nothing about hard work, then you know nothing about how hard we've worked."
           </blockquote>
 
-          <h3 className="font-display font-extrabold text-xl sm:text-2xl text-neutral-950 dark:text-white mt-10 mb-4 leading-tight font-sans">
-            The Quiet Turn
-          </h3>
-
           <p>
-            Then there are the friendships. The ones built quietly over shared library desks, midnight tea runs during exam weeks, and borrowing lab coats. For semesters, they are just the person you call when you need notes or a canteen partner. 
+            Because we now know what it means to put your body and your mind on the line for something you believe in. We know what it means to work for 20 hours in a day. We know what it means to spend 15–16 hours without seeing the outside of a room because there was something we desperately wanted to finish. We know what it means to stare at a problem with no money, no team of specialists, and no one coming to rescue you, and still find a solution. We know what it means to find alternatives when you literally have no budget.
           </p>
 
           <p>
-            And then, one day, the context shifts. The way they laugh at a stupid joke feels warmer than usual. You realize you aren’t looking around the library to find an empty chair; you are looking to see if their laptop is on their usual desk. It’s a quiet transition, almost imperceptible, until you realize that they have quietly become your entire college world.
-          </p>
-
-          <h3 className="font-display font-extrabold text-xl sm:text-2xl text-neutral-950 dark:text-white mt-10 mb-4 leading-tight font-sans">
-            The Dilemma of the Future
-          </h3>
-
-          <p>
-            This is where the dilemma takes root. College is a high-pressure transition state. On one hand, you are told to "live in the moment," to experience the raw romance of hostel curfews and holding hands behind the academic block. On the other hand, the pressure of placements and careers hangs over every conversation like a ticking clock.
+            We know what it means to build, break, rebuild, fail, search, learn, debug, rethink, and try again. And most importantly, we know what it feels like to look at something that didn't exist a week ago and say: "We built this."
           </p>
 
           <p>
-            You watch your peers solving LeetCode problems in the canteen, and you feel a wave of guilt for spending the last two hours talking about nothing with someone. You look at your CGPA, your internship applications, and you wonder: <em>Am I losing my focus? Am I prioritizing a feeling that might not exist in two years over a career that will define the rest of my life?</em>
+            Maybe our efforts won't make Cohort as big as Instagram or Twitter. Maybe they won't. But they have already made us bigger than we were seven days ago. Seven days ago, we were game addicts with those big round glasses. Today, we are the pillars holding up a vision. A product. A company that, for the first time, feels like something that could actually belong to us.
           </p>
 
           <p>
-            It is a brutal calculus. You are forced to weigh the weight of a placement package against the comfort of a text message saying, "Did you reach your hostel?"
-          </p>
-
-          <h3 className="font-display font-extrabold text-xl sm:text-2xl text-neutral-950 dark:text-white mt-10 mb-4 leading-tight font-sans">
-            The Graduation Cliff and Ex-Etiquette
-          </h3>
-
-          <p>
-            And then, graduation arrives. The ultimate cliff. 
+            And tonight, at 2:00 AM, when India will be asleep, Cohort will rise to the world. Not as the next Instagram. Not as the next Twitter. Not as some revolutionary AI startup. Just as Cohort. Four people. Two developers. One vision. And a stubborn belief that we deserve to compete for our own little piece of the world.
           </p>
 
           <p>
-            Suddenly, your relationship is no longer about hostel curfews; it is about geographical coordinates. One job offer is in Bangalore, the other is in Noida. A grad school acceptance letter points to Germany, another to Boston. 
+            We aren't writing this to attract users. We aren't writing this to sell anything. That's why there is no website link here. No app link. No call to action. This isn't marketing. This is simply us putting into words what the last seven days have meant to us.
           </p>
 
           <p>
-            The dilemma reaches its peak: Do you ask them to stay? Do you compromise on your dream company to be in the same city? Or do you decide to let go, choosing to protect the future at the cost of the present? Long-distance relationships after graduation are a testament to endurance, but they are also a constant reminder of distance. You are dating a screen, living in different time zones, trying to keep a college feeling alive in a corporate cubicle.
-          </p>
-
-          <p>
-            And if you choose to break up, campus doesn't make it easy. The weirdness of seeing an ex every single day is a specific campus curse. The person who knew your childhood stories and exam panics is now just another student waiting in line at the Nescafe stall. You have to navigate the silent negotiation of who gets to hang out at which tea spot, and who gets to sit on which library floor.
-          </p>
-
-          <h3 className="font-display font-extrabold text-xl sm:text-2xl text-neutral-950 dark:text-white mt-10 mb-4 leading-tight font-sans">
-            Are We in Love, or Just in Love with the Version of Ourselves?
-          </h3>
-
-          <p>
-            Ultimately, college love forces a question we are rarely brave enough to ask: <em>Are we actually in love with them, or are we just in love with the version of ourselves we become around them?</em>
-          </p>
-
-          <p>
-            College is a time of self-invention. Around them, you are funny, you are caring, you are passionate. They are the mirror reflecting the person you want to be. When we lose a college love, we often aren't just mourning the person; we are mourning the loss of the student who sat in that canteen, unburdened by corporate responsibilities, believing that a feeling could conquer a placement schedule.
+            Whatever happens next, we will remember these seven days. Because Cohort may or may not become big. But we will never again be the same people who started building it. And for that alone, it was worth it.
           </p>
 
           <p className="font-semibold text-neutral-900 dark:text-neutral-100 text-lg border-t border-amber-900/10 dark:border-white/10 pt-6">
-            Maybe college isn’t the place where you find the person you’ll spend your life with. Maybe it’s the place where you first discover what it feels like to want someone to.
+            Thank you.<br />
+            — Team Cohort
           </p>
 
         </div>
@@ -290,7 +249,7 @@ export default function CollegeLove() {
               <span className="text-sm font-extrabold">{claps} Claps</span>
             </button>
             <span className="text-xs text-neutral-400 font-bold">
-              {hasClapped ? "Thanks for cheering Sanya!" : "Show Sanya some love!"}
+              {hasClapped ? "Thanks for cheering Team Cohort!" : "Show Team Cohort some love!"}
             </span>
           </div>
 
@@ -300,7 +259,7 @@ export default function CollegeLove() {
               className="p-3 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-850 transition-colors flex items-center gap-2 text-xs font-bold cursor-pointer"
             >
               <Share2 className="w-4 h-4 text-neutral-500" />
-              <span>Share Article</span>
+              <span>Share Story</span>
             </button>
 
             {showShareTooltip && (
@@ -326,16 +285,16 @@ export default function CollegeLove() {
           >
             <div className="p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 text-left">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500 flex items-center justify-center text-white text-2xl font-black shadow-lg">
-                SS
+                TC
               </div>
               <div className="space-y-2 flex-1">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <h4 className="font-display font-black text-lg text-neutral-950 dark:text-white leading-tight">
-                      Sanya Sahani
+                      Team Cohort
                     </h4>
                     <p className="text-xs text-neutral-500 font-extrabold uppercase">
-                      Writer, Cohort
+                      Creators & Builders, Cohort
                     </p>
                   </div>
 
@@ -348,7 +307,7 @@ export default function CollegeLove() {
                   </Link>
                 </div>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-medium">
-                  Sanya Sahani writes about the messy, beautiful, and unspoken transitions of college life. She focuses on student behavior, campus culture, and late-night thoughts that never make it to the lecture rooms.
+                  Team Cohort consists of 4 people, including only 2 developers. They build Cohort to create a genuine, unfiltered campus social media platform where college students can connect and build their own communities.
                 </p>
               </div>
             </div>
@@ -368,22 +327,6 @@ export default function CollegeLove() {
           <a href="mailto:cohortnow.online@gmail.com" className="hover:underline">Write for Us</a>
         </div>
       </footer>
-
-      <ShareModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        post={{
-          id: 'college-love',
-          title: 'College, Love Stories and the Dilemma',
-          content: 'Why falling in love in college feels like choosing between who you are, who you want to become, and who you want beside you. Written by Sanya Sahani.',
-          text: 'Why falling in love in college feels like choosing between who you are, who you want to become, and who you want beside you. Written by Sanya Sahani.',
-          author: { name: 'Sanya Sahani' },
-          authorName: 'Sanya Sahani',
-          image: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=800&auto=format&fit=crop'
-        }}
-        shareUrl="https://cohortnow.online/uncut/college-love"
-        title="College, Love Stories and the Dilemma | Cohort Uncut"
-      />
     </div>
   );
 }
