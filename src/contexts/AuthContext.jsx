@@ -26,6 +26,7 @@ import {
   writeBatch
 } from 'firebase/firestore';
 import { auth, db } from '@/utils/firebase';
+import { isCollegeEmail, verifyEmailMatchesCollege, predictGenderFromName } from '@/utils/helpers';
 
 const AuthContext = createContext(null);
 
@@ -36,6 +37,18 @@ export const AuthProvider = ({ children }) => {
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isKycModalOpen, setIsKycModalOpen] = useState(false);
+
+  const openKycModal = () => setIsKycModalOpen(true);
+  const closeKycModal = () => setIsKycModalOpen(false);
+
+  const setKycVerified = async (verifiedEmail, predictedGender = 'Neutral') => {
+    await updateUser({
+      kycVerified: true,
+      kycEmail: verifiedEmail,
+      kycGender: predictedGender
+    });
+  };
 
   const ensureCohortOfficialAndAutoFollow = async (currentProfile) => {
     if (!currentProfile || !currentProfile.uid) return;
@@ -354,13 +367,19 @@ export const AuthProvider = ({ children }) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
 
+    const isCollege = isCollegeEmail(email);
+    const isMatching = isCollege && verifyEmailMatchesCollege(email, college || 'KIET');
+
     const profile = {
       name: name || 'Student',
       email: email,
       college: college || 'KIET',
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || email)}`,
       joinedDate: new Date().toISOString(),
-      hasPassword: true
+      hasPassword: true,
+      kycVerified: isMatching,
+      kycEmail: isMatching ? email : null,
+      kycGender: isMatching ? predictGenderFromName(email) : null
     };
 
     // Save profile metadata inside Firestore
@@ -612,7 +631,11 @@ export const AuthProvider = ({ children }) => {
         cancelLogout,
         forceLogout,
         updateUser,
-        requestPasswordReset
+        requestPasswordReset,
+        isKycModalOpen,
+        openKycModal,
+        closeKycModal,
+        setKycVerified
       }}
     >
       {children}

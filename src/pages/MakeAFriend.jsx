@@ -38,7 +38,8 @@ import {
   Filter,
   Sliders,
   MapPin,
-  Smile
+  Smile,
+  ShieldAlert
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
@@ -302,7 +303,7 @@ const QUESTIONS = [
 ];
 
 export default function MakeAFriend() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, openKycModal } = useAuth();
   const { showSuccess, showError } = useNotification();
   const navigate = useNavigate();
 
@@ -716,7 +717,30 @@ export default function MakeAFriend() {
         </p>
       </div>
 
-      {/* STEP 1: ONBOARDING / QUESTIONNAIRE */}
+      {!user?.kycVerified ? (
+        <div className="z-10 w-full max-w-md mt-4 p-6 sm:p-8 text-center bg-white/95 dark:bg-zinc-900/90 border border-neutral-200/80 dark:border-zinc-800 rounded-3xl shadow-2xl backdrop-blur-2xl space-y-6 animate-in fade-in zoom-in duration-200">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 flex items-center justify-center mx-auto border border-amber-500/20 shadow-sm">
+            <ShieldAlert className="w-8 h-8 text-amber-500" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-heading font-extrabold text-neutral-900 dark:text-white">
+              Matchmaking Locked
+            </h3>
+            <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-xs mx-auto">
+              Matchmaking and swiping are restricted to verified students. Verify your student email to browse and connect with classmates.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={openKycModal}
+            className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-extrabold rounded-2xl shadow-lg hover:shadow-indigo-500/20 active:scale-95 transition-all text-sm uppercase tracking-wider cursor-pointer"
+          >
+            Verify Student ID
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* STEP 1: ONBOARDING / QUESTIONNAIRE */}
       {step === 'onboarding' && (
         <div className="w-full max-w-xl flex flex-col items-center relative z-10 py-4">
           {/* Category Progress Segmented Toggle Bar */}
@@ -1220,6 +1244,8 @@ export default function MakeAFriend() {
           </motion.div>
         )}
       </AnimatePresence>
+      </>
+      )}
     </div>
   );
 }

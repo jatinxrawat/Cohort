@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { collection, addDoc, doc, deleteDoc, updateDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 import { PostCard } from '@/components/PostCard';
-import { Image, Smile, AlertCircle, X, Pin, BarChart3, Check, Camera, BarChart2, Paperclip, FileText, Plus, Globe, GraduationCap } from 'lucide-react';
+import { Image, Smile, AlertCircle, X, Pin, BarChart3, Check, Camera, BarChart2, Paperclip, FileText, Plus, ShieldAlert } from 'lucide-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,7 +35,7 @@ const FAKE_NAMES = [
 ];
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, openKycModal } = useAuth();
   const { showSuccess, showError } = useNotification();
   const { postId: paramPostId } = useParams();
   const [searchParams] = useSearchParams();
@@ -408,7 +408,30 @@ export default function Home() {
 
           {/* Create Post */}
           <div className="mb-lg p-4 sm:p-5 rounded-3xl bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200/80 dark:border-neutral-800/80 shadow-lg shadow-black/5 dark:shadow-black/30 transition-all">
-            <div className="flex gap-3 sm:gap-4">
+            {feedType === 'college' && !user?.kycVerified ? (
+              <div className="flex flex-col items-center text-center py-4 px-2 space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 flex items-center justify-center border border-amber-500/20 shadow-xs">
+                  <ShieldAlert className="w-6 h-6 text-amber-500" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-extrabold text-neutral-900 dark:text-white">
+                    College Wall Restricted
+                  </h4>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-sm leading-relaxed">
+                    Only verified students of <strong className="text-neutral-900 dark:text-white font-bold">{userCollege}</strong> can post here. Verify your student email to join the conversation.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={openKycModal}
+                  className="px-6 py-2.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 cursor-pointer uppercase tracking-wider"
+                >
+                  Verify Student ID
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex gap-3 sm:gap-4">
               <UserAvatar
                 src={user?.avatar}
                 name={user?.name || 'User'}
@@ -586,6 +609,8 @@ export default function Home() {
                 <span>{isUploading ? 'Posting...' : 'Post'}</span>
               </button>
             </div>
+            </>
+            )}
           </div>
 
 

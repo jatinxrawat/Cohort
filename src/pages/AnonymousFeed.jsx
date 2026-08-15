@@ -28,8 +28,7 @@ import {
   X,
   Image as ImageIcon,
   Smile,
-  Globe,
-  GraduationCap
+  ShieldAlert
 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
@@ -92,7 +91,7 @@ const renderGenderBadge = (gender) => {
 };
 
 export default function AnonymousFeed({ defaultTab }) {
-  const { user } = useAuth();
+  const { user, openKycModal } = useAuth();
   const { showSuccess, showError } = useNotification();
   const location = useLocation();
   const navigate = useNavigate();
@@ -200,10 +199,7 @@ export default function AnonymousFeed({ defaultTab }) {
 
         await addDoc(collection(db, 'confessions'), {
           authorUid: user?.uid || 'anonymous_guest',
-          college: user?.college || 'KIET',
-          audience: autoAudience,
-          visibility: autoAudience,
-          gender: user?.gender || 'Prefer not to say',
+          gender: (user?.kycGender && user.kycGender !== 'Neutral') ? user.kycGender : (user?.gender || 'Prefer not to say'),
           text: cardInputText.trim(),
           imageUrl: null,
           createdAt: now,
@@ -218,9 +214,7 @@ export default function AnonymousFeed({ defaultTab }) {
         await addDoc(collection(db, 'anonymousPosts'), {
           authorUid: user?.uid || 'anonymous_guest',
           college: user?.college || 'KIET',
-          audience: autoAudience,
-          visibility: autoAudience,
-          gender: user?.gender || 'Prefer not to say',
+          gender: (user?.kycGender && user.kycGender !== 'Neutral') ? user.kycGender : (user?.gender || 'Prefer not to say'),
           anonymousName: chosenName,
           text: cardInputText.trim(),
           imageUrl: cardSelectedImage || null,
@@ -595,10 +589,7 @@ export default function AnonymousFeed({ defaultTab }) {
 
         await addDoc(collection(db, 'confessions'), {
           authorUid: user?.uid || 'anonymous_guest',
-          college: user?.college || 'KIET',
-          audience: autoAudience,
-          visibility: autoAudience,
-          gender: user?.gender || 'Prefer not to say',
+          gender: (user?.kycGender && user.kycGender !== 'Neutral') ? user.kycGender : (user?.gender || 'Prefer not to say'),
           text: inputText.trim(),
           imageUrl: null,
           createdAt: now,
@@ -613,9 +604,7 @@ export default function AnonymousFeed({ defaultTab }) {
         await addDoc(collection(db, 'anonymousPosts'), {
           authorUid: user?.uid || 'anonymous_guest',
           college: user?.college || 'KIET',
-          audience: autoAudience,
-          visibility: autoAudience,
-          gender: user?.gender || 'Prefer not to say',
+          gender: (user?.kycGender && user.kycGender !== 'Neutral') ? user.kycGender : (user?.gender || 'Prefer not to say'),
           anonymousName: chosenName,
           text: inputText.trim(),
           imageUrl: modalSelectedImage || null,
@@ -830,7 +819,30 @@ export default function AnonymousFeed({ defaultTab }) {
 
         {/* Inline Create Post Card */}
         <div className="border border-neutral-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl p-4 sm:p-5 shadow-lg shadow-black/5 dark:shadow-black/30 transition-all">
-          <div className="flex gap-3 sm:gap-4">
+          {activeTab === 'confessions' && !user?.kycVerified ? (
+            <div className="flex flex-col items-center text-center py-4 px-2 space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 flex items-center justify-center border border-amber-500/20 shadow-xs">
+                <ShieldAlert className="w-6 h-6 text-amber-500" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-extrabold text-neutral-900 dark:text-white">
+                  Confessions Restricted
+                </h4>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-sm leading-relaxed">
+                  Confessions are restricted to verified students. Verify your student email to post confessions on this campus.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={openKycModal}
+                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 cursor-pointer uppercase tracking-wider"
+              >
+                Verify Student ID
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="flex gap-3 sm:gap-4">
             {/* Anonymous / Confession Avatar Badge */}
             <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 shadow-md transition-all ${
               activeTab === 'confessions'
@@ -941,6 +953,8 @@ export default function AnonymousFeed({ defaultTab }) {
               <span>{isCardSubmitting ? 'Posting...' : 'Post'}</span>
             </button>
           </div>
+          </>
+          )}
         </div>
 
         {loading ? (
@@ -989,7 +1003,7 @@ export default function AnonymousFeed({ defaultTab }) {
                             <span className="text-xs font-semibold text-violet-700 dark:text-violet-300 bg-violet-100 dark:bg-violet-950/40 px-md py-xs rounded-full border border-violet-200 dark:border-violet-500/20">
                               {post.anonymousName || 'Anonymous Fox'}
                             </span>
-                            {renderGenderBadge(post.gender || (isActualPostOwner ? user?.gender : null))}
+                            {renderGenderBadge(post.gender || (isActualPostOwner ? ((user?.kycGender && user.kycGender !== 'Neutral') ? user.kycGender : user?.gender) : null))}
                             {isActualPostOwner && (
                               <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full shadow-xs">
                                 Posted by You
@@ -1364,7 +1378,7 @@ export default function AnonymousFeed({ defaultTab }) {
                         <span className="font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-xs bg-rose-500/10 px-md py-xs rounded-full border border-rose-500/20">
                           <Flame className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" /> Confession
                         </span>
-                        {renderGenderBadge(confession.gender || (isActualConfessionOwner ? user?.gender : null))}
+                        {renderGenderBadge(confession.gender || (isActualConfessionOwner ? ((user?.kycGender && user.kycGender !== 'Neutral') ? user.kycGender : user?.gender) : null))}
                         {isActualConfessionOwner && (
                           <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full shadow-xs">
                             Posted by You

@@ -56,9 +56,11 @@ export default function EditProfile() {
         uploadedAvatarUrl = await uploadImageToCloudinary(avatarFile);
       }
 
+      const hasCollegeChanged = formData.college !== user?.college;
       const updatedData = {
         ...formData,
         avatar: uploadedAvatarUrl,
+        ...(hasCollegeChanged ? { kycVerified: false, kycEmail: null } : {})
       };
 
       await updateUser(updatedData);

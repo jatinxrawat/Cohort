@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { MobileNav } from '@/components/MobileNav';
 import { ToastContainer } from '@/components/Toast';
 import { UsernameModal } from '@/components/UsernameModal';
+import { KycVerificationModal } from '@/components/KycVerificationModal';
 import { useNotification } from '@/contexts/NotificationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { WifiOff } from 'lucide-react';
@@ -114,6 +115,7 @@ export const Layout = ({ children }) => {
         <MobileNav />
       )}
       <UsernameModal />
+      <KycVerificationModal />
       <ToastContainer notifications={notifications} />
     </div>
   );
