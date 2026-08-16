@@ -83,7 +83,7 @@ export const ExpandableCaption = ({ text, maxLength = 200, className = '' }) => 
   );
 };
 
-export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted, showAudienceBadge = false }) => {
+export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showSuccess } = useNotification();
@@ -836,18 +836,6 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted, showAu
                   ? 'Cohort Official'
                   : formatShortCollegeName(post.author?.college || post.author?.role || user?.college || 'KIET')} • {formatRelativeTime(post.timestamp)}
               </span>
-
-              {showAudienceBadge && (
-                post.audience === 'college_only' || post.visibility === 'college_only' ? (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 text-[10px] font-bold" title={post.college || post.author?.college || 'Campus Only'}>
-                    <GraduationCap className="w-3 h-3 text-purple-500" /> My College
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[10px] font-bold">
-                    <Globe className="w-3 h-3 text-sky-500" /> Public
-                  </span>
-                )
-              )}
             </div>
           </div>
         </div>

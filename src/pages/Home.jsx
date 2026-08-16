@@ -383,13 +383,14 @@ export default function Home() {
     const isMyPost = (post.authorUid || post.author?.uid) === user?.uid;
 
     const isCollegeOnlyPost = post.audience === 'college_only' || post.visibility === 'college_only';
-    if (isCollegeOnlyPost && !isSameCollege && !isMyPost) {
-      return false;
+
+    // 1. Public Feed: strictly show ONLY public posts (exclude college-only posts)
+    if (feedType === 'public') {
+      return !isCollegeOnlyPost;
     }
 
-    if (feedType === 'public') return true;
-    if (!postCollege) return true;
-    return isSameCollege || isMyPost;
+    // 2. My College Feed: strictly show ONLY college-only posts from user's college (or user's own college posts)
+    return isCollegeOnlyPost && (isSameCollege || isMyPost);
   });
 
   return (

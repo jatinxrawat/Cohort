@@ -201,9 +201,12 @@ export default function AnonymousFeed({ defaultTab }) {
 
         await addDoc(collection(db, 'confessions'), {
           authorUid: user?.uid || 'anonymous_guest',
+          college: user?.college || 'KIET',
           gender: (user?.kycGender && user.kycGender !== 'Neutral') ? user.kycGender : (user?.gender || 'Prefer not to say'),
           text: cardInputText.trim(),
           imageUrl: null,
+          audience: autoAudience,
+          visibility: autoAudience,
           createdAt: now,
           expiresAt: expiresAt,
           likes: 0,
@@ -220,6 +223,8 @@ export default function AnonymousFeed({ defaultTab }) {
           anonymousName: chosenName,
           text: cardInputText.trim(),
           imageUrl: cardSelectedImage || null,
+          audience: autoAudience,
+          visibility: autoAudience,
           likesCount: 0,
           likedUsers: [],
           commentsCount: 0,
@@ -591,9 +596,12 @@ export default function AnonymousFeed({ defaultTab }) {
 
         await addDoc(collection(db, 'confessions'), {
           authorUid: user?.uid || 'anonymous_guest',
+          college: user?.college || 'KIET',
           gender: (user?.kycGender && user.kycGender !== 'Neutral') ? user.kycGender : (user?.gender || 'Prefer not to say'),
           text: inputText.trim(),
           imageUrl: null,
+          audience: autoAudience,
+          visibility: autoAudience,
           createdAt: now,
           expiresAt: expiresAt,
           likes: 0,
@@ -610,6 +618,8 @@ export default function AnonymousFeed({ defaultTab }) {
           anonymousName: chosenName,
           text: inputText.trim(),
           imageUrl: modalSelectedImage || null,
+          audience: autoAudience,
+          visibility: autoAudience,
           likesCount: 0,
           likedUsers: [],
           commentsCount: 0,
@@ -774,13 +784,14 @@ export default function AnonymousFeed({ defaultTab }) {
     const isMyPost = item.authorUid === user?.uid;
 
     const isCollegeOnlyPost = item.audience === 'college_only' || item.visibility === 'college_only';
-    if (isCollegeOnlyPost && !isSameCollege && !isMyPost) {
-      return false;
+
+    // 1. Public Feed: strictly show ONLY public posts (exclude college-only posts)
+    if (feedType === 'public') {
+      return !isCollegeOnlyPost;
     }
 
-    if (feedType === 'public') return true;
-    if (!postCollege) return true;
-    return isSameCollege || isMyPost;
+    // 2. My College Feed: strictly show ONLY college-only posts from user's college (or user's own college posts)
+    return isCollegeOnlyPost && (isSameCollege || isMyPost);
   };
 
   const displayedPosts = posts.filter(filterAnonymousItem);
