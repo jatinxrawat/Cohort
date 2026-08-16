@@ -71,26 +71,26 @@ export default async function handler(req, res) {
     }
 
     const mailOptions = {
-      from: `"Cohort Campus" <${user || 'no-reply@cohortnow.online'}>`,
+      from: `"Cohort" <${user}>`,
       to: email.trim(),
-      subject: 'Verify Your Email for Cohort',
+      subject: `${otp} is your Cohort verification code`,
+      text: `Your Cohort verification code is: ${otp}. This code will expire in 10 minutes.`,
       html: `
-        <div style="font-family: system-ui, -apple-system, sans-serif; background-color: #08080C; color: #F5F5F7; padding: 40px 20px; text-align: center;">
-          <div style="max-w: 500px; margin: 0 auto; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
-            <div style="margin-bottom: 24px;">
-              <span style="font-size: 28px; font-weight: 900; letter-spacing: -0.05em; color: #FFFFFF;">Cohort<span style="color: #EC4899;">.</span></span>
-            </div>
-            <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 12px; color: #FFFFFF;">Email Verification</h2>
-            <p style="font-size: 14px; color: #A1A1AA; line-height: 1.6; margin-bottom: 32px;">
-              Welcome to Cohort! Use the verification code below to verify your email address and continue setting up your student profile.
-            </p>
-            <div style="background: linear-gradient(135deg, #9333EA 0%, #EC4899 100%); padding: 16px 32px; border-radius: 16px; display: inline-block; font-family: monospace; font-size: 32px; font-weight: 900; letter-spacing: 6px; color: #FFFFFF; box-shadow: 0 8px 24px rgba(236, 72, 153, 0.3); margin-bottom: 32px;">
-              ${otp}
-            </div>
-            <p style="font-size: 11px; color: #71717A; line-height: 1.4;">
-              This code will expire in 10 minutes. If you did not request this, you can safely ignore this email.
-            </p>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 20px; color: #111111; background-color: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+          <h2 style="font-size: 20px; font-weight: 700; margin-top: 0; margin-bottom: 16px; color: #18181b;">Verify your email address</h2>
+          <p style="font-size: 14px; line-height: 1.5; color: #4b5563; margin-bottom: 24px;">
+            Thanks for starting your Cohort signup! Enter the following verification code when prompted to confirm your university email address.
+          </p>
+          <div style="background-color: #f4f4f5; border-radius: 8px; padding: 16px 24px; text-align: center; font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #18181b; margin-bottom: 24px; font-family: monospace;">
+            ${otp}
           </div>
+          <p style="font-size: 12px; line-height: 1.5; color: #6b7280; margin-bottom: 0;">
+            This code is valid for 10 minutes. If you did not request this code, you can safely ignore this email.
+          </p>
+          <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+          <p style="font-size: 11px; color: #9ca3af; text-align: center; margin: 0;">
+            Cohort · Connect with your campus
+          </p>
         </div>
       `
     };
