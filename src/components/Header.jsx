@@ -43,7 +43,7 @@ export const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white dark:bg-black border-none shadow-none transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full bg-white dark:bg-black border-none shadow-none transition-all duration-300 pt-safe">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between">
         {/* Brand Logo - Cohort */}
         <Logo isLanding={false} iconSize="w-9 h-9" textSize="text-2xl" />

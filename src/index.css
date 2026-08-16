@@ -516,6 +516,9 @@ h6 {
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
 
 @supports (height: 100dvh) {
   .h-dvh {
