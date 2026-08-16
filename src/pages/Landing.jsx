@@ -38,6 +38,7 @@ import { COLLEGES } from '@/utils/colleges';
 import SEO from '@/components/SEO';
 import SpecularButton from '@/components/SpecularButton';
 import BorderGlow from '@/components/BorderGlow';
+import DownloadAppModal from '@/components/DownloadAppModal';
 
 // --- MOCK UNIVERSITY DATA ---
 // Static COLLEGES data imported from utils/colleges
@@ -84,12 +85,6 @@ const VIBE_TAGS = [
   { label: 'MARKETPLACE', icon: ShoppingBag, iconColor: 'text-teal-400', iconBg: 'bg-teal-500/20' },
 ];
 
-const AndroidIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-    <path d="M17.6 9.48l1.65-2.86c.12-.2.05-.46-.15-.57-.2-.12-.46-.05-.57.15l-1.68 2.9C15.22 8.43 13.67 8 12 8s-3.22.43-4.85 1.1l-1.68-2.9c-.11-.2-.37-.27-.57-.15-.2.11-.27.37-.15.57L6.4 9.48C3.9 10.96 2.18 13.49 2 16.5h20c-.18-3.01-1.9-5.54-4.4-7.02zM8 13.5c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm8 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" />
-  </svg>
-);
-
 export default function Landing() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -100,7 +95,6 @@ export default function Landing() {
   const [selectedVibe, setSelectedVibe] = useState('CONFESSION');
   const [isAllFeaturesModalOpen, setIsAllFeaturesModalOpen] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
-  const [notifyLaunch, setNotifyLaunch] = useState(true);
 
   const isModalOpen = showDownloadModal || isAllFeaturesModalOpen;
 
@@ -775,124 +769,7 @@ export default function Landing() {
         )}
 
         {/* Download App Modal Popup */}
-        <AnimatePresence>
-          {showDownloadModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 md:backdrop-blur-md"
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.92, y: 15 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.92, y: 15 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-                className="relative w-full max-w-sm bg-neutral-900 border border-purple-500/30 rounded-3xl p-6 shadow-2xl text-center space-y-5 overflow-hidden"
-              >
-                {/* Glow Ambient Highlights */}
-                <div className="absolute -top-16 -right-16 w-36 h-36 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute -bottom-16 -left-16 w-36 h-36 bg-sky-500/20 rounded-full blur-3xl pointer-events-none" />
-
-                {/* Top Header Row with Live Status Pill */}
-                <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-[10px] font-bold text-purple-300 uppercase tracking-wider">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping" />
-                    <span>App Download Live</span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowDownloadModal(false)}
-                    className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-full transition-colors cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Central Icon Badge */}
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-xl shadow-purple-500/25 border border-white/20">
-                  <Smartphone className="w-8 h-8" />
-                </div>
-
-                {/* Main Title & Description (No Emojis) */}
-                <div className="space-y-2">
-                  <h3 className="text-xl font-heading font-extrabold text-white tracking-tight">
-                    Get Cohort on Mobile
-                  </h3>
-                  <p className="text-xs text-neutral-300 leading-relaxed max-w-xs mx-auto font-medium">
-                    Experience instant campus notifications, zero-latency chats, and exclusive mobile features directly from your phone.
-                  </p>
-                </div>
-
-                {/* Download Options */}
-                <div className="space-y-3 pt-2">
-                  {/* Android Download Option */}
-                  <div className="space-y-1">
-                    <a
-                      href="/cohort.apk"
-                      download="cohort.apk"
-                      onClick={() => setShowDownloadModal(false)}
-                      className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-500 hover:opacity-95 text-white font-extrabold text-sm shadow-lg shadow-purple-500/25 transition-all active:scale-[0.98] cursor-pointer"
-                    >
-                      <AndroidIcon className="w-5 h-5 flex-shrink-0" />
-                      <span>Download Android APK</span>
-                    </a>
-                    <p className="text-[10px] text-neutral-500 font-medium">
-                      Latest Build · APK format (direct install)
-                    </p>
-                  </div>
-
-                  {/* iOS Option (Coming Soon) */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-2xl bg-neutral-800/80 border border-neutral-800 text-neutral-500 font-extrabold text-sm select-none">
-                      <Apple className="w-5 h-5 flex-shrink-0" />
-                      <span>iOS App (TestFlight Soon)</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Cool Interactive Notification Switch Toggle */}
-                <div className="p-3.5 rounded-2xl bg-neutral-950 border border-neutral-800 flex items-center justify-between gap-3 text-left">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${notifyLaunch ? 'bg-purple-500/20 text-purple-400' : 'bg-neutral-800 text-neutral-500'
-                      }`}>
-                      <Bell className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <h5 className="font-bold text-xs text-white truncate">App Update Alerts</h5>
-                      <p className="text-[10px] text-neutral-400 truncate">
-                        {notifyLaunch ? "You'll be notified of new releases" : "Alerts disabled"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setNotifyLaunch(!notifyLaunch)}
-                    className={`w-11 h-6 rounded-full p-0.5 transition-all duration-300 relative cursor-pointer ${notifyLaunch ? 'bg-gradient-to-r from-purple-600 to-indigo-600 shadow-sm' : 'bg-neutral-800'
-                      }`}
-                  >
-                    <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center ${notifyLaunch ? 'translate-x-5' : 'translate-x-0'
-                      }`}>
-                      {notifyLaunch && <Check className="w-3 h-3 text-purple-600 stroke-[3]" />}
-                    </div>
-                  </button>
-                </div>
-
-                {/* Dismiss Button */}
-                <button
-                  type="button"
-                  onClick={() => setShowDownloadModal(false)}
-                  className="w-full py-2.5 px-4 rounded-2xl border border-neutral-800 hover:bg-neutral-800 text-neutral-400 hover:text-white font-bold text-xs transition-colors cursor-pointer"
-                >
-                  Close
-                </button>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <DownloadAppModal isOpen={showDownloadModal} onClose={() => setShowDownloadModal(false)} />
 
       </div>
     </div>
