@@ -70,7 +70,7 @@ export default function IntrovertGuide() {
       <div className="absolute top-80 left-1/4 w-64 h-64 bg-cyan-500/4 dark:bg-cyan-500/6 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-neutral-200/50 dark:border-neutral-800/50 bg-white/70 dark:bg-[#08080C]/70 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-neutral-200/50 dark:border-neutral-800/50 bg-white/70 dark:bg-[#08080C]/70 backdrop-blur-xl pt-safe">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Logo className="w-7 h-7" />
