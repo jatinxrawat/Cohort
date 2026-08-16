@@ -150,19 +150,6 @@ export const Header = () => {
                   </span>
                 )}
               </Link>
-              {/* Download App — mobile */}
-              {!Capacitor.isNativePlatform() && (
-                <button
-                  type="button"
-                  onClick={() => setShowDownloadModal(true)}
-                  title="Download App"
-                  className="md:hidden flex items-center gap-1 px-2.5 py-1.5 text-violet-600 dark:text-violet-400 text-[10px] font-bold bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/25 hover:border-violet-500/50 rounded-full shadow-sm transition-all active:scale-95 cursor-pointer"
-                  aria-label="Download App"
-                >
-                  <Smartphone className="w-3 h-3" />
-                  <span>Download</span>
-                </button>
-              )}
             </>
           )}
 
@@ -260,6 +247,19 @@ export const Header = () => {
                     <SettingsIcon className="w-5 h-5 text-sky-500" />
                     <span>Settings</span>
                   </Link>
+                  {!Capacitor.isNativePlatform() && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowDownloadModal(true);
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 p-3 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 rounded-2xl text-left font-medium text-sm transition-all cursor-pointer"
+                    >
+                      <Smartphone className="w-5 h-5 text-violet-500" />
+                      <span>Download App</span>
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -280,6 +280,21 @@ export const Header = () => {
           </div>
         )}
       </div>
+
+      {/* Mobile Download App Action - positioned directly below the top header options */}
+      {!Capacitor.isNativePlatform() && (
+        <div className="md:hidden px-4 pb-2 pt-0.5 flex justify-end">
+          <button
+            type="button"
+            onClick={() => setShowDownloadModal(true)}
+            title="Download App"
+            className="flex items-center gap-1.5 px-3 py-1 text-violet-600 dark:text-violet-400 text-xs font-bold bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/25 hover:border-violet-500/50 rounded-full shadow-xs transition-all active:scale-95 cursor-pointer ml-auto"
+          >
+            <Smartphone className="w-3.5 h-3.5 text-violet-500" />
+            <span>Download App</span>
+          </button>
+        </div>
+      )}
     </header>
 
     <DownloadAppModal isOpen={showDownloadModal} onClose={() => setShowDownloadModal(false)} />
