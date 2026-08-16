@@ -191,6 +191,8 @@ export default function HomeRightPanel() {
         <div className="h-3 bg-gradient-to-t from-white dark:from-neutral-900 to-transparent -mt-3 relative z-10 pointer-events-none flex-shrink-0" />
       </div>
 
+
+
       {/* Write for Uncut CTA */}
       <div className="flex-shrink-0 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800/50 p-3.5 shadow-sm relative overflow-hidden">
         {/* Subtle decorative gradient overlay */}

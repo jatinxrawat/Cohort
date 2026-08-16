@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon, Sparkles, Users, Bookmark, Settings as SettingsIcon, BookOpen, Send, ShoppingBag } from 'lucide-react';
+import { Menu, X, Bell, MessageSquare, Search, LogOut, Sun, Moon, Sparkles, Users, Bookmark, Settings as SettingsIcon, BookOpen, Send, ShoppingBag, Smartphone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/Button';
@@ -8,6 +8,7 @@ import { Logo } from '@/components/Logo';
 import { UserAvatar } from '@/components/UserAvatar';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
+import DownloadAppModal from '@/components/DownloadAppModal';
 
 export const Header = () => {
   const location = useLocation();
@@ -16,6 +17,7 @@ export const Header = () => {
   const { isAuthenticated, logout, user, hasUnreadMessages, unreadCount } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [unreadNotifs, setUnreadNotifs] = useState(0);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   useEffect(() => {
     setIsMenuOpen(false);
@@ -43,6 +45,7 @@ export const Header = () => {
   };
 
   return (
+    <>
     <header className="sticky top-0 z-50 w-full bg-white dark:bg-black border-none shadow-none transition-all duration-300 pt-safe">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between">
         {/* Brand Logo - Cohort */}
@@ -93,6 +96,16 @@ export const Header = () => {
               <BookOpen className="w-5 h-5 text-pink-500 dark:text-pink-400" />
               <span className="text-[8px] font-black tracking-wider leading-none mt-1 uppercase text-pink-500 dark:text-pink-400">UNCUT</span>
             </Link>
+            {/* Download App — desktop nav */}
+            <button
+              type="button"
+              onClick={() => setShowDownloadModal(true)}
+              title="Download App"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-violet-600 dark:text-violet-400 text-xs font-bold bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/25 hover:border-violet-500/50 rounded-full shadow-sm hover:shadow-violet-500/20 hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Download App</span>
+            </button>
           </div>
         )}
 
@@ -134,6 +147,17 @@ export const Header = () => {
                   </span>
                 )}
               </Link>
+              {/* Download App — mobile */}
+              <button
+                type="button"
+                onClick={() => setShowDownloadModal(true)}
+                title="Download App"
+                className="md:hidden flex items-center gap-1 px-2.5 py-1.5 text-violet-600 dark:text-violet-400 text-[10px] font-bold bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/25 hover:border-violet-500/50 rounded-full shadow-sm transition-all active:scale-95 cursor-pointer"
+                aria-label="Download App"
+              >
+                <Smartphone className="w-3 h-3" />
+                <span>Download</span>
+              </button>
             </>
           )}
 
@@ -252,5 +276,8 @@ export const Header = () => {
         )}
       </div>
     </header>
+
+    <DownloadAppModal isOpen={showDownloadModal} onClose={() => setShowDownloadModal(false)} />
+    </>
   );
 };
