@@ -18,7 +18,11 @@ import {
   CheckCircle,
   MessageCircle,
   Bookmark,
-  Share2
+  Share2,
+  Youtube,
+  Instagram,
+  Linkedin,
+  Mail
 } from 'lucide-react';
 import ShareModal from '@/components/ShareModal';
 import { Logo } from '@/components/Logo';
@@ -774,8 +778,16 @@ export default function Uncut() {
       />
 
       {/* --- HEARTFELT FOOTER --- */}
-      <footer className="max-w-4xl mx-auto px-4 mt-20 pt-8 border-t border-amber-900/10 dark:border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-neutral-500">
-        <span>Cohort Uncut © 2026. Real stories, honest vibes.</span>
+      <footer className="max-w-4xl mx-auto px-4 mt-20 pt-8 border-t border-amber-900/10 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold text-neutral-500">
+        <div className="flex flex-col gap-1.5 items-center sm:items-start">
+          <span>Cohort Uncut © 2026. Real stories, honest vibes.</span>
+          <div className="flex items-center gap-3 text-neutral-400">
+            <a href="https://www.youtube.com/@Cohortnow" target="_blank" rel="noopener noreferrer" className="hover:text-amber-600 dark:hover:text-white transition-colors" aria-label="YouTube"><Youtube className="w-4 h-4" /></a>
+            <a href="https://www.instagram.com/cohortnow?igsh=MXBtaW03Z3RuMmlubA==" target="_blank" rel="noopener noreferrer" className="hover:text-amber-600 dark:hover:text-white transition-colors" aria-label="Instagram"><Instagram className="w-4 h-4" /></a>
+            <a href="https://www.linkedin.com/company/cohortnow" target="_blank" rel="noopener noreferrer" className="hover:text-amber-600 dark:hover:text-white transition-colors" aria-label="LinkedIn"><Linkedin className="w-4 h-4" /></a>
+            <a href="mailto:cohortnow.online@gmail.com" className="hover:text-amber-600 dark:hover:text-white transition-colors" aria-label="Email"><Mail className="w-4 h-4" /></a>
+          </div>
+        </div>
         <div className="flex items-center gap-4">
           <Link to="/" className="hover:underline">Homepage</Link>
           <span className="h-3 w-px bg-neutral-300 dark:bg-neutral-800" />

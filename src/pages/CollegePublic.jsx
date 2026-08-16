@@ -10,7 +10,11 @@ import {
   ChevronRight, 
   Sparkles,
   Lock,
-  GraduationCap
+  GraduationCap,
+  Youtube,
+  Instagram,
+  Linkedin,
+  Mail
 } from 'lucide-react';
 import { COLLEGES } from '@/utils/colleges';
 import SEO from '@/components/SEO';
@@ -214,7 +218,16 @@ export default function CollegePublic() {
         {/* Page Footer */}
         <footer className="pt-xl border-t border-white/5 text-center text-xs text-neutral-600">
           <p>© {new Date().getFullYear()} Cohort Campus. All rights reserved.</p>
-          <div className="flex justify-center gap-md mt-sm">
+          
+          {/* Social Links */}
+          <div className="flex justify-center gap-4 mt-sm mb-sm text-neutral-500">
+            <a href="https://www.youtube.com/@Cohortnow" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors" aria-label="YouTube"><Youtube className="w-4 h-4" /></a>
+            <a href="https://www.instagram.com/cohortnow?igsh=MXBtaW03Z3RuMmlubA==" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors" aria-label="Instagram"><Instagram className="w-4 h-4" /></a>
+            <a href="https://www.linkedin.com/company/cohortnow" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors" aria-label="LinkedIn"><Linkedin className="w-4 h-4" /></a>
+            <a href="mailto:cohortnow.online@gmail.com" className="hover:text-white transition-colors" aria-label="Email"><Mail className="w-4 h-4" /></a>
+          </div>
+
+          <div className="flex justify-center gap-md mt-xs">
             <Link to="/about" className="hover:text-neutral-400 transition-colors">About</Link>
             <span>•</span>
             <Link to="/privacy" className="hover:text-neutral-400 transition-colors">Privacy Policy</Link>

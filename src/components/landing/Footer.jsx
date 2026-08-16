@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Github, Twitter, Instagram, Linkedin, Heart } from 'lucide-react';
+import { Youtube, Instagram, Linkedin, Mail, Heart } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 
 const footerLinks = {
@@ -29,10 +29,10 @@ const footerLinks = {
 };
 
 const socials = [
-  { icon: Twitter, href: '#', label: 'Twitter' },
-  { icon: Instagram, href: '#', label: 'Instagram' },
-  { icon: Linkedin, href: '#', label: 'LinkedIn' },
-  { icon: Github, href: '#', label: 'GitHub' },
+  { icon: Youtube, href: 'https://www.youtube.com/@Cohortnow', label: 'YouTube' },
+  { icon: Instagram, href: 'https://www.instagram.com/cohortnow?igsh=MXBtaW03Z3RuMmlubA==', label: 'Instagram' },
+  { icon: Linkedin, href: 'https://www.linkedin.com/company/cohortnow', label: 'LinkedIn' },
+  { icon: Mail, href: 'mailto:cohortnow.online@gmail.com', label: 'Email' },
 ];
 
 export default function Footer() {

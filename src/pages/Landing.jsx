@@ -27,7 +27,11 @@ import {
   Download,
   Smartphone,
   Bell,
-  Apple
+  Apple,
+  Youtube,
+  Instagram,
+  Linkedin,
+  Mail
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogoIcon, LogoText } from '@/components/Logo';
@@ -635,6 +639,89 @@ export default function Landing() {
           </BorderGlow>
         </div>
 
+        {/* --- COHORT SOCIAL MEDIA HANDLES SECTION --- */}
+        <div className="bg-neutral-900 border border-neutral-800 rounded-[32px] sm:rounded-[36px] p-6 sm:p-10 space-y-8 text-left">
+          <div>
+            <span className="text-xs font-mono uppercase bg-purple-500/20 text-purple-300 px-3.5 py-1.5 rounded-full border border-purple-500/30 font-bold">
+              Stay Connected
+            </span>
+            <h2 className="font-display font-black text-3xl sm:text-5xl mt-4 text-white">
+              Follow the Vibe
+            </h2>
+            <p className="text-xs sm:text-sm text-neutral-400 font-medium mt-2">
+              Catch the latest updates, stories, and campus conversations on our official handles.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* YouTube */}
+            <a 
+              href="https://www.youtube.com/@Cohortnow" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-6 rounded-3xl bg-neutral-950 border border-neutral-850 hover:border-red-500/50 hover:bg-red-500/5 transition-all space-y-3 block group"
+            >
+              <div className="w-10 h-10 rounded-2xl bg-red-500/15 text-red-500 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+                <Youtube className="w-5 h-5" />
+              </div>
+              <h3 className="font-extrabold text-base text-white group-hover:text-red-400 transition-colors">YouTube</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed font-medium">
+                Watch tutorials, feature breakdowns, and campus reactions.
+              </p>
+              <span className="text-xs text-red-500 font-bold block pt-1">@Cohortnow</span>
+            </a>
+
+            {/* Instagram */}
+            <a 
+              href="https://www.instagram.com/cohortnow?igsh=MXBtaW03Z3RuMmlubA==" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-6 rounded-3xl bg-neutral-950 border border-neutral-850 hover:border-pink-500/50 hover:bg-pink-500/5 transition-all space-y-3 block group"
+            >
+              <div className="w-10 h-10 rounded-2xl bg-pink-500/15 text-pink-500 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+                <Instagram className="w-5 h-5" />
+              </div>
+              <h3 className="font-extrabold text-base text-white group-hover:text-pink-400 transition-colors">Instagram</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed font-medium">
+                Catch daily student stories, announcements, and polls.
+              </p>
+              <span className="text-xs text-pink-500 font-bold block pt-1">@cohortnow</span>
+            </a>
+
+            {/* LinkedIn */}
+            <a 
+              href="https://www.linkedin.com/company/cohortnow" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-6 rounded-3xl bg-neutral-950 border border-neutral-850 hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all space-y-3 block group"
+            >
+              <div className="w-10 h-10 rounded-2xl bg-cyan-500/15 text-cyan-500 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+                <Linkedin className="w-5 h-5" />
+              </div>
+              <h3 className="font-extrabold text-base text-white group-hover:text-cyan-400 transition-colors">LinkedIn</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed font-medium">
+                Read business updates, placement insights, and news.
+              </p>
+              <span className="text-xs text-cyan-500 font-bold block pt-1">Cohort</span>
+            </a>
+
+            {/* Email */}
+            <a 
+              href="mailto:cohortnow.online@gmail.com" 
+              className="p-6 rounded-3xl bg-neutral-950 border border-neutral-850 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all space-y-3 block group"
+            >
+              <div className="w-10 h-10 rounded-2xl bg-purple-500/15 text-purple-500 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+                <Mail className="w-5 h-5" />
+              </div>
+              <h3 className="font-extrabold text-base text-white group-hover:text-purple-400 transition-colors">Email</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed font-medium">
+                Got questions or support requests? Get in touch with us.
+              </p>
+              <span className="text-xs text-purple-500 font-bold block pt-1">cohortnow.online@gmail.com</span>
+            </a>
+          </div>
+        </div>
+
         {/* --- BOTTOM CALL-TO-ACTION FIZZ PURPLE CARD --- */}
         <div className="rounded-[32px] sm:rounded-[40px] bg-gradient-to-r from-[#7C3AED] via-[#9333EA] to-[#C026D3] p-8 sm:p-14 text-center text-white shadow-2xl relative overflow-hidden border border-white/20 space-y-6">
           <div className="flex justify-center mb-2">
@@ -690,8 +777,16 @@ export default function Landing() {
           </div>
 
           {/* Footer links */}
-          <div className="pt-8 border-t border-white/20 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-white/80">
-            <span>Cohort Social Corp. © 2026</span>
+          <div className="pt-8 border-t border-white/20 flex flex-wrap items-center justify-between gap-6 text-xs font-semibold text-white/80">
+            <div className="flex flex-col gap-2">
+              <span>Cohort Social Corp. © 2026</span>
+              <div className="flex items-center gap-3 mt-1.5 text-white/60">
+                <a href="https://www.youtube.com/@Cohortnow" target="_blank" rel="noopener noreferrer" className="hover:text-red-500 transition-colors" aria-label="YouTube"><Youtube className="w-4.5 h-4.5" /></a>
+                <a href="https://www.instagram.com/cohortnow?igsh=MXBtaW03Z3RuMmlubA==" target="_blank" rel="noopener noreferrer" className="hover:text-pink-500 transition-colors" aria-label="Instagram"><Instagram className="w-4.5 h-4.5" /></a>
+                <a href="https://www.linkedin.com/company/cohortnow" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-500 transition-colors" aria-label="LinkedIn"><Linkedin className="w-4.5 h-4.5" /></a>
+                <a href="mailto:cohortnow.online@gmail.com" className="hover:text-purple-500 transition-colors" aria-label="Email"><Mail className="w-4.5 h-4.5" /></a>
+              </div>
+            </div>
             <div className="flex items-center gap-4">
               <button
                 type="button"
