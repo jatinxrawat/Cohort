@@ -85,7 +85,7 @@ export const KycVerificationModal = () => {
 
       // 2. Dispatch email via send-otp API
       const isMobileApp = Capacitor.isNativePlatform();
-      const apiUrl = isMobileApp ? `https://www.cohortnow.online/api/send-otp` : '/api/send-otp';
+      const apiUrl = isMobileApp ? `https://cohortnow.online/api/send-otp` : '/api/send-otp';
 
       const response = await fetch(apiUrl, {
         method: 'POST',
