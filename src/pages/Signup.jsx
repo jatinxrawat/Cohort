@@ -7,6 +7,7 @@ import { useNotification } from '@/contexts/NotificationContext';
 import SpecularButton from '@/components/SpecularButton';
 import Scanner from '@/components/Scanner';
 import SEO from '@/components/SEO';
+import { Capacitor } from '@capacitor/core';
 
 // Firebase imports
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -95,8 +96,7 @@ export default function Signup() {
     });
 
     // Call serverless send-otp API
-    const origin = window.location.origin;
-    const isMobileApp = origin.startsWith('capacitor://') || (origin.startsWith('http://localhost') && !window.location.port) || origin.startsWith('file://');
+    const isMobileApp = Capacitor.isNativePlatform();
     const apiUrl = isMobileApp ? `https://cohortnow.online/api/send-otp` : '/api/send-otp';
     
     const response = await fetch(apiUrl, {
@@ -489,7 +489,7 @@ export default function Signup() {
                   <div>
                     <input
                       type="text"
-                      placeholder={isSignup ? "University email address" : "Email or username"}
+                      placeholder={isSignup ? "Email address" : "Email or username"}
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       className={`w-full bg-black border ${

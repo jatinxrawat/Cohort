@@ -7,6 +7,7 @@ import { db } from '@/utils/firebase';
 import { isCollegeEmail, verifyEmailMatchesCollege, predictGenderFromName } from '@/utils/helpers';
 import { Button } from '@/components/Button';
 import { Building2, Mail, ShieldAlert, CheckCircle, RefreshCw, Sparkles, X, KeyRound, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 
 export const KycVerificationModal = () => {
   const { user, isKycModalOpen, closeKycModal, setKycVerified } = useAuth();
@@ -83,8 +84,7 @@ export const KycVerificationModal = () => {
       });
 
       // 2. Dispatch email via send-otp API
-      const origin = window.location.origin;
-      const isMobileApp = origin.startsWith('capacitor://') || (origin.startsWith('http://localhost') && !window.location.port) || origin.startsWith('file://');
+      const isMobileApp = Capacitor.isNativePlatform();
       const apiUrl = isMobileApp ? `https://cohortnow.online/api/send-otp` : '/api/send-otp';
 
       const response = await fetch(apiUrl, {

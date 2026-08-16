@@ -67,11 +67,11 @@ export const Layout = ({ children }) => {
   if (isLandingPage) {
     wrapperClass = "min-h-screen bg-neutral-950 font-sans overflow-x-hidden w-full";
   } else if (isAuthPage) {
-    wrapperClass = "h-screen w-screen overflow-hidden bg-black font-sans w-full";
+    wrapperClass = "h-screen w-screen overflow-hidden bg-black font-sans w-full pt-safe";
   } else {
     wrapperClass = `flex flex-col bg-white dark:bg-black ${
       isChatRoute
-        ? 'fixed inset-0 w-full h-full h-[100dvh] max-h-[100dvh] max-w-[100vw] z-10 overflow-hidden'
+        ? 'fixed inset-0 w-full h-full h-[100dvh] max-h-[100dvh] max-w-[100vw] z-10 overflow-hidden pt-safe'
         : 'min-h-screen'
     }`;
   }
