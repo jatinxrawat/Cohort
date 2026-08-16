@@ -93,7 +93,7 @@ const SpecularButton = ({
   const btnRef = useRef(null);
   const fxRef = useRef(null);
   const propsRef = useRef({});
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);

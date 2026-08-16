@@ -71,8 +71,8 @@ export default function CoffeeClub() {
       <div className="absolute top-60 right-1/4 w-64 h-64 bg-pink-500/5 dark:bg-pink-500/6 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-neutral-200/50 dark:border-neutral-800/50 bg-white/70 dark:bg-[#08080C]/70 backdrop-blur-xl pt-safe">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-50 border-b border-neutral-200/50 dark:border-neutral-800/50 bg-white/70 dark:bg-[#08080C]/70 backdrop-blur-xl pt-safe-header pb-4 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Logo className="w-7 h-7" />
             <Link
