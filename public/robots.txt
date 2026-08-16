@@ -1,31 +1,9 @@
 User-agent: *
 
-# Allow crawling of public-facing pages
+# Allow crawling of the site (so Googlebot can find public pages and read noindex tags on private pages)
 Allow: /
-Allow: /about
-Allow: /contact
-Allow: /help
-Allow: /privacy
-Allow: /terms
-Allow: /colleges/
-Allow: /login
-Allow: /signup
 
-# Disallow crawling of authentication and private dashboard spaces
-Disallow: /forgot-password
-Disallow: /home
-Disallow: /anonymous
-Disallow: /confessions
-Disallow: /community
-Disallow: /marketplace
-Disallow: /placement
-Disallow: /profile
-Disallow: /edit-profile
-Disallow: /saved-posts
-Disallow: /notifications
-Disallow: /messages
-Disallow: /make-friend
+# Disallow internal search query routes
 Disallow: /search
-Disallow: /settings
 
 Sitemap: https://www.cohortnow.online/sitemap.xml

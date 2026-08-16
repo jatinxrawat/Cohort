@@ -782,13 +782,13 @@ export default function Landing() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 md:backdrop-blur-md"
             >
               <motion.div
                 initial={{ opacity: 0, scale: 0.92, y: 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.92, y: 15 }}
-                transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
                 className="relative w-full max-w-sm bg-neutral-900 border border-purple-500/30 rounded-3xl p-6 shadow-2xl text-center space-y-5 overflow-hidden"
               >
                 {/* Glow Ambient Highlights */}
