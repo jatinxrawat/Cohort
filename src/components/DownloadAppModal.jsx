@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Smartphone, Bell, Check } from 'lucide-react';
 
 const AndroidIcon = (props) => (
@@ -13,26 +13,68 @@ const AppleIcon = (props) => (
   </svg>
 );
 
+
 export default function DownloadAppModal({ isOpen, onClose }) {
   const [notifyLaunch, setNotifyLaunch] = useState(true);
+  const [shouldRender, setShouldRender] = useState(isOpen);
+  const [isVisible, setIsVisible] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      // Double rAF ensures standard browser paint cycle handles transitions perfectly
+      const rAF = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsVisible(true);
+        });
+      });
+      return () => cancelAnimationFrame(rAF);
+    } else {
+      setIsVisible(false);
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  if (!shouldRender) return null;
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      className={`fixed inset-0 z-[200] flex items-end sm:items-center justify-center transition-opacity duration-300 ease-out ${
+        isVisible ? 'opacity-100' : 'opacity-0'
+      }`}
     >
-      <div className="relative w-full max-w-sm bg-neutral-900 border border-purple-500/30 rounded-3xl p-6 shadow-2xl text-center space-y-5 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="absolute -top-16 -right-16 w-36 h-36 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 w-36 h-36 bg-sky-500/20 rounded-full blur-3xl pointer-events-none" />
+      {/* Background Backdrop with simple dark color on mobile, light blur on desktop */}
+      <div
+        className={`absolute inset-0 bg-black/75 transition-opacity duration-300 ${
+          isVisible ? 'opacity-100' : 'opacity-0'
+        } sm:backdrop-blur-sm`}
+        onClick={onClose}
+      />
+
+      {/* Content Container (Bottom Drawer on Mobile, Centered Modal on Desktop) */}
+      <div
+        className={`relative w-full sm:max-w-sm bg-neutral-950 border-t sm:border border-neutral-900 sm:border-purple-500/20 rounded-t-[2rem] sm:rounded-3xl p-6 pb-8 sm:p-6 shadow-2xl text-center space-y-5 overflow-hidden transition-all duration-300 ease-out will-change-transform bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-950/20 via-neutral-950 to-neutral-950 ${
+          isVisible 
+            ? 'translate-y-0 sm:scale-100 sm:opacity-100' 
+            : 'translate-y-full sm:translate-y-0 sm:scale-95 sm:opacity-0'
+        }`}
+      >
+        {/* Mobile Drag Indicator Handle */}
+        <div className="w-12 h-1 bg-neutral-800 rounded-full mx-auto sm:hidden mb-2" />
 
         <div className="flex items-center justify-between relative z-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-[10px] font-bold text-purple-300 uppercase tracking-wider">
             <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping" />
             <span>App Download Live</span>
           </div>
-          <button type="button" onClick={onClose} className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-full transition-colors cursor-pointer">
+          <button 
+            type="button" 
+            onClick={onClose} 
+            className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-full transition-colors cursor-pointer"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
