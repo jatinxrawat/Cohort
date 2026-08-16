@@ -70,8 +70,9 @@ export default async function handler(req, res) {
       }
     }
 
+    const senderEmail = (user === 'resend') ? 'no-reply@cohortnow.online' : user;
     const mailOptions = {
-      from: `"Cohort" <${user}>`,
+      from: `"Cohort" <${senderEmail}>`,
       to: email.trim(),
       subject: `${otp} is your Cohort verification code`,
       text: `Your Cohort verification code is: ${otp}. This code will expire in 10 minutes.`,
