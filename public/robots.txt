@@ -28,4 +28,4 @@ Disallow: /make-friend
 Disallow: /search
 Disallow: /settings
 
-Sitemap: https://cohortnow.online/sitemap.xml
+Sitemap: https://www.cohortnow.online/sitemap.xml
