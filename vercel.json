@@ -61,6 +61,19 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/((?!api/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.cohortnow.online"
+        }
+      ],
+      "destination": "https://cohortnow.online/$1",
+      "statusCode": 301
+    }
+  ],
   "rewrites": [
     {
       "source": "/uncut/:storyId",
