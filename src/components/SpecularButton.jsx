@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Renderer, Program, Mesh, Triangle, Color } from 'ogl';
 import './SpecularButton.css';
 
@@ -93,10 +93,19 @@ const SpecularButton = ({
   const btnRef = useRef(null);
   const fxRef = useRef(null);
   const propsRef = useRef({});
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   propsRef.current = { radius, lineColor, baseColor, intensity, shineSize, shineFade, thickness, speed, followMouse, proximity, autoAnimate, paused };
 
   useEffect(() => {
+    if (isMobile) return;
     const btn = btnRef.current;
     const fx = fxRef.current;
     if (!btn || !fx) return;
@@ -185,8 +194,6 @@ const SpecularButton = ({
     const lineC = new Color();
     const baseC = new Color();
 
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
     const update = now => {
       const p = propsRef.current;
       const effectiveAutoAnimate = p.autoAnimate && !isMobile;
@@ -231,7 +238,7 @@ const SpecularButton = ({
       if (gl.canvas.parentNode === fx) fx.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, []);
+  }, [isMobile]);
 
   return (
     <button
@@ -245,10 +252,14 @@ const SpecularButton = ({
         '--sb-tint': tint,
         '--sb-tint-opacity': tintOpacity,
         '--sb-blur': `${blur}px`,
-        '--sb-text-color': textColor
+        '--sb-text-color': textColor,
+        ...(isMobile ? {
+          backgroundColor: baseColor,
+          border: `1px solid ${lineColor}33`,
+        } : {})
       }}
     >
-      <span ref={fxRef} className="specular-button__fx" aria-hidden="true" />
+      {!isMobile && <span ref={fxRef} className="specular-button__fx" aria-hidden="true" />}
       <span className="specular-button__label">{children}</span>
     </button>
   );
