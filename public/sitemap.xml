@@ -20,7 +20,16 @@
   </url>
 
   <!-- Info Pages -->
-  
+  <url>
+    <loc>https://cohortnow.online/about</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://cohortnow.online/help</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
   <url>
     <loc>https://cohortnow.online/contact</loc>
     <priority>0.8</priority>
@@ -51,6 +60,21 @@
   </url>
   <url>
     <loc>https://cohortnow.online/uncut/seven-days-changed-us</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://cohortnow.online/uncut/3am-coffee-club</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://cohortnow.online/uncut/introvert-guide</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://cohortnow.online/uncut/unwritten-rules</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>

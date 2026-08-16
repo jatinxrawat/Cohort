@@ -9,7 +9,7 @@ export default function SEO({ title, description, image, type = 'website', noind
   const location = useLocation();
   
   // Enforce cohortnow.online as the preferred canonical domain
-  const canonicalUrl = `https://cohortnow.online${location.pathname === '/' ? '' : location.pathname}`;
+  const canonicalUrl = `https://cohortnow.online${location.pathname}`;
 
   useEffect(() => {
     // Helper utility to safely manage meta elements
