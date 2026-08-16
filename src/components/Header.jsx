@@ -9,6 +9,7 @@ import { UserAvatar } from '@/components/UserAvatar';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
 import DownloadAppModal from '@/components/DownloadAppModal';
+import { Capacitor } from '@capacitor/core';
 
 export const Header = () => {
   const location = useLocation();
@@ -97,15 +98,17 @@ export const Header = () => {
               <span className="text-[8px] font-black tracking-wider leading-none mt-1 uppercase text-pink-500 dark:text-pink-400">UNCUT</span>
             </Link>
             {/* Download App — desktop nav */}
-            <button
-              type="button"
-              onClick={() => setShowDownloadModal(true)}
-              title="Download App"
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-violet-600 dark:text-violet-400 text-xs font-bold bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/25 hover:border-violet-500/50 rounded-full shadow-sm hover:shadow-violet-500/20 hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span>Download App</span>
-            </button>
+            {!Capacitor.isNativePlatform() && (
+              <button
+                type="button"
+                onClick={() => setShowDownloadModal(true)}
+                title="Download App"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 text-violet-600 dark:text-violet-400 text-xs font-bold bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/25 hover:border-violet-500/50 rounded-full shadow-sm hover:shadow-violet-500/20 hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Download App</span>
+              </button>
+            )}
           </div>
         )}
 
@@ -148,16 +151,18 @@ export const Header = () => {
                 )}
               </Link>
               {/* Download App — mobile */}
-              <button
-                type="button"
-                onClick={() => setShowDownloadModal(true)}
-                title="Download App"
-                className="md:hidden flex items-center gap-1 px-2.5 py-1.5 text-violet-600 dark:text-violet-400 text-[10px] font-bold bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/25 hover:border-violet-500/50 rounded-full shadow-sm transition-all active:scale-95 cursor-pointer"
-                aria-label="Download App"
-              >
-                <Smartphone className="w-3 h-3" />
-                <span>Download</span>
-              </button>
+              {!Capacitor.isNativePlatform() && (
+                <button
+                  type="button"
+                  onClick={() => setShowDownloadModal(true)}
+                  title="Download App"
+                  className="md:hidden flex items-center gap-1 px-2.5 py-1.5 text-violet-600 dark:text-violet-400 text-[10px] font-bold bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/25 hover:border-violet-500/50 rounded-full shadow-sm transition-all active:scale-95 cursor-pointer"
+                  aria-label="Download App"
+                >
+                  <Smartphone className="w-3 h-3" />
+                  <span>Download</span>
+                </button>
+              )}
             </>
           )}
 

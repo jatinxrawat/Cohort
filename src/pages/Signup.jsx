@@ -97,7 +97,7 @@ export default function Signup() {
 
     // Call serverless send-otp API
     const isMobileApp = Capacitor.isNativePlatform();
-    const apiUrl = isMobileApp ? `https://cohortnow.online/api/send-otp` : '/api/send-otp';
+    const apiUrl = isMobileApp ? `https://www.cohortnow.online/api/send-otp` : '/api/send-otp';
     
     const response = await fetch(apiUrl, {
       method: 'POST',
