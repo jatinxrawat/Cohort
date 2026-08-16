@@ -88,12 +88,28 @@
   <body class="bg-white dark:bg-black text-neutral-900 dark:text-neutral-50">
     <div id="root">
       <!-- Loading and Crawler Fallback State -->
-      <div style="padding: 2.5rem 1.5rem; text-align: center; font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; color: #a3a3a3; background-color: #08080C; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box;">
+      <div class="loading-fallback">
         <h1 style="color: #ffffff; font-size: 2.25rem; font-weight: 800; letter-spacing: -0.025em; margin: 0 0 0.5rem 0;">Cohort</h1>
         <p style="margin: 0 0 2rem 0; font-size: 1.125rem; max-width: 500px; line-height: 1.6;">Connecting you to your campus social media, events, confessions, and student communities.</p>
         <div style="display: inline-block; width: 32px; height: 32px; border: 3.5px solid rgba(255, 42, 133, 0.2); border-radius: 50%; border-top-color: #FF2A85; animation: spin 0.8s linear infinite;"></div>
         <style>
+          .loading-fallback {
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #a3a3a3;
+            background-color: #08080C;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+            opacity: 0;
+            animation: fadeIn 0.4s ease-in-out 0.6s forwards;
+          }
           @keyframes spin { to { transform: rotate(360deg); } }
+          @keyframes fadeIn { to { opacity: 1; } }
         </style>
       </div>
     </div>
