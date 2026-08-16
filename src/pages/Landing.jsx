@@ -104,6 +104,15 @@ export default function Landing() {
 
   const isModalOpen = showDownloadModal || isAllFeaturesModalOpen;
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Confession state
   const [localConfessions] = useState([
     { text: "I've been using ChatGPT to write all my weekly email check-ins to my advisor and today he told me my writing style is 'deeply poetic'. 😭", likes: 89, time: 'Just now', user: 'Anonymous Coping' }
@@ -154,13 +163,15 @@ export default function Landing() {
 
           {/* Desktop WebGL Aurora Background Layer (Hidden on Mobile) */}
           <div className="hidden md:block absolute inset-0 pointer-events-none opacity-65 z-0 overflow-hidden">
-            <Aurora
-              colorStops={["#7c3aed", "#c084fc", "#ec4899"]}
-              blend={0.6}
-              amplitude={1.2}
-              speed={0.6}
-              paused={isModalOpen}
-            />
+            {!isMobile && (
+              <Aurora
+                colorStops={["#7c3aed", "#c084fc", "#ec4899"]}
+                blend={0.6}
+                amplitude={1.2}
+                speed={0.6}
+                paused={isModalOpen}
+              />
+            )}
           </div>
 
           {/* --- HEADER NAVBAR INSIDE HERO CARD --- */}
