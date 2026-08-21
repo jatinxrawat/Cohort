@@ -73,5 +73,21 @@ export const COLLEGES = [
       { name: "SDA Market Chai Session", time: "Tonight at 9 PM", RSVPs: 220 },
       { name: "LHC Coding Battle", time: "Saturday at 2 PM", RSVPs: 180 }
     ]
+  },
+  {
+    id: 'maseno',
+    name: 'Maseno University, Kenya',
+    short: 'Maseno',
+    color: '#059669',
+    tagline: 'Fountain of excellence along the Equator.',
+    confessions: [
+      { text: "Crossing the Equator line between lectures just to see if time actually feels different. 🌍", likes: 312, comments: 24, time: '10m ago' },
+      { text: "Siriba campus breeze during evening revision hits different. Late night discussions at the library are undefeated.", likes: 215, comments: 19, time: '1h ago' }
+    ],
+    events: [
+      { name: "Equator Cultural Night & Live Music", time: "Friday at 7 PM", RSVPs: 280 },
+      { name: "Kisumu Tech & Innovation Summit", time: "Saturday at 10 AM", RSVPs: 165 }
+    ]
   }
 ];
+

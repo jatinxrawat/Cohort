@@ -94,6 +94,7 @@ export const verifyEmailMatchesCollege = (email, collegeName, universityName = '
     'ashoka university': ['ashoka.edu.in'],
     'srm': ['srmist.edu.in', 'srmuniv.ac.in'],
     'galgotias': ['galgotiasuniversity.edu.in', 'galgotiascolleges.edu', 'galgotias.edu.in'],
+    'maseno': ['maseno.ac.ke'],
   };
 
   const collegeLower = collegeName.toLowerCase();

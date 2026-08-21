@@ -40,6 +40,8 @@ export default function CollegePublic() {
       'kiet': 'KIET Group of Institutions',
       'amity-noida': 'Amity University Noida',
       'iit-delhi': 'IIT Delhi',
+      'maseno': 'Maseno University, Kenya',
+      'maseno-university': 'Maseno University, Kenya',
     };
 
     const name = slugMap[cid] || cid.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');

@@ -385,5 +385,9 @@ export const INDIAN_COLLEGES = [
   "NIT Hamirpur - National Institute of Technology",
   "HPU - Himachal Pradesh University, Shimla",
   "Shoolini University, Solan",
-  "Jaypee University of Information Technology (JUIT), Waknaghat"
+  "Jaypee University of Information Technology (JUIT), Waknaghat",
+
+  // --- INTERNATIONAL UNIVERSITIES ---
+  "Maseno University, Kenya"
 ];
+

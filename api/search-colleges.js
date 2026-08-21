@@ -10,7 +10,8 @@ const POPULAR_COLLEGES = [
   { name: 'Manipal Academy of Higher Education', university: 'MAHE', state: 'Karnataka', district: 'Udupi', location: 'Manipal, Karnataka' },
   { name: 'Ashoka University', university: 'Ashoka University', state: 'Haryana', district: 'Sonipat', location: 'Sonipat, Haryana' },
   { name: 'SRM Institute of Science and Technology', university: 'SRM University', state: 'Tamil Nadu', district: 'Chennai', location: 'Chennai, Tamil Nadu' },
-  { name: 'Delhi School of Economics', university: 'Delhi University', state: 'Delhi', district: 'Delhi', location: 'Delhi' }
+  { name: 'Delhi School of Economics', university: 'Delhi University', state: 'Delhi', district: 'Delhi', location: 'Delhi' },
+  { name: 'Maseno University', university: 'Maseno University', state: 'Kenya', district: 'Kisumu', location: 'Kisumu, Kenya' }
 ];
 
 export default async function handler(req, res) {
