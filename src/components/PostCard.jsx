@@ -83,16 +83,30 @@ export const ExpandableCaption = ({ text, maxLength = 200, className = '' }) => 
   );
 };
 
-export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
+export const PostCard = ({
+  post,
+  onVote,
+  onRepost,
+  onSave,
+  isHighlighted,
+  autoOpenComments = false,
+  highlightedCommentId = null
+}) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showSuccess } = useNotification();
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(autoOpenComments || Boolean(highlightedCommentId));
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState([]);
   const [replyingToComment, setReplyingToComment] = useState(null);
   const [expandedReplies, setExpandedReplies] = useState({});
   const commentInputRef = useRef(null);
+
+  useEffect(() => {
+    if (autoOpenComments || highlightedCommentId) {
+      setShowComments(true);
+    }
+  }, [autoOpenComments, highlightedCommentId]);
 
   const [showPostMenu, setShowPostMenu] = useState(false);
   const [isEditingPost, setIsEditingPost] = useState(false);
@@ -533,6 +547,25 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
     return () => unsubscribe();
   }, [post?.id, post?.docId]);
 
+  // Auto-scroll and highlight target comment when navigated from notification
+  useEffect(() => {
+    if (highlightedCommentId && comments.length > 0) {
+      setShowComments(true);
+      const targetComment = comments.find(c => c.id === highlightedCommentId);
+      if (targetComment && targetComment.parentId) {
+        // Expand the parent comment's replies accordion if nested
+        setExpandedReplies(prev => ({ ...prev, [targetComment.parentId]: true }));
+      }
+      const scrollTimer = setTimeout(() => {
+        const commentEl = document.getElementById(`comment-${highlightedCommentId}`);
+        if (commentEl) {
+          commentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
+      return () => clearTimeout(scrollTimer);
+    }
+  }, [highlightedCommentId, comments]);
+
   const toggleReplies = (parentCommentId) => {
     setExpandedReplies(prev => ({
       ...prev,
@@ -631,7 +664,8 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
           senderAvatar: user.avatar,
           type: 'like',
           text: `liked your comment: "${targetComment.text?.slice(0, 30)}..."`,
-          postId: postId
+          postId: postId,
+          commentId: commentId
         });
       }
     } catch (err) {
@@ -714,7 +748,7 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
       };
 
       try {
-        await addDoc(collection(db, 'posts', postId, 'comments'), commentData);
+        const newCommentRef = await addDoc(collection(db, 'posts', postId, 'comments'), commentData);
 
         const postRef = doc(db, 'posts', postId);
         await updateDoc(postRef, {
@@ -732,7 +766,8 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
             senderAvatar: user?.avatar,
             type: 'reply',
             text: `commented: "${textToSend.slice(0, 35)}${textToSend.length > 35 ? '...' : ''}"`,
-            postId: postId
+            postId: postId,
+            commentId: newCommentRef.id
           });
         }
 
@@ -750,7 +785,8 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
             senderAvatar: user?.avatar,
             type: 'reply',
             text: `replied to your comment: "${textToSend.slice(0, 35)}${textToSend.length > 35 ? '...' : ''}"`,
-            postId: postId
+            postId: postId,
+            commentId: newCommentRef.id
           });
         }
       } catch (err) {
@@ -1248,7 +1284,15 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
                 const likeCount = c.likes || (c.likedBy ? c.likedBy.length : 0);
 
                 return (
-                  <div key={c.id} className="group/comment space-y-sm">
+                  <div
+                    key={c.id}
+                    id={`comment-${c.id}`}
+                    className={`group/comment space-y-sm rounded-xl p-2 transition-all duration-500 ${
+                      highlightedCommentId === c.id
+                        ? 'bg-purple-500/10 ring-2 ring-purple-500/60 dark:ring-purple-400/60 shadow-sm'
+                        : ''
+                    }`}
+                  >
                     {/* Top Level Comment Item */}
                     <div className="flex items-start justify-between gap-md">
                       <div className="flex items-start gap-md flex-1 min-w-0">
@@ -1342,10 +1386,15 @@ export const PostCard = ({ post, onVote, onRepost, onSave, isHighlighted }) => {
                                 return (
                                   <motion.div
                                     key={r.id}
+                                    id={`comment-${r.id}`}
                                     initial={{ opacity: 0, y: 5 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
-                                    className="flex items-start justify-between gap-md group/reply"
+                                    className={`flex items-start justify-between gap-md group/reply rounded-xl p-1.5 transition-all duration-500 ${
+                                      highlightedCommentId === r.id
+                                        ? 'bg-purple-500/10 ring-2 ring-purple-500/60 dark:ring-purple-400/60 shadow-sm'
+                                        : ''
+                                    }`}
                                   >
                                     <div className="flex items-start gap-sm flex-1 min-w-0">
                                       <UserAvatar

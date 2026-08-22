@@ -40,6 +40,8 @@ export default function Home() {
   const { postId: paramPostId } = useParams();
   const [searchParams] = useSearchParams();
   const targetPostId = paramPostId || searchParams.get('post');
+  const targetCommentId = searchParams.get('comment');
+  const autoOpenComments = searchParams.get('openComments') === 'true' || Boolean(targetCommentId);
   
   const [posts, setPosts] = useState([]);
   const [feedType, setFeedType] = useState('public');
@@ -47,27 +49,39 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [highlightedPostId, setHighlightedPostId] = useState(null);
 
-  // Trigger subtle corner highlight (0.7s) and smooth scroll for shared post
+  // Auto-switch feed if needed, trigger corner highlight and smooth scroll for target post
   useEffect(() => {
     if (targetPostId) {
+      if (posts.length > 0) {
+        const found = posts.find(p => p.id === targetPostId || p.docId === targetPostId);
+        if (found) {
+          const isCollegeOnly = found.audience === 'college_only' || found.visibility === 'college_only';
+          if (isCollegeOnly && feedType !== 'college') {
+            setFeedType('college');
+          } else if (!isCollegeOnly && feedType !== 'public') {
+            setFeedType('public');
+          }
+        }
+      }
+
       setHighlightedPostId(targetPostId);
       const timer = setTimeout(() => {
         setHighlightedPostId(null);
-      }, 700);
+      }, 3000);
 
       const scrollTimer = setTimeout(() => {
         const el = document.getElementById(`post-${targetPostId}`);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-      }, 150);
+      }, 200);
 
       return () => {
         clearTimeout(timer);
         clearTimeout(scrollTimer);
       };
     }
-  }, [targetPostId]);
+  }, [targetPostId, posts]);
 
   // Image & Attachment Upload States
   const [imageFile, setImageFile] = useState(null);
@@ -376,6 +390,9 @@ export default function Home() {
 
   const userCollege = user?.college || 'KIET';
   const displayedPosts = posts.filter(post => {
+    const isTarget = (post.id === targetPostId || post.docId === targetPostId);
+    if (isTarget) return true;
+
     const postCollege = post.college || post.author?.college || post.author?.role;
     const cleanPost = postCollege ? String(postCollege).toLowerCase().trim() : '';
     const cleanUser = String(userCollege).toLowerCase().trim();
@@ -623,16 +640,21 @@ export default function Home() {
             </div>
           ) : displayedPosts.length > 0 ? (
             <div>
-              {displayedPosts.map(post => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onVote={handleVote}
-                  onRepost={handleRepost}
-                  onSave={handleSave}
-                  isHighlighted={highlightedPostId === post.id || highlightedPostId === post.docId}
-                />
-              ))}
+              {displayedPosts.map(post => {
+                const isTarget = targetPostId === post.id || targetPostId === post.docId;
+                return (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onVote={handleVote}
+                    onRepost={handleRepost}
+                    onSave={handleSave}
+                    isHighlighted={highlightedPostId === post.id || highlightedPostId === post.docId}
+                    autoOpenComments={isTarget && autoOpenComments}
+                    highlightedCommentId={isTarget ? targetCommentId : null}
+                  />
+                );
+              })}
             </div>
           ) : (
             <Card className="text-center py-5xl">

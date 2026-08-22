@@ -118,6 +118,58 @@ export default function Notifications() {
     }
   };
 
+  const handleNotificationClick = (notif) => {
+    handleMarkAsRead(notif.id);
+
+    // 1. Post or Comment related notifications
+    if (notif.postId) {
+      const isCommentNotif =
+        notif.type === 'reply' ||
+        Boolean(notif.commentId) ||
+        (notif.text && (notif.text.toLowerCase().includes('comment') || notif.text.toLowerCase().includes('replied')));
+
+      if (isCommentNotif) {
+        navigate(`/home?post=${notif.postId}&openComments=true${notif.commentId ? `&comment=${notif.commentId}` : ''}`);
+      } else {
+        navigate(`/home?post=${notif.postId}`);
+      }
+      return;
+    }
+
+    // 2. Make-a-friend swipes
+    if (notif.text && notif.text.toLowerCase().includes('swiped')) {
+      navigate('/make-friend');
+      return;
+    }
+
+    // 3. Community invitations
+    if (notif.type === 'community_invite' || notif.communityId) {
+      navigate('/community');
+      return;
+    }
+
+    // 4. Follow alerts
+    if (notif.type === 'follow' && notif.senderUid) {
+      navigate(`/profile?uid=${notif.senderUid}`);
+      return;
+    }
+
+    // 5. Custom link if specified
+    if (notif.link) {
+      navigate(notif.link);
+      return;
+    }
+
+    // 6. User profile fallback
+    if (notif.senderUid) {
+      navigate(`/profile?uid=${notif.senderUid}`);
+      return;
+    }
+
+    // 7. Fallback to main home feed
+    navigate('/home');
+  };
+
   const handleMarkAllRead = async () => {
     setList(prev => prev.map(notif => ({ ...notif, read: true })));
     showSuccess('All notifications marked as read.');
@@ -303,19 +355,27 @@ export default function Notifications() {
                     transition={{ duration: 0.2 }}
                   >
                     <Card
-                      className={`w-full max-w-full overflow-hidden flex flex-col sm:flex-row sm:items-center gap-md sm:gap-lg hover:shadow-md cursor-pointer transition-all border-neutral-100 dark:border-neutral-800 relative group pb-12 sm:pb-md ${
+                      className={`w-full max-w-full overflow-hidden flex flex-col sm:flex-row sm:items-center gap-md sm:gap-lg hover:shadow-md hover:border-purple-500/30 cursor-pointer transition-all border-neutral-100 dark:border-neutral-800 relative group pb-12 sm:pb-md ${
                         !notif.read ? 'border-l-4 border-l-primary-500 bg-primary-50/20 dark:bg-primary-950/20' : ''
                       }`}
-                      onClick={() => handleMarkAsRead(notif.id)}
+                      onClick={() => handleNotificationClick(notif)}
                     >
                       {/* Avatar & Text content wrapper */}
                       <div className="flex items-start gap-md sm:gap-lg flex-1 min-w-0 pr-xl">
                         {/* Avatar with type badge overlay */}
-                        <div className="relative flex-shrink-0">
+                        <div
+                          className="relative flex-shrink-0 cursor-pointer"
+                          onClick={(e) => {
+                            if (notif.senderUid) {
+                              e.stopPropagation();
+                              navigate(`/profile?uid=${notif.senderUid}`);
+                            }
+                          }}
+                        >
                           <UserAvatar
                             src={notif.senderAvatar}
                             name={notif.senderName || 'Student'}
-                            className="w-11 h-11 rounded-full object-cover"
+                            className="w-11 h-11 rounded-full object-cover hover:ring-2 hover:ring-primary-500 transition-all"
                           />
                           <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ${style.bg} ${style.color} ring-2 ring-white dark:ring-neutral-900`}>
                             <Icon className="w-3 h-3" />

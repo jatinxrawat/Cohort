@@ -12,6 +12,7 @@ export const createNotification = async ({
   type, // 'follow' | 'reply' | 'like' | 'reshare' | 'system' | 'community_invite'
   text,
   postId = null,
+  commentId = null,
   communityId = null,
   communityName = null
 }) => {
@@ -26,6 +27,7 @@ export const createNotification = async ({
       type: type || 'system',
       text: text || '',
       postId: postId || null,
+      commentId: commentId || null,
       communityId: communityId || null,
       communityName: communityName || null,
       read: false,
